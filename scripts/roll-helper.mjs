@@ -41,10 +41,10 @@ function _formatDamageFormulaForUi(formula, actor) {
   let s = raw;
 
   // сначала "dX..." (без ведущего числа)
-  s = s.replace(/^\s*d(\d+)\b/i, `${mastery}d$1`);
+  s = s.replace(/^\s*d(\d+)/i, `${mastery}d$1`);
 
-  // затем "1dX..."
-  s = s.replace(/^\s*1d(\d+)\b/i, `${mastery}d$1`);
+  // затем "1dX..." (поддержка модификаторов вроде kh1, kl1)
+  s = s.replace(/^\s*1d(\d+)/i, `${mastery}d$1`);
 
   return s.trim();
 }
