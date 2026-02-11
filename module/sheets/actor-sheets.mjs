@@ -1257,6 +1257,7 @@ if (formatted) otherMods.push({ label: formatted, value: "" });
 
       const statusImg = String(def?.img ?? it?.img ?? "icons/svg/aura.svg");
 
+      const isStatusItem = it.type === "status";
       activeStatuses.push({
         img: statusImg,
         name: String(def.name ?? "Статус"),
@@ -1264,6 +1265,9 @@ if (formatted) otherMods.push({ label: formatted, value: "" });
         sourceName: it.name,
         textHTML,
         traitMods,
+        isStatusItem,
+        statusItemId: isStatusItem ? it.id : null,
+        statusItemActorId: isStatusItem ? this.actor.id : null,
       });
     }
   }
@@ -1388,9 +1392,10 @@ if (formatted) otherMods.push({ label: formatted, value: "" });
 
   activeStatuses.sort((a, b) => {
     const group = (s) => {
-      if (s.isActorStatus) return 0;
-      if (s.isApplied) return 1;
-      return 2;
+      if (s.isStatusItem) return 0;
+      if (s.isActorStatus) return 1;
+      if (s.isApplied) return 2;
+      return 3;
     };
 
     const g = group(a) - group(b);
@@ -3299,7 +3304,8 @@ if (!dropped || (
   dropped.type !== "weapon" &&
   dropped.type !== "armor" &&
   dropped.type !== "gear" &&
-  dropped.type !== "relic"
+  dropped.type !== "relic" &&
+  dropped.type !== "status"
 )) {
   return super._onDrop?.(event);
 }

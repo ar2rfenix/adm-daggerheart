@@ -36,7 +36,27 @@
                   {{s.name}}
                 </div>
 
-                {{#if s.isActorStatus}}
+                {{#if s.isStatusItem}}
+                  <div class="adm-actor-status-actions" style="flex:0 0 auto; white-space:nowrap;">
+                    <button type="button"
+                            class="adm-actor-status-btn"
+                            data-action="adm-status-item-edit"
+                            data-actor-id="{{s.statusItemActorId}}"
+                            data-item-id="{{s.statusItemId}}"
+                            title="Редактировать">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+
+                    <button type="button"
+                            class="adm-actor-status-btn"
+                            data-action="adm-status-item-del"
+                            data-actor-id="{{s.statusItemActorId}}"
+                            data-item-id="{{s.statusItemId}}"
+                            title="Удалить">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                {{else if s.isActorStatus}}
                   <div class="adm-actor-status-actions" style="flex:0 0 auto; white-space:nowrap;">
                     <button type="button"
                             class="adm-actor-status-btn"

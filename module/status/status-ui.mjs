@@ -109,6 +109,35 @@ function _installGlobalDelegatedHandlers() {
       if (!btn) return;
 
       const action = btn.dataset.action;
+
+      // --- status item on actor: edit / delete ---
+      if (action === "adm-status-item-edit" || action === "adm-status-item-del") {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const actorId = btn.dataset.actorId;
+        const itemId = btn.dataset.itemId;
+        if (!actorId || !itemId) return;
+        const actor = game.actors?.get(actorId);
+        if (!actor) return;
+        const item = actor.items?.get(itemId);
+        if (!item) return;
+
+        if (action === "adm-status-item-edit") {
+          item.sheet?.render(true);
+          return;
+        }
+
+        // delete
+        const ok = await Dialog.confirm({
+          title: "Удалить статус",
+          content: `<p>Удалить предмет-статус «${foundry.utils.escapeHTML(item.name || "")}»?</p>`,
+          defaultYes: false,
+        });
+        if (!ok) return;
+        await actor.deleteEmbeddedDocuments("Item", [itemId]);
+        return;
+      }
+
       if (
         action !== "adm-status-add" &&
         action !== "adm-status-edit" &&
