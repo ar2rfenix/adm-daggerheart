@@ -290,6 +290,8 @@ export async function admDamageRollToChat(damageFormula, damageType, targets, is
   const bg = "linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%)";
   const dice = _buildDamageDiceRow(rolledDice, extraDice);
 
+  const verticalMod = (rolledDice.length + extraDice.length) > 4;
+
   const data = {
     bg,
     damageTotal,
@@ -302,6 +304,7 @@ export async function admDamageRollToChat(damageFormula, damageType, targets, is
     hitTargets,
     missTargets,
     halfToMissed: false,
+    verticalMod,
   };
 
   const html = await renderTemplate(
@@ -370,6 +373,8 @@ async function _rerenderDmgMessage(message, flagsState) {
   const bg = "linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%)";
   const dice = _buildDamageDiceRow(s.rolledDice, s.extraDice);
 
+  const verticalMod = (s.rolledDice.length + s.extraDice.length) > 4;
+
   const data = {
     bg,
     damageTotal,
@@ -382,6 +387,7 @@ async function _rerenderDmgMessage(message, flagsState) {
     hitTargets: s.hitTargets,
     missTargets: s.missTargets,
     halfToMissed: !!s.halfToMissed,
+    verticalMod,
   };
 
   const html = await renderTemplate(

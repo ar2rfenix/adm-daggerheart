@@ -1020,15 +1020,20 @@ position: absolute;
   text-align: center;
 }
 
-/* Damage message: mod wrap vertical (input on top, ± below) */
-.adm-rollmsg--dmg .adm-rollmsg-modwrap{
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+/* Damage message: mod wrap layout */
+.adm-rollmsg--dmg .adm-rollmsg-row{
+  padding-right: 100px;
 }
 
-.adm-rollmsg--dmg .adm-rollmsg-row{
+/* Compact: ± under input when >4 dice */
+.adm-rollmsg--dmg .adm-dmg-row--compact{
   padding-right: 65px;
+}
+
+.adm-rollmsg--dmg .adm-modwrap--vertical{
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 4px;
 }
 
 /* Кости урона: серые */

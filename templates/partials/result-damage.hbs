@@ -7,7 +7,7 @@
     </div>
 
     {{!-- Блок 2: кубики + модификатор --}}
-    <div class="adm-rollmsg-row">
+    <div class="adm-rollmsg-row {{#if verticalMod}}adm-dmg-row--compact{{/if}}">
       <div class="adm-rollmsg-dice">
         {{#each dice as |d|}}
           <div class="adm-rollmsg-die adm-rollmsg-die--{{d.kind}} {{#if d.isNeg}}is-neg{{/if}}"
@@ -18,15 +18,7 @@
           </div>
         {{/each}}
 
-        <div class="adm-rollmsg-modwrap">
-          <input class="adm-rollmsg-modinput"
-                 type="text"
-                 value="{{modTotal}}"
-                 data-adm-modinput
-                 inputmode="text"
-                 autocomplete="off"
-                 spellcheck="false" />
-
+        <div class="adm-rollmsg-modwrap {{#if verticalMod}}adm-modwrap--vertical{{/if}}">
           <div class="adm-rollmsg-modbtn adm-has-tooltip"
                data-adm-modbtn
                data-tooltip="ЛКМ +Кость | ПКМ -Кость">
@@ -34,6 +26,14 @@
                   style="--adm-die-svg: url('{{d8Svg}}'); --adm-die-color: rgba(255,255,255,.22);"></span>
             <div class="adm-rollmsg-modbtn-text">±</div>
           </div>
+
+          <input class="adm-rollmsg-modinput"
+                 type="text"
+                 value="{{modTotal}}"
+                 data-adm-modinput
+                 inputmode="text"
+                 autocomplete="off"
+                 spellcheck="false" />
         </div>
       </div>
     </div>
