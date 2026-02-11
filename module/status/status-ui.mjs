@@ -182,11 +182,19 @@ function _installGlobalDelegatedHandlers() {
       if (action === "adm-status-item-edit" || action === "adm-status-item-del") {
         ev.preventDefault();
         ev.stopPropagation();
+        const actorUuid = btn.dataset.actorUuid;
         const actorId = btn.dataset.actorId;
         const itemId = btn.dataset.itemId;
-        if (!actorId || !itemId) return;
-        const actor = game.actors?.get(actorId);
+        if (!itemId) return;
+
+        // Resolve actor: prefer UUID (works for synthetic token actors), fallback to ID
+        let actor = null;
+        if (actorUuid) {
+          try { actor = await fromUuid(actorUuid); } catch (_e) {}
+        }
+        if (!actor && actorId) actor = game.actors?.get(actorId) ?? null;
         if (!actor) return;
+
         const item = actor.items?.get(itemId);
         if (!item) return;
 

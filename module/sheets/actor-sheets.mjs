@@ -1268,6 +1268,7 @@ if (formatted) otherMods.push({ label: formatted, value: "" });
         isStatusItem,
         statusItemId: isStatusItem ? it.id : null,
         statusItemActorId: isStatusItem ? this.actor.id : null,
+        statusItemActorUuid: isStatusItem ? this.actor.uuid : null,
       });
     }
   }
