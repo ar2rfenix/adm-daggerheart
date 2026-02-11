@@ -219,6 +219,9 @@ function _computeTargetView(t, baseDmg, damageType, isHalf, isMissTarget = false
     dmg = resDmg;
   }
 
+  // Apply flat modifier (±N from per-target scroll)
+  if (t.flatMod && !t.excluded) dmg = Math.max(0, dmg + t.flatMod);
+
   t.dmg = dmg;
   t.dmgColor = t.excluded ? "" : _dmgColorClass(res.kind);
 }
@@ -271,6 +274,7 @@ export async function admDamageRollToChat(damageFormula, damageType, targets, is
       ok: t.ok,
       override: null,
       excluded: false,
+      flatMod: 0,
       resMultiplier: res.multiplier,
       resKind: res.kind,
       dmg: 0,
@@ -290,7 +294,7 @@ export async function admDamageRollToChat(damageFormula, damageType, targets, is
   const bg = "linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%)";
   const dice = _buildDamageDiceRow(rolledDice, extraDice);
 
-  const verticalMod = (rolledDice.length + extraDice.length) > 4;
+  const verticalMod = (rolledDice.length + extraDice.length) > 5;
 
   const data = {
     bg,
@@ -373,7 +377,7 @@ async function _rerenderDmgMessage(message, flagsState) {
   const bg = "linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%)";
   const dice = _buildDamageDiceRow(s.rolledDice, s.extraDice);
 
-  const verticalMod = (s.rolledDice.length + s.extraDice.length) > 4;
+  const verticalMod = (s.rolledDice.length + s.extraDice.length) > 5;
 
   const data = {
     bg,
@@ -548,6 +552,126 @@ function _openModMenu(anchor, isNeg, callback) {
 }
 
 // -------------------------
+// Target damage menu (×2, ÷2, 0, ±0 scroll, Сброс) — supports multi-select
+// -------------------------
+function _openTargetDmgMenu(anchorEl, message, state, targetTokenIds) {
+  _closeDmgMenu();
+
+  const rect = anchorEl.getBoundingClientRect();
+  const menu = document.createElement("div");
+  menu.id = __ADM_DMG_MENU_ID;
+  menu.className = "adm-rollmsg-modmenu";
+
+  const allTargets = [...(state.hitTargets ?? []), ...(state.missTargets ?? [])];
+  const selectedTargets = allTargets.filter(x => targetTokenIds.includes(x.tokenId));
+  const refFlatMod = selectedTargets[0]?.flatMod || 0;
+
+  const baseFlatMods = {};
+  for (const t of selectedTargets) baseFlatMods[t.tokenId] = t.flatMod || 0;
+
+  const overrideItems = [
+    { label: "×2", action: "x2" },
+    { label: "÷2", action: "half" },
+    { label: "0", action: "zero" },
+  ];
+
+  for (const item of overrideItems) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "adm-rollmsg-modmenu-item";
+    btn.textContent = item.label;
+    btn.addEventListener("click", async (ev) => {
+      ev.preventDefault(); ev.stopPropagation();
+      _closeDmgMenu();
+      const st = foundry.utils.duplicate(_getDmgFlagsState(message) ?? state);
+      for (const t of [...(st.hitTargets ?? []), ...(st.missTargets ?? [])]) {
+        if (targetTokenIds.includes(t.tokenId)) t.override = item.action;
+      }
+      await _rerenderDmgMessage(message, st);
+    });
+    menu.appendChild(btn);
+  }
+
+  // ±0 scroll item
+  const fmtFlat = (v) => v === 0 ? "±0" : (v > 0 ? `+${v}` : String(v));
+  const btnFlat = document.createElement("button");
+  btnFlat.type = "button";
+  btnFlat.className = "adm-rollmsg-modmenu-item adm-dmgmenu-flat";
+  btnFlat.textContent = fmtFlat(refFlatMod);
+
+  let localFlatMod = refFlatMod;
+  let debounceTimer = null;
+
+  btnFlat.addEventListener("wheel", (ev) => {
+    ev.preventDefault(); ev.stopPropagation();
+    const delta = ev.deltaY < 0 ? 1 : -1;
+    localFlatMod += delta;
+    btnFlat.textContent = fmtFlat(localFlatMod);
+
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      const freshState = _getDmgFlagsState(message);
+      if (!freshState) return;
+      const st = foundry.utils.duplicate(freshState);
+      const globalDelta = localFlatMod - refFlatMod;
+      for (const t of [...(st.hitTargets ?? []), ...(st.missTargets ?? [])]) {
+        if (targetTokenIds.includes(t.tokenId)) {
+          t.flatMod = (baseFlatMods[t.tokenId] ?? 0) + globalDelta;
+        }
+      }
+      await _rerenderDmgMessage(message, st);
+    }, 80);
+  }, { passive: false });
+
+  menu.appendChild(btnFlat);
+
+  // Сброс
+  const btnReset = document.createElement("button");
+  btnReset.type = "button";
+  btnReset.className = "adm-rollmsg-modmenu-item";
+  btnReset.textContent = "Сброс";
+  btnReset.addEventListener("click", async (ev) => {
+    ev.preventDefault(); ev.stopPropagation();
+    _closeDmgMenu();
+    const st = foundry.utils.duplicate(_getDmgFlagsState(message) ?? state);
+    for (const t of [...(st.hitTargets ?? []), ...(st.missTargets ?? [])]) {
+      if (targetTokenIds.includes(t.tokenId)) {
+        t.override = null;
+        t.flatMod = 0;
+      }
+    }
+    await _rerenderDmgMessage(message, st);
+  });
+  menu.appendChild(btnReset);
+
+  document.body.appendChild(menu);
+
+  const mrect = menu.getBoundingClientRect();
+  const left = Math.round(rect.left + rect.width / 2 - mrect.width / 2);
+  const top = Math.round(rect.top - mrect.height - 8);
+  menu.style.left = `${Math.max(8, left)}px`;
+  menu.style.top = `${Math.max(8, top)}px`;
+
+  globalThis.__admDmgMenuOpenV1 = { anchor: anchorEl };
+
+  const onDown = (ev) => {
+    if (ev.target === menu || menu.contains(ev.target)) return;
+    _closeDmgMenu();
+    document.removeEventListener("mousedown", onDown, true);
+    document.removeEventListener("keydown", onKey, true);
+  };
+  const onKey = (ev) => {
+    if (ev.key === "Escape") {
+      _closeDmgMenu();
+      document.removeEventListener("mousedown", onDown, true);
+      document.removeEventListener("keydown", onKey, true);
+    }
+  };
+  document.addEventListener("mousedown", onDown, true);
+  document.addEventListener("keydown", onKey, true);
+}
+
+// -------------------------
 // Pan to token helper
 // -------------------------
 async function _panToToken(tokenId, sceneId) {
@@ -567,6 +691,32 @@ async function _panToToken(tokenId, sceneId) {
 // Init: register all event handlers
 // -------------------------
 export function admDamageInit() {
+
+  // --- Ctrl+click on target => toggle selection (must be first for stopImmediatePropagation) ---
+  document.addEventListener("click", (ev) => {
+    if (!ev.ctrlKey && !ev.metaKey) return;
+
+    const targetEl = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-target[data-token-id]");
+    if (!targetEl) return;
+
+    // Don't interfere with exclude cross
+    if (ev.target?.closest?.("[data-adm-target-x]")) return;
+
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+
+    targetEl.classList.toggle("is-selected");
+  }, true);
+
+  // --- Click outside targets => clear selection ---
+  document.addEventListener("mousedown", (ev) => {
+    if (ev.ctrlKey || ev.metaKey) return;
+
+    const inTargets = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-targets");
+    if (inTargets) return;
+
+    document.querySelectorAll(".adm-dmg-target.is-selected").forEach(el => el.classList.remove("is-selected"));
+  }, false);
 
   // --- LMB on die => reroll ---
   document.addEventListener("click", async (ev) => {
@@ -781,7 +931,7 @@ export function admDamageInit() {
     ]);
   }, true);
 
-  // --- RMB on target damage => x2 / /2 / 0 menu ---
+  // --- RMB on target damage => override menu (supports multi-select) ---
   document.addEventListener("contextmenu", async (ev) => {
     const el = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-target-dmg[data-adm-target-dmg]");
     if (!el) return;
@@ -800,32 +950,17 @@ export function admDamageInit() {
 
     const tokenId = targetEl.dataset.tokenId;
 
-    _openDmgMenu(el, [
-      { label: "×2", callback: async () => {
-        const st = foundry.utils.duplicate(state);
-        const t = [...(st.hitTargets ?? []), ...(st.missTargets ?? [])].find(x => x.tokenId === tokenId);
-        if (t) t.override = "x2";
-        await _rerenderDmgMessage(message, st);
-      }},
-      { label: "÷2", callback: async () => {
-        const st = foundry.utils.duplicate(state);
-        const t = [...(st.hitTargets ?? []), ...(st.missTargets ?? [])].find(x => x.tokenId === tokenId);
-        if (t) t.override = "half";
-        await _rerenderDmgMessage(message, st);
-      }},
-      { label: "0", callback: async () => {
-        const st = foundry.utils.duplicate(state);
-        const t = [...(st.hitTargets ?? []), ...(st.missTargets ?? [])].find(x => x.tokenId === tokenId);
-        if (t) t.override = "zero";
-        await _rerenderDmgMessage(message, st);
-      }},
-      { label: "Сброс", callback: async () => {
-        const st = foundry.utils.duplicate(state);
-        const t = [...(st.hitTargets ?? []), ...(st.missTargets ?? [])].find(x => x.tokenId === tokenId);
-        if (t) t.override = null;
-        await _rerenderDmgMessage(message, st);
-      }},
-    ]);
+    // Multi-select: if this target is selected, apply to all selected
+    let targetTokenIds;
+    if (targetEl.classList.contains("is-selected")) {
+      const msgEl = el.closest(".chat-message[data-message-id]");
+      const selectedEls = msgEl?.querySelectorAll(".adm-dmg-target.is-selected[data-token-id]") ?? [];
+      targetTokenIds = [...selectedEls].map(e => e.dataset.tokenId);
+    } else {
+      targetTokenIds = [tokenId];
+    }
+
+    _openTargetDmgMenu(el, message, state, targetTokenIds);
   }, true);
 
   // --- LMB on target name => pan to token ---
@@ -940,6 +1075,7 @@ async function _refreshLastDmgTargets() {
       ok: true,
       override: null,
       excluded: false,
+      flatMod: 0,
       resMultiplier: res.multiplier,
       resKind: res.kind,
       dmg: Math.max(0, Math.floor(damageTotal * res.multiplier)),

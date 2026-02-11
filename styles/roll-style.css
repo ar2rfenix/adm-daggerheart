@@ -1025,7 +1025,7 @@ position: absolute;
   padding-right: 100px;
 }
 
-/* Compact: ± under input when >4 dice */
+/* Compact: ± under input when >5 dice */
 .adm-rollmsg--dmg .adm-dmg-row--compact{
   padding-right: 65px;
 }
@@ -1034,6 +1034,17 @@ position: absolute;
   flex-direction: column-reverse;
   align-items: center;
   gap: 4px;
+}
+
+/* Multi-select highlight on targets */
+.adm-dmg-target.is-selected{
+  background: rgba(255,255,255,.10);
+  border-radius: 4px;
+}
+
+/* ±0 scroll item cursor */
+.adm-dmgmenu-flat{
+  cursor: ns-resize;
 }
 
 /* Кости урона: серые */
