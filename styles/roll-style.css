@@ -601,6 +601,44 @@ position: absolute;
   background: #772424eb;
 }
 
+/* Crit damage button: shimmering iridescent animation */
+@keyframes adm-crit-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.adm-rollmsg--pc .adm-rollmsg-dmgbtn--crit{
+  background: linear-gradient(
+    110deg,
+    #990000 0%,
+    #cc2200 20%,
+    #ff6600 35%,
+    #ffcc00 50%,
+    #ff6600 65%,
+    #cc2200 80%,
+    #990000 100%
+  );
+  background-size: 200% 100%;
+  animation: adm-crit-shimmer 2s linear infinite;
+  border: 1px solid #ffcc00;
+  text-shadow: 0 0 6px rgba(255, 200, 0, .6);
+}
+
+.adm-rollmsg--pc .adm-rollmsg-dmgbtn--crit:hover{
+  background: linear-gradient(
+    110deg,
+    #aa1111 0%,
+    #dd3311 20%,
+    #ff7711 35%,
+    #ffdd22 50%,
+    #ff7711 65%,
+    #dd3311 80%,
+    #aa1111 100%
+  );
+  background-size: 200% 100%;
+  animation: adm-crit-shimmer 1.5s linear infinite;
+}
+
 
 /* ---------- extra dice (+/-) ---------- */
 .adm-rollmsg-die--mod{

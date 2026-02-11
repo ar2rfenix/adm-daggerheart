@@ -115,6 +115,40 @@ async function _rollDie(sides) {
 }
 
 // -------------------------
+// Crit damage: add max dice value to the modifier
+// "3d6+3" => "3d6+21" (max 3d6=18, 18+3=21)
+// "2d8"   => "2d8+16" (max 2d8=16)
+// -------------------------
+function _critDamageFormula(formula) {
+  const raw = String(formula || "").trim();
+  if (!raw) return raw;
+
+  // Собираем максимум всех NdS частей
+  let maxDice = 0;
+  const diceRe = /(\d*)d(\d+)/gi;
+  let m;
+  while ((m = diceRe.exec(raw)) !== null) {
+    const count = Math.max(1, parseInt(m[1], 10) || 1);
+    const sides = parseInt(m[2], 10) || 0;
+    maxDice += count * sides;
+  }
+
+  if (maxDice <= 0) return raw;
+
+  // Ищем завершающий числовой модификатор: "+3", "-2" и т.д.
+  const trailingMod = raw.match(/([+-]\s*\d+)\s*$/);
+  if (trailingMod) {
+    const modVal = parseInt(trailingMod[1].replace(/\s+/g, ""), 10) || 0;
+    const newMod = modVal + maxDice;
+    const prefix = raw.slice(0, trailingMod.index);
+    return `${prefix}+${newMod}`;
+  }
+
+  // Нет модификатора — просто добавляем
+  return `${raw}+${maxDice}`;
+}
+
+// -------------------------
 // Dice So Nice integration
 // -------------------------
 const _DSN_HOPE_APPEARANCE = {
@@ -779,6 +813,12 @@ async function _rerenderNpcMessage(message, flagsState) {
 
   const targets = _collectTargetsForUi(total, isCrit);
 
+  // Crit damage: подменяем формулу на кнопке при крите
+  const origDamage = String(s.weaponDamageText || "");
+  const shownDamageText = isCrit && origDamage
+    ? origDamage.replace(/^(Урон:\s*)(.+?)(\s*(?:физ\.|маг\.|прям\.)?)$/i, (_m, pre, formula, suf) => `${pre}${_critDamageFormula(formula)}${suf}`)
+    : origDamage;
+
   const data = {
     bg,
     usedExpsText: String(s.usedExpsText || ""),
@@ -788,8 +828,9 @@ async function _rerenderNpcMessage(message, flagsState) {
     total,
     resultLabel,
     targets,
-    weaponDamageText: String(s.weaponDamageText || ""),
+    weaponDamageText: shownDamageText,
     weaponAnimText: (isReaction ? "" : String(s.weaponAnimText || "")),
+    isCrit,
   };
 
   const html = await renderTemplate(
@@ -875,11 +916,17 @@ async function _rerenderPcMessage(message, flagsState) {
     extraDice: s.extraDice,
   });
 
+  // Crit damage: подменяем формулу на кнопке при крите
+  const origDamage = isReaction ? "" : String(s.weaponDamageText || "");
+  const shownDamageText = isCrit && origDamage
+    ? origDamage.replace(/^(Урон:\s*)(.+?)(\s*(?:физ\.|маг\.|прям\.)?)$/i, (_m, pre, formula, suf) => `${pre}${_critDamageFormula(formula)}${suf}`)
+    : origDamage;
+
   const data = {
     bg,
     weaponName: isReaction ? "" : String(s.weaponName || "").trim(),
     weaponUuid: isReaction ? "" : String(s.weaponUuid || "").trim(),
-    weaponDamageText: isReaction ? "" : String(s.weaponDamageText || ""),
+    weaponDamageText: shownDamageText,
     weaponAnimText: isReaction ? "" : String(s.weaponAnimText || ""),
 
     traitLabel: String(s.traitLabel || ""),
@@ -891,8 +938,9 @@ async function _rerenderPcMessage(message, flagsState) {
     total,
     resultLabel,
     targets,
+    isCrit,
 
-    // NEW: блок сообщений о ресурсах
+    // NEW: блок сообщений о ресурсов
     hasEffects: effectsVM.hasEffects,
     effects: effectsVM.effects,
   };
@@ -1570,6 +1618,11 @@ if (stFormula) {
 
   const targets = _collectTargetsForUi(total, isCrit);
 
+  // Crit damage: подменяем формулу на кнопке, но в флагах храним оригинал
+  const shownDamageText = isCrit && weaponDamageText
+    ? weaponDamageText.replace(/^(Урон:\s*)(.+?)(\s*(?:физ\.|маг\.|прям\.)?)$/i, (_m, pre, formula, suf) => `${pre}${_critDamageFormula(formula)}${suf}`)
+    : weaponDamageText;
+
   const data = {
     bg,
     weaponName: isReaction ? "" : weaponName,
@@ -1584,8 +1637,9 @@ if (stFormula) {
     total,
     resultLabel,
     targets,
-    weaponDamageText,
+    weaponDamageText: shownDamageText,
     weaponAnimText,
+    isCrit,
 
     // NEW: блок сообщений о ресурсах
     hasEffects: effectsVM.hasEffects,
@@ -1722,6 +1776,11 @@ export async function admNpcRollToChat(actor, state, rollMode = "normal") {
 
   const targets = _collectTargetsForUi(total, isCrit);
 
+  // Crit damage: подменяем формулу на кнопке, но в флагах храним оригинал
+  const shownDamageText = isCrit && weaponDamageText
+    ? weaponDamageText.replace(/^(Урон:\s*)(.+?)(\s*(?:физ\.|маг\.|прям\.)?)$/i, (_m, pre, formula, suf) => `${pre}${_critDamageFormula(formula)}${suf}`)
+    : weaponDamageText;
+
   const data = {
     bg,
     usedExpsText,
@@ -1731,8 +1790,9 @@ export async function admNpcRollToChat(actor, state, rollMode = "normal") {
     total,
     resultLabel,
     targets,
-    weaponDamageText,
+    weaponDamageText: shownDamageText,
     weaponAnimText,
+    isCrit,
   };
 
   const html = await renderTemplate(
