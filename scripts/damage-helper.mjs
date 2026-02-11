@@ -400,6 +400,55 @@ export async function admDamageRollToChat(damageFormula, damageType, targets, is
 }
 
 // -------------------------
+// Append dice from formula to the last damage message
+// -------------------------
+export async function admAppendDiceToLastDmg(formula, isNeg = false) {
+  const messages = game.messages?.contents ?? [];
+  let lastMsg = null;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (_getDmgFlagsState(messages[i])) { lastMsg = messages[i]; break; }
+  }
+  if (!lastMsg) {
+    ui?.notifications?.warn?.("Нет сообщения урона для добавления кубиков.");
+    return;
+  }
+
+  const state = foundry.utils.duplicate(_getDmgFlagsState(lastMsg));
+  state.extraDice ??= [];
+
+  const parsed = _parseDamageFormula(formula);
+  if (!parsed.parts.length) return;
+
+  for (const part of parsed.parts) {
+    const rollExpr = `${part.count}d${part.sides}${part.mods}`;
+    const roll = new Roll(rollExpr);
+    await roll.evaluate();
+    if (game.dice3d) {
+      try { await game.dice3d.showForRoll(roll, game.user, true); } catch (_e) {}
+    }
+
+    for (const term of roll.dice) {
+      for (const r of (term.results ?? [])) {
+        if (r.discarded || r.active === false) continue;
+        const id = `mod-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+        state.extraDice.push({
+          id,
+          sides: term.faces,
+          value: Number(r.result) || 0,
+          isNeg: !!isNeg,
+        });
+      }
+    }
+  }
+
+  if (parsed.mod !== 0) {
+    state.modTotal = (state.modTotal || 0) + (isNeg ? -parsed.mod : parsed.mod);
+  }
+
+  await _rerenderDmgMessage(lastMsg, state);
+}
+
+// -------------------------
 // Flags accessors
 // -------------------------
 function _getDmgFlagsState(message) {

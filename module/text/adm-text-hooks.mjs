@@ -9,7 +9,7 @@ import {
   admMagicValue,
 } from "../status/adm-terms.mjs";
 
-import { admDamageRollToChat } from "../../scripts/damage-helper.mjs";
+import { admDamageRollToChat, admAppendDiceToLastDmg } from "../../scripts/damage-helper.mjs";
 
 
 
@@ -757,28 +757,43 @@ function _replaceDamageFormulaTags(html, { actor = null, caster = null } = {}) {
                   : typeChar.toLowerCase() === "m" ? "magical"
                   : "direct";
 
-    const resolved = _resolveDamageFormula(rawFormula, a, caster);
+    // Detect +/- append prefix
+    let appendSign = "";
+    let formulaBody = rawFormula.trim();
+    if (/^[+-]/.test(formulaBody)) {
+      appendSign = formulaBody[0];
+      formulaBody = formulaBody.slice(1).trim();
+    }
+
+    const resolved = _resolveDamageFormula(formulaBody, a, caster);
     if (!resolved) return _m; // не удалось разобрать — оставляем как есть
 
     const typeLabel = dmgType === "physical" ? "физ."
                     : dmgType === "magical" ? "маг."
                     : "прям.";
 
-    const btnLabel = `${resolved} ${typeLabel}`;
+    const btnLabel = appendSign
+      ? `${appendSign}${resolved} ${typeLabel}`
+      : `${resolved} ${typeLabel}`;
 
     const safeFormula = foundry.utils.escapeHTML(resolved);
     const safeType = foundry.utils.escapeHTML(dmgType);
     const safeBtnLabel = foundry.utils.escapeHTML(btnLabel);
+    const safeAppend = foundry.utils.escapeHTML(appendSign);
 
     const typeCls = dmgType === "magical" ? " admth-dmgf--mag"
                   : dmgType === "direct" ? " admth-dmgf--dir"
                   : "";
 
+    const appendAttr = appendSign
+      ? ` data-dmg-append="${safeAppend}"`
+      : "";
+
     return `<button type="button"
         class="admth-dmgf-btn${typeCls}"
         data-action="adm-dmg-formula"
         data-dmg-formula="${safeFormula}"
-        data-dmg-type="${safeType}">${safeBtnLabel}</button>`;
+        data-dmg-type="${safeType}"${appendAttr}>${safeBtnLabel}</button>`;
   });
 }
 
@@ -929,9 +944,16 @@ function _safeMathEval(expr) {
 async function _onDmgFormulaButton(btn) {
   const formula = String(btn.dataset.dmgFormula ?? "").trim();
   const dmgType = String(btn.dataset.dmgType ?? "physical").trim();
+  const appendSign = String(btn.dataset.dmgAppend ?? "").trim();
 
   if (!formula) {
     ui?.notifications?.warn?.("Пустая формула урона.");
+    return;
+  }
+
+  // Append mode: add/subtract dice to last damage message
+  if (appendSign === "+" || appendSign === "-") {
+    await admAppendDiceToLastDmg(formula, appendSign === "-");
     return;
   }
 
