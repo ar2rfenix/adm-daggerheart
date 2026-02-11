@@ -132,6 +132,7 @@
       }
     },
     "status": {
+      "basic": false
     }
   }
 }
