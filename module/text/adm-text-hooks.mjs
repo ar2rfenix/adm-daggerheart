@@ -886,7 +886,7 @@ function _substituteAttrTokens(raw, actor, caster) {
 }
 
 /**
- * Safe math evaluator: only digits and +-*/ ()
+ * Safe math evaluator: only digits and +-/* with parentheses.
  * Returns integer (ceil for positive fractions) or null on error.
  */
 function _safeMathEval(expr) {
