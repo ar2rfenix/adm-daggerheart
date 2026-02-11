@@ -41,6 +41,7 @@ export function admApplyTextReplacements(htmlString, { actor = null, item = null
   const hasST   = html.includes("[/st");
   const hasI    = html.includes("[/i");
   const hasDmgFormula = /\[\/r[pmd]\s/i.test(html);
+  const hasQuickRoll  = /\[\/q\s/i.test(html);
 
   const hasFear   = /\[\s*(?:страх|fear)\s*[+\-]\s*\d+\s*\]/i.test(html);
   const hasWounds = /\[\s*(?:рана|раны|ран|wound|wounds)\s*[+\-]\s*\d+\s*\]/i.test(html);
@@ -52,7 +53,7 @@ export function admApplyTextReplacements(htmlString, { actor = null, item = null
   const hasTraitTags = /\[\s*(?:магия|magic|сила|проворность|искусность|чутьё|влияние|знание|strength|agility|finesse|instinct|presence|knowledge)\s*\]/i.test(html);
 
   // ВАЖНО: добавили hasTraitTags и hasDmgFormula в ранний выход
-  if (!hasST && !hasI && !hasFear && !hasWounds && !hasStress && !hasHope && !hasRangeTags && !hasTraitTags && !hasDmgFormula) return html;
+  if (!hasST && !hasI && !hasFear && !hasWounds && !hasStress && !hasHope && !hasRangeTags && !hasTraitTags && !hasDmgFormula && !hasQuickRoll) return html;
 
   // [/st ...] — только если есть item и у него есть статусы "button"
   if (hasST && item) {
@@ -260,6 +261,11 @@ class="admth-st-btn"
     html = _replaceDamageFormulaTags(html, { actor, caster });
   }
 
+  // [/q ...] -> обычный бросок в чат (Foundry Roll)
+  if (hasQuickRoll) {
+    html = _replaceQuickRollTags(html, { actor, caster });
+  }
+
   // [Сила] / [Знание] / ... -> кнопка окна броска
   // [Магия] -> кнопка с ЛУЧШИМ атрибутом, помеченным как магический (actor.flags.adm-daggerheart.magicTraits)
   if (hasTraitTags) {
@@ -380,6 +386,12 @@ function _installResButtonStyles() {
 .admth-dmgf-btn.admth-dmgf--dir:hover{
   background: linear-gradient(135deg, rgb(150 125 25 / 95%) 0%, rgb(100 90 40 / 70%) 100%);
 }
+.admth-dmgf-btn.admth-dmgf--qroll{
+  background: linear-gradient(135deg, rgb(30 80 120 / 90%) 0%, rgb(40 110 100 / 60%) 100%);
+}
+.admth-dmgf-btn.admth-dmgf--qroll:hover{
+  background: linear-gradient(135deg, rgb(40 100 150 / 95%) 0%, rgb(50 130 120 / 70%) 100%);
+}
 `.trim();
 
   document.head.appendChild(style);
@@ -436,6 +448,13 @@ function _installGlobalClickHandler() {
         ev.preventDefault();
         ev.stopPropagation();
         await _onDmgFormulaButton(btn);
+        return;
+      }
+
+      if (action === "adm-quick-roll") {
+        ev.preventDefault();
+        ev.stopPropagation();
+        await _onQuickRollButton(btn);
         return;
       }
 
@@ -973,6 +992,42 @@ async function _onDmgFormulaButton(btn) {
 }
 
 // ------------------------------------------------------------
+// Quick roll tags: [/q ...]
+//   Uses the same formula resolution as damage tags,
+//   but performs a plain Foundry Roll → chat message.
+// ------------------------------------------------------------
+
+function _replaceQuickRollTags(html, { actor = null, caster = null } = {}) {
+  const a = actor ?? caster;
+  if (!a) return html;
+
+  return String(html).replace(/\[\/q\s+([^\]]+)\]/gi, (_m, rawFormula) => {
+    const resolved = _resolveDamageFormula(rawFormula.trim(), a, caster);
+    if (!resolved) return _m;
+
+    const safeFormula = foundry.utils.escapeHTML(resolved);
+    const safeBtnLabel = foundry.utils.escapeHTML(resolved);
+
+    return `<button type="button"
+        class="admth-dmgf-btn admth-dmgf--qroll"
+        data-action="adm-quick-roll"
+        data-roll-formula="${safeFormula}">${safeBtnLabel}</button>`;
+  });
+}
+
+async function _onQuickRollButton(btn) {
+  const formula = String(btn.dataset.rollFormula ?? "").trim();
+  if (!formula) return;
+
+  const roll = new Roll(formula);
+  await roll.evaluate();
+  if (game.dice3d) {
+    try { await game.dice3d.showForRoll(roll, game.user, true); } catch (_e) {}
+  }
+  await roll.toMessage({ speaker: ChatMessage.getSpeaker() });
+}
+
+// ------------------------------------------------------------
 // Trait roll buttons: [Сила] / [Магия]
 // ------------------------------------------------------------
 
@@ -1031,7 +1086,7 @@ function _replaceTraitRollButtons(html, { actor = null, caster = null } = {}) {
     if (!inner) return m;
 
     // не трогаем уже обработанные теги
-    if (/^\/(?:st|i|r[pmd])\b/i.test(inner)) return m;
+    if (/^\/(?:st|i|r[pmd]|q)\b/i.test(inner)) return m;
 
     // не трогаем ресурсные теги с +/-
     if (/[+\-]\s*\d+/.test(inner)) return m;
