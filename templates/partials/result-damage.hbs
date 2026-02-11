@@ -3,9 +3,7 @@
 
     {{!-- Блок 1: Итог урона + тип --}}
     <div class="adm-dmg-header" data-adm-dmg-header>
-      <span class="adm-dmg-label">Урон:</span>
-      <span class="adm-dmg-total">{{damageTotal}}</span>
-      <span class="adm-dmg-type" data-adm-dmg-type data-type="{{damageType}}">{{damageTypeLabel}}</span>
+      <span class="adm-dmg-total">{{damageTotal}} {{damageTypeLabel}}</span>
     </div>
 
     {{!-- Блок 2: кубики + модификатор --}}
@@ -48,7 +46,7 @@
         {{#if hitTargets.length}}
           <div class="adm-dmg-targets-list adm-dmg-targets--hit">
             {{#each hitTargets as |t|}}
-              <div class="adm-dmg-target adm-dmg-target--hit"
+              <div class="adm-dmg-target adm-dmg-target--hit {{#if t.excluded}}is-excluded{{/if}}"
                    data-token-id="{{t.tokenId}}"
                    data-scene-id="{{t.sceneId}}">
                 <span class="adm-dmg-target-name" data-adm-dmg-target-name>{{t.name}}</span>
@@ -68,7 +66,7 @@
         {{#if missTargets.length}}
           <div class="adm-dmg-targets-list adm-dmg-targets--miss">
             {{#each missTargets as |t|}}
-              <div class="adm-dmg-target adm-dmg-target--miss"
+              <div class="adm-dmg-target adm-dmg-target--miss {{#if t.excluded}}is-excluded{{/if}}"
                    data-token-id="{{t.tokenId}}"
                    data-scene-id="{{t.sceneId}}">
                 <span class="adm-dmg-target-name" data-adm-dmg-target-name>{{t.name}}</span>
@@ -78,10 +76,10 @@
             {{/each}}
           </div>
 
-          <label class="adm-dmg-half-toggle">
-            <input type="checkbox" data-adm-dmg-half {{#if halfToMissed}}checked{{/if}} />
+          <div class="adm-dmg-half-toggle" data-adm-dmg-half-toggle>
+            <input type="checkbox" {{#if halfToMissed}}checked{{/if}} />
             <span>½ урона преуспевшим</span>
-          </label>
+          </div>
         {{/if}}
       </div>
     {{/if}}

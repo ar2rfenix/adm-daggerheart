@@ -198,7 +198,7 @@ function _bgForDuality(hopeVal, fearVal, isReaction = false) {
     return "linear-gradient(135deg, rgb(40 37 32 / 80%) 0%, rgb(207 207 207) 100%)";
   }
   if (Number(hopeVal) === Number(fearVal)) {
-    return "linear-gradient(135deg, rgb(42 153 40 / 80%) 0%, rgb(145 131 33) 100%)";
+    return "linear-gradient(135deg, rgb(61, 131, 125) 0%, rgb(58 120 52) 100%)";
   }
   if (Number(fearVal) > Number(hopeVal)) {
     return "linear-gradient(135deg, rgba(30, 24, 77, 0.8) 0%, rgba(63, 81, 181, 0.6) 100%)";
@@ -214,7 +214,7 @@ function _bgForNpcRoll(isCrit = false, isReaction = false) {
 
   // крит — зелёный (как у PC)
   if (isCrit) {
-    return "linear-gradient(135deg, rgb(42 153 40 / 80%) 0%, rgb(145 131 33) 100%)";
+    return "linear-gradient(135deg, rgb(61, 131, 125) 0%, rgb(58 120 52) 100%)";
   }
 
   // иначе — всегда как при страхе (синий)
@@ -1015,19 +1015,42 @@ function _openModMenu(anchorEl, isNegative, onPick) {
   menu.className = "adm-rollmsg-modmenu";
   menu.dataset.neg = isNegative ? "1" : "0";
 
-const items = [4, 6, 8, 10, 12, 20];
-  for (const sides of items) {
+  const prefix = isNegative ? "-" : "+";
+  const sidesArr = [4, 6, 8, 10, 12, 20];
+
+  for (const sides of sidesArr) {
+    const wrap = document.createElement("div");
+    wrap.className = "adm-rollmsg-modmenu-itemwrap";
+
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "adm-rollmsg-modmenu-item";
-    btn.textContent = `${isNegative ? "-" : "+"}1d${sides}`;
+    btn.textContent = `${prefix}1d${sides}`;
     btn.addEventListener("click", (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
       _closeModMenu();
-      onPick?.(sides, isNegative);
+      onPick?.(sides, isNegative, 1);
     });
-    menu.appendChild(btn);
+    wrap.appendChild(btn);
+
+    const sub = document.createElement("div");
+    sub.className = "adm-rollmsg-modmenu-sub";
+    for (const count of [2, 3]) {
+      const subBtn = document.createElement("button");
+      subBtn.type = "button";
+      subBtn.className = "adm-rollmsg-modmenu-item";
+      subBtn.textContent = `${prefix}${count}d${sides}`;
+      subBtn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        _closeModMenu();
+        onPick?.(sides, isNegative, count);
+      });
+      sub.appendChild(subBtn);
+    }
+    wrap.appendChild(sub);
+    menu.appendChild(wrap);
   }
 
   document.body.appendChild(menu);
@@ -1380,14 +1403,15 @@ document.addEventListener("click", async (ev) => {
   ev.preventDefault();
   ev.stopPropagation();
 
-  _openModMenu(btn, false, async (sides, isNeg) => {
+  _openModMenu(btn, false, async (sides, isNeg, count) => {
     const st = foundry.utils.duplicate(flagsState);
     st.extraDice ??= [];
 
-    const id = `mod-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
-    const value = await _rollDieWithDsn(sides, null);
-
-    st.extraDice.push({ id, sides, value, isNeg: !!isNeg });
+    for (let i = 0; i < (count || 1); i++) {
+      const id = `mod-${Date.now()}-${Math.floor(Math.random() * 1e9)}-${i}`;
+      const value = await _rollDieWithDsn(sides, null);
+      st.extraDice.push({ id, sides, value, isNeg: !!isNeg });
+    }
 
     if (npcState) await _rerenderNpcMessage(message, st);
     else await _rerenderPcMessage(message, st);
@@ -1411,14 +1435,15 @@ document.addEventListener("contextmenu", async (ev) => {
   ev.preventDefault();
   ev.stopPropagation();
 
-  _openModMenu(btn, true, async (sides, isNeg) => {
+  _openModMenu(btn, true, async (sides, isNeg, count) => {
     const st = foundry.utils.duplicate(flagsState);
     st.extraDice ??= [];
 
-    const id = `mod-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
-    const value = await _rollDieWithDsn(sides, null);
-
-    st.extraDice.push({ id, sides, value, isNeg: !!isNeg });
+    for (let i = 0; i < (count || 1); i++) {
+      const id = `mod-${Date.now()}-${Math.floor(Math.random() * 1e9)}-${i}`;
+      const value = await _rollDieWithDsn(sides, null);
+      st.extraDice.push({ id, sides, value, isNeg: !!isNeg });
+    }
 
     if (npcState) await _rerenderNpcMessage(message, st);
     else await _rerenderPcMessage(message, st);

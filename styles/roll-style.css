@@ -704,6 +704,31 @@ position: absolute;
 .adm-rollmsg-modmenu-item:hover{
   background: rgba(255,255,255,.10);
 }
+
+/* Submenu wrapper for multi-dice (x2, x3 variants) */
+.adm-rollmsg-modmenu-itemwrap{
+  position: relative;
+}
+
+.adm-rollmsg-modmenu-sub{
+  position: absolute;
+  right: calc(100% + 6px);
+  top: 50%;
+  transform: translateY(-50%) translateX(8px);
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.adm-rollmsg-modmenu-itemwrap:hover .adm-rollmsg-modmenu-sub{
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+  pointer-events: auto;
+}
 /* =========================
    Roll targets block
    ========================= */
@@ -757,7 +782,7 @@ position: absolute;
   font-weight: 800;
   font-size: 14px;
   line-height: 1.1;
-  text-decoration: underline;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -818,32 +843,22 @@ position: absolute;
   gap: 8px;
 }
 
-/* Блок 1: Урон: 22 физ. */
+/* Блок 1: итоговый урон + тип (рамка + фон) */
 .adm-dmg-header{
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  align-items: center;
   justify-content: center;
-  padding: 8px 0 4px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(0,0,0,.16);
+  border: 1px solid rgba(255,255,255,.14);
   cursor: context-menu;
-}
-
-.adm-dmg-label{
-  font-size: 16px;
-  font-weight: 700;
-  color: rgba(255,255,255,.7);
 }
 
 .adm-dmg-total{
   font-size: 28px;
   font-weight: 900;
   color: #fff;
-}
-
-.adm-dmg-type{
-  font-size: 14px;
-  font-weight: 700;
-  color: rgba(255,255,255,.55);
 }
 
 /* Блок 3: таргеты урона */
@@ -874,7 +889,7 @@ position: absolute;
   font-weight: 800;
   font-size: 14px;
   line-height: 1.1;
-  text-decoration: underline;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -884,6 +899,11 @@ position: absolute;
 
 .adm-dmg-target--miss .adm-dmg-target-name{
   color: rgba(255,255,255,.4);
+}
+
+.adm-dmg-target.is-excluded .adm-dmg-target-name{
+  text-decoration: line-through;
+  opacity: .45;
 }
 
 /* Значение урона — базовый цвет белый */

@@ -193,13 +193,15 @@ function _sumExtraDice(arr) {
 // -------------------------
 // Compute per-target damage + color
 // -------------------------
-function _computeTargetView(t, baseDmg, damageType, isHalf) {
+function _computeTargetView(t, baseDmg, damageType, isHalf, isMissTarget = false) {
   const token = _resolveToken(t.tokenId, t.sceneId);
   const res = token ? _getTokenResilience(token, damageType) : { multiplier: t.resMultiplier ?? 1, kind: t.resKind ?? "" };
   t.resMultiplier = res.multiplier;
   t.resKind = res.kind;
 
-  const srcDmg = isHalf ? Math.floor(baseDmg / 2) : baseDmg;
+  const srcDmg = isMissTarget
+    ? (isHalf ? Math.floor(baseDmg / 2) : 0)
+    : baseDmg;
 
   let dmg;
   if (t.excluded) {
@@ -359,8 +361,8 @@ async function _rerenderDmgMessage(message, flagsState) {
   const extraSum = _sumExtraDice(s.extraDice);
   const damageTotal = diceSum + modTotal + extraSum;
 
-  for (const t of s.hitTargets) _computeTargetView(t, damageTotal, type, false);
-  for (const t of s.missTargets) _computeTargetView(t, damageTotal, type, !!s.halfToMissed);
+  for (const t of s.hitTargets) _computeTargetView(t, damageTotal, type, false, false);
+  for (const t of s.missTargets) _computeTargetView(t, damageTotal, type, !!s.halfToMissed, true);
 
   const bg = "linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%)";
   const dice = _buildDamageDiceRow(s.rolledDice, s.extraDice);
@@ -464,11 +466,76 @@ function _openDmgMenu(anchorEl, items) {
 // Mod menu (± dice, same style as roll messages)
 // -------------------------
 function _openModMenu(anchor, isNeg, callback) {
-  const items = [4, 6, 8, 10, 12, 20].map(sides => ({
-    label: `${isNeg ? "-" : "+"}1d${sides}`,
-    callback: () => callback(sides, isNeg),
-  }));
-  _openDmgMenu(anchor, items);
+  _closeDmgMenu();
+
+  const rect = anchor.getBoundingClientRect();
+  const menu = document.createElement("div");
+  menu.id = __ADM_DMG_MENU_ID;
+  menu.className = "adm-rollmsg-modmenu";
+
+  const prefix = isNeg ? "-" : "+";
+  const sidesArr = [4, 6, 8, 10, 12, 20];
+
+  for (const sides of sidesArr) {
+    const wrap = document.createElement("div");
+    wrap.className = "adm-rollmsg-modmenu-itemwrap";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "adm-rollmsg-modmenu-item";
+    btn.textContent = `${prefix}1d${sides}`;
+    btn.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      _closeDmgMenu();
+      callback(sides, isNeg, 1);
+    });
+    wrap.appendChild(btn);
+
+    const sub = document.createElement("div");
+    sub.className = "adm-rollmsg-modmenu-sub";
+    for (const count of [2, 3]) {
+      const subBtn = document.createElement("button");
+      subBtn.type = "button";
+      subBtn.className = "adm-rollmsg-modmenu-item";
+      subBtn.textContent = `${prefix}${count}d${sides}`;
+      subBtn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        _closeDmgMenu();
+        callback(sides, isNeg, count);
+      });
+      sub.appendChild(subBtn);
+    }
+    wrap.appendChild(sub);
+    menu.appendChild(wrap);
+  }
+
+  document.body.appendChild(menu);
+
+  const mrect = menu.getBoundingClientRect();
+  const left = Math.round(rect.left + rect.width / 2 - mrect.width / 2);
+  const top = Math.round(rect.top - mrect.height - 8);
+  menu.style.left = `${Math.max(8, left)}px`;
+  menu.style.top = `${Math.max(8, top)}px`;
+
+  globalThis.__admDmgMenuOpenV1 = { anchor };
+
+  const onDown = (ev) => {
+    if (ev.target === menu || menu.contains(ev.target)) return;
+    _closeDmgMenu();
+    document.removeEventListener("mousedown", onDown, true);
+    document.removeEventListener("keydown", onKey, true);
+  };
+  const onKey = (ev) => {
+    if (ev.key === "Escape") {
+      _closeDmgMenu();
+      document.removeEventListener("mousedown", onDown, true);
+      document.removeEventListener("keydown", onKey, true);
+    }
+  };
+  document.addEventListener("mousedown", onDown, true);
+  document.addEventListener("keydown", onKey, true);
 }
 
 // -------------------------
@@ -626,14 +693,15 @@ export function admDamageInit() {
     ev.preventDefault();
     ev.stopPropagation();
 
-    _openModMenu(btn, false, async (sides, isNeg) => {
+    _openModMenu(btn, false, async (sides, isNeg, count) => {
       const st = foundry.utils.duplicate(state);
       st.extraDice ??= [];
 
-      const id = `mod-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
-      const value = await _rollDieWithDsn(sides);
-
-      st.extraDice.push({ id, sides, value, isNeg: !!isNeg });
+      for (let i = 0; i < (count || 1); i++) {
+        const id = `mod-${Date.now()}-${Math.floor(Math.random() * 1e9)}-${i}`;
+        const value = await _rollDieWithDsn(sides);
+        st.extraDice.push({ id, sides, value, isNeg: !!isNeg });
+      }
       await _rerenderDmgMessage(message, st);
     });
   }, true);
@@ -652,14 +720,15 @@ export function admDamageInit() {
     ev.preventDefault();
     ev.stopPropagation();
 
-    _openModMenu(btn, true, async (sides, isNeg) => {
+    _openModMenu(btn, true, async (sides, isNeg, count) => {
       const st = foundry.utils.duplicate(state);
       st.extraDice ??= [];
 
-      const id = `mod-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
-      const value = await _rollDieWithDsn(sides);
-
-      st.extraDice.push({ id, sides, value, isNeg: !!isNeg });
+      for (let i = 0; i < (count || 1); i++) {
+        const id = `mod-${Date.now()}-${Math.floor(Math.random() * 1e9)}-${i}`;
+        const value = await _rollDieWithDsn(sides);
+        st.extraDice.push({ id, sides, value, isNeg: !!isNeg });
+      }
       await _rerenderDmgMessage(message, st);
     });
   }, true);
@@ -789,9 +858,9 @@ export function admDamageInit() {
   }, true);
 
   // --- ½ урона чекбокс ---
-  document.addEventListener("change", async (ev) => {
-    const cb = ev.target?.closest?.(".adm-rollmsg--dmg input[data-adm-dmg-half]");
-    if (!cb) return;
+  document.addEventListener("click", async (ev) => {
+    const wrap = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-half-toggle[data-adm-dmg-half-toggle]");
+    if (!wrap) return;
 
     const message = _findMessageFromEvent(ev);
     if (!message) return;
@@ -799,8 +868,11 @@ export function admDamageInit() {
     const state = _getDmgFlagsState(message);
     if (!state) return;
 
+    ev.preventDefault();
+    ev.stopPropagation();
+
     const st = foundry.utils.duplicate(state);
-    st.halfToMissed = !!cb.checked;
+    st.halfToMissed = !st.halfToMissed;
     await _rerenderDmgMessage(message, st);
   }, true);
 
