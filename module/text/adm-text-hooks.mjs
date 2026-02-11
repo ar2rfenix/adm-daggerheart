@@ -9,6 +9,8 @@ import {
   admMagicValue,
 } from "../status/adm-terms.mjs";
 
+import { admDamageRollToChat } from "../../scripts/damage-helper.mjs";
+
 
 
 const SCOPE = "adm-daggerheart";
@@ -38,6 +40,7 @@ export function admApplyTextReplacements(htmlString, { actor = null, item = null
 
   const hasST   = html.includes("[/st");
   const hasI    = html.includes("[/i");
+  const hasDmgFormula = /\[\/r[pmd]\s/i.test(html);
 
   const hasFear   = /\[\s*(?:страх|fear)\s*[+\-]\s*\d+\s*\]/i.test(html);
   const hasWounds = /\[\s*(?:рана|раны|ран|wound|wounds)\s*[+\-]\s*\d+\s*\]/i.test(html);
@@ -48,8 +51,8 @@ export function admApplyTextReplacements(htmlString, { actor = null, item = null
   // [Сила] / [Знание] / ... / [Магия]
   const hasTraitTags = /\[\s*(?:магия|magic|сила|проворность|искусность|чутьё|влияние|знание|strength|agility|finesse|instinct|presence|knowledge)\s*\]/i.test(html);
 
-  // ВАЖНО: добавили hasTraitTags в ранний выход
-  if (!hasST && !hasI && !hasFear && !hasWounds && !hasStress && !hasHope && !hasRangeTags && !hasTraitTags) return html;
+  // ВАЖНО: добавили hasTraitTags и hasDmgFormula в ранний выход
+  if (!hasST && !hasI && !hasFear && !hasWounds && !hasStress && !hasHope && !hasRangeTags && !hasTraitTags && !hasDmgFormula) return html;
 
   // [/st ...] — только если есть item и у него есть статусы "button"
   if (hasST && item) {
@@ -252,6 +255,11 @@ class="admth-st-btn"
     );
   }
 
+  // [/rp ...] / [/rm ...] / [/rd ...] -> кнопка урона с формулой
+  if (hasDmgFormula) {
+    html = _replaceDamageFormulaTags(html, { actor, caster });
+  }
+
   // [Сила] / [Знание] / ... -> кнопка окна броска
   // [Магия] -> кнопка с ЛУЧШИМ атрибутом, помеченным как магический (actor.flags.adm-daggerheart.magicTraits)
   if (hasTraitTags) {
@@ -296,7 +304,8 @@ function _installResButtonStyles() {
 .admth-fear-btn,
 .admth-st-btn,
 .admth-range-btn,
-.admth-trait-btn{
+.admth-trait-btn,
+.admth-dmgf-btn{
   display:inline-flex;
   align-items:center;
   padding:0 7px;
@@ -314,7 +323,8 @@ function _installResButtonStyles() {
 #chat-log .admth-fear-btn,
 #chat-log .admth-st-btn,
 #chat-log .admth-range-btn,
-#chat-log .admth-trait-btn{
+#chat-log .admth-trait-btn,
+#chat-log .admth-dmgf-btn{
   display:inline-block;
   vertical-align:baseline;
   height:auto;
@@ -345,6 +355,30 @@ function _installResButtonStyles() {
     rgb(89 127 39) 70%,
     rgba(255, 0, 0, 0) 100%
   );
+}
+
+/* кнопка формулы урона */
+.admth-dmgf-btn{
+  border: 1px solid #32516e;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: 700;
+  background: linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%);
+}
+.admth-dmgf-btn:hover{
+  background: linear-gradient(135deg, rgb(180 10 10 / 95%) 0%, rgb(50 130 140 / 70%) 100%);
+}
+.admth-dmgf-btn.admth-dmgf--mag{
+  background: linear-gradient(135deg, rgb(70 20 130 / 90%) 0%, rgb(42 80 140 / 60%) 100%);
+}
+.admth-dmgf-btn.admth-dmgf--mag:hover{
+  background: linear-gradient(135deg, rgb(90 30 160 / 95%) 0%, rgb(50 95 160 / 70%) 100%);
+}
+.admth-dmgf-btn.admth-dmgf--dir{
+  background: linear-gradient(135deg, rgb(120 100 20 / 90%) 0%, rgb(80 70 30 / 60%) 100%);
+}
+.admth-dmgf-btn.admth-dmgf--dir:hover{
+  background: linear-gradient(135deg, rgb(150 125 25 / 95%) 0%, rgb(100 90 40 / 70%) 100%);
 }
 `.trim();
 
@@ -395,6 +429,13 @@ function _installGlobalClickHandler() {
         ev.preventDefault();
         ev.stopPropagation();
         await _onResDeltaButton(btn);
+        return;
+      }
+
+      if (action === "adm-dmg-formula") {
+        ev.preventDefault();
+        ev.stopPropagation();
+        await _onDmgFormulaButton(btn);
         return;
       }
 
@@ -701,6 +742,197 @@ function _inlineInfoValue(actor, key, caster) {
 }
 
 // ------------------------------------------------------------
+// Damage formula tags: [/rp ...] [/rm ...] [/rd ...]
+//   /rp = physical, /rm = magical, /rd = direct
+//   Формула: Мастерство_d6+3, (Сила+Уклонение)_d4, ((Сила-3)_d8dl1)/2
+//   Имена атрибутов подменяются числами, _ перед d задаёт количество костей.
+// ------------------------------------------------------------
+
+function _replaceDamageFormulaTags(html, { actor = null, caster = null } = {}) {
+  const a = actor ?? caster;
+  if (!a) return html;
+
+  return String(html).replace(/\[\/r([pmd])\s+([^\]]+)\]/gi, (_m, typeChar, rawFormula) => {
+    const dmgType = typeChar.toLowerCase() === "p" ? "physical"
+                  : typeChar.toLowerCase() === "m" ? "magical"
+                  : "direct";
+
+    const resolved = _resolveDamageFormula(rawFormula, a, caster);
+    if (!resolved) return _m; // не удалось разобрать — оставляем как есть
+
+    const typeLabel = dmgType === "physical" ? "физ."
+                    : dmgType === "magical" ? "маг."
+                    : "прям.";
+
+    const btnLabel = `${resolved} ${typeLabel}`;
+
+    const safeFormula = foundry.utils.escapeHTML(resolved);
+    const safeType = foundry.utils.escapeHTML(dmgType);
+    const safeBtnLabel = foundry.utils.escapeHTML(btnLabel);
+
+    const typeCls = dmgType === "magical" ? " admth-dmgf--mag"
+                  : dmgType === "direct" ? " admth-dmgf--dir"
+                  : "";
+
+    return `<button type="button"
+        class="admth-dmgf-btn${typeCls}"
+        data-action="adm-dmg-formula"
+        data-dmg-formula="${safeFormula}"
+        data-dmg-type="${safeType}">${safeBtnLabel}</button>`;
+  });
+}
+
+/**
+ * Resolve a damage formula with attribute substitution.
+ *   Мастерство_d6+3  (mastery=2) → 2d6+3
+ *   (Сила+Уклонение)_d4  (4+3=7) → 7d4
+ *   ((Сила+Уклонение)_d4)/2  → ceil(7/2)=4 → 4d4
+ *   Чутьё_d8dl1  (2) → 2d8dl1
+ *
+ * Алгоритм:
+ *  1) Подменяем имена атрибутов числами (_substituteAttrTokens)
+ *  2) Вычисляем чисто-числовые скобки
+ *  3) Ищем паттерн:  [outer(] count_dSides[mods][+-flatMod] [)/outerOp]
+ *  4) Применяем outerOp к count и flatMod (с округлением вверх)
+ */
+function _resolveDamageFormula(rawFormula, actor, caster) {
+  let s = String(rawFormula ?? "").trim();
+  if (!s) return null;
+
+  // Step 1: substitute attribute names → numbers
+  s = _substituteAttrTokens(s, actor, caster);
+
+  // Step 2: evaluate innermost pure-math parentheses repeatedly
+  let prev = "";
+  while (prev !== s) {
+    prev = s;
+    s = s.replace(/\(([0-9+\-*/.\s]+)\)/g, (_m, expr) => {
+      const v = _safeMathEval(expr);
+      return v !== null ? String(v) : _m;
+    });
+  }
+
+  // Step 3: detect outer wrapper (...)/N or (...)*N
+  let outerOp = null;
+  let outerVal = 1;
+  const outerRe = /^\((.+)\)\s*([*/])\s*(\d+)$/;
+  const outerMatch = s.match(outerRe);
+  if (outerMatch) {
+    s = outerMatch[1].trim();
+    outerOp = outerMatch[2];
+    outerVal = parseInt(outerMatch[3], 10) || 1;
+  }
+
+  // Step 4: parse count_dSides[mods][+-flatMod]
+  const diceRe = /^(\d+)_d(\d+)((?:[a-z<>=!]+\d*)*)([+-]\d+(?:\.\d+)?)?$/i;
+  const dm = s.match(diceRe);
+  if (!dm) return null;
+
+  let count = parseInt(dm[1], 10) || 1;
+  const sides = parseInt(dm[2], 10) || 6;
+  const mods = dm[3] || "";
+  let flatMod = dm[4] ? parseFloat(dm[4]) : 0;
+
+  // Step 5: apply outer operation
+  if (outerOp === "/") {
+    count = Math.ceil(count / outerVal);
+    flatMod = flatMod >= 0
+      ? Math.ceil(flatMod / outerVal)
+      : -Math.ceil(Math.abs(flatMod) / outerVal);
+  } else if (outerOp === "*") {
+    count = Math.ceil(count * outerVal);
+    flatMod = Math.ceil(flatMod * outerVal);
+  }
+
+  count = Math.max(1, count);
+
+  // Build final formula string
+  let result = `${count}d${sides}${mods}`;
+  if (flatMod > 0) result += `+${flatMod}`;
+  else if (flatMod < 0) result += `${flatMod}`;
+
+  return result;
+}
+
+/**
+ * Substitute attribute tokens (Сила, Мастерство, Чутьё, Магия, etc.)
+ * with their numeric values. Uses admPathForLabel + admMagicValue.
+ */
+function _substituteAttrTokens(raw, actor, caster) {
+  let expr = String(raw ?? "").trim();
+  if (!expr) return "0";
+
+  const base = caster ?? actor;
+
+  // Replace Cyrillic/Latin attribute names that are NOT part of _dX (keep _ boundary)
+  expr = expr.replace(
+    /([A-Za-zА-Яа-яЁё][A-Za-zА-Яа-яЁё0-9]*)/g,
+    (m) => {
+      // skip the 'd' in _dX notation and roll modifiers like dl, kh
+      if (/^d\d+/i.test(m)) return m;
+      if (/^(?:dl|dh|kh|kl)\d*$/i.test(m)) return m;
+
+      const t = m.trim();
+      if (admIsMagicLabel(t)) return String(admMagicValue(base) || 0);
+
+      const path = admPathForLabel(t);
+      if (path) return String(Number(foundry.utils.getProperty(base, path) ?? 0) || 0);
+
+      return m;
+    }
+  );
+
+  return expr;
+}
+
+/**
+ * Safe math evaluator: only digits and +-*/ ()
+ * Returns integer (ceil for positive fractions) or null on error.
+ */
+function _safeMathEval(expr) {
+  const s = String(expr ?? "").replace(/\s+/g, "").replace(/,/g, ".");
+  if (!s) return null;
+  if (!/^[0-9+\-*/().]+$/.test(s)) return null;
+
+  try {
+    // eslint-disable-next-line no-new-func
+    const v = Function(`return (${s});`)();
+    const n = Number(v);
+    if (!Number.isFinite(n)) return null;
+    return Math.ceil(n);
+  } catch (_e) {
+    return null;
+  }
+}
+
+/**
+ * Click handler: кнопка [/rp ...] → бросок урона
+ */
+async function _onDmgFormulaButton(btn) {
+  const formula = String(btn.dataset.dmgFormula ?? "").trim();
+  const dmgType = String(btn.dataset.dmgType ?? "physical").trim();
+
+  if (!formula) {
+    ui?.notifications?.warn?.("Пустая формула урона.");
+    return;
+  }
+
+  // Собираем таргеты из выделенных токенов
+  const targets = [];
+  for (const t of game.user?.targets ?? []) {
+    const token = t.document ?? t;
+    targets.push({
+      tokenId: String(token.id ?? ""),
+      sceneId: String(canvas?.scene?.id ?? ""),
+      name: String(token.name ?? t.name ?? "?"),
+      ok: true,
+    });
+  }
+
+  await admDamageRollToChat(formula, dmgType, targets, false);
+}
+
+// ------------------------------------------------------------
 // Trait roll buttons: [Сила] / [Магия]
 // ------------------------------------------------------------
 
@@ -759,7 +991,7 @@ function _replaceTraitRollButtons(html, { actor = null, caster = null } = {}) {
     if (!inner) return m;
 
     // не трогаем уже обработанные теги
-    if (/^\/(?:st|i)\b/i.test(inner)) return m;
+    if (/^\/(?:st|i|r[pmd])\b/i.test(inner)) return m;
 
     // не трогаем ресурсные теги с +/-
     if (/[+\-]\s*\d+/.test(inner)) return m;
