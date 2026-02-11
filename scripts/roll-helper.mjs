@@ -1467,8 +1467,8 @@ document.addEventListener("click", async (ev) => {
   ev.preventDefault();
   ev.stopPropagation();
 
-  // Извлекаем формулу урона из weaponDamageText: "Урон: 3d6+3 физ." или "Урон: 3d6+21 маг."
-  const rawText = String(flagsState.weaponDamageText || "").trim();
+  // Извлекаем формулу урона из текста кнопки (содержит crit-модификацию если крит)
+  const rawText = String(btn.textContent || "").trim();
   if (!rawText) return;
 
   // Парсим: "Урон: FORMULA TYPE"

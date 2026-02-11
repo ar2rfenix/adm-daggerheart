@@ -576,10 +576,10 @@ position: absolute;
   letter-spacing: .08em;
   opacity: .92;
 }
-/* Кнопка урона (пока без действия) */
+/* Кнопка урона */
 .adm-rollmsg--pc .adm-rollmsg-dmgbtn{
-  background: #99000096;
-  border: 1px solid #693723;
+  background: linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%);
+  border: 1px solid #32516e;
   padding: 8px 22px;
   border-radius: 4px;
 
@@ -598,7 +598,7 @@ position: absolute;
 }
 
 .adm-rollmsg--pc .adm-rollmsg-dmgbtn:hover{
-  background: #772424eb;
+  background: linear-gradient(135deg, rgb(180 10 10 / 95%) 0%, rgb(50 130 140 / 70%) 100%);
 }
 
 /* Crit damage button: shimmering iridescent animation */
@@ -965,7 +965,7 @@ position: absolute;
   margin: 6px 0;
 }
 
-/* Переключатель ½ урона */
+/* Переключатель ½ урона (кастомный, без нативного чекбокса) */
 .adm-dmg-half-toggle{
   display: flex;
   align-items: center;
@@ -977,11 +977,31 @@ position: absolute;
   user-select: none;
 }
 
-.adm-dmg-half-toggle input[type=checkbox]{
+.adm-dmg-half-icon{
+  display: inline-block;
   width: 14px;
   height: 14px;
-  cursor: pointer;
-  pointer-events: none;
+  border: 1px solid rgba(255,255,255,.4);
+  border-radius: 3px;
+  background: transparent;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.adm-dmg-half-icon.is-on{
+  background: rgba(255,255,255,.15);
+  border-color: rgba(255,255,255,.65);
+}
+
+.adm-dmg-half-icon.is-on::after{
+  content: '✓';
+  position: absolute;
+  top: -3px;
+  left: 1px;
+  font-size: 13px;
+  color: #fff;
+  font-weight: 900;
+  line-height: 1;
 }
 
 /* Кнопка "Нанести урон" */
@@ -998,6 +1018,17 @@ position: absolute;
   font-size: 13px;
   cursor: not-allowed;
   text-align: center;
+}
+
+/* Damage message: mod wrap vertical (input on top, ± below) */
+.adm-rollmsg--dmg .adm-rollmsg-modwrap{
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.adm-rollmsg--dmg .adm-rollmsg-row{
+  padding-right: 65px;
 }
 
 /* Кости урона: серые */

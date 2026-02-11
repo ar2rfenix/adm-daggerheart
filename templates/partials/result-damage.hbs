@@ -19,14 +19,6 @@
         {{/each}}
 
         <div class="adm-rollmsg-modwrap">
-          <div class="adm-rollmsg-modbtn adm-has-tooltip"
-               data-adm-modbtn
-               data-tooltip="ЛКМ +Кость | ПКМ -Кость">
-            <span class="adm-roll-diesvg adm-rollmsg-diesvg"
-                  style="--adm-die-svg: url('{{d8Svg}}'); --adm-die-color: rgba(255,255,255,.22);"></span>
-            <div class="adm-rollmsg-modbtn-text">±</div>
-          </div>
-
           <input class="adm-rollmsg-modinput"
                  type="text"
                  value="{{modTotal}}"
@@ -34,6 +26,14 @@
                  inputmode="text"
                  autocomplete="off"
                  spellcheck="false" />
+
+          <div class="adm-rollmsg-modbtn adm-has-tooltip"
+               data-adm-modbtn
+               data-tooltip="ЛКМ +Кость | ПКМ -Кость">
+            <span class="adm-roll-diesvg adm-rollmsg-diesvg"
+                  style="--adm-die-svg: url('{{d8Svg}}'); --adm-die-color: rgba(255,255,255,.22);"></span>
+            <div class="adm-rollmsg-modbtn-text">±</div>
+          </div>
         </div>
       </div>
     </div>
@@ -77,7 +77,7 @@
           </div>
 
           <div class="adm-dmg-half-toggle" data-adm-dmg-half-toggle>
-            <input type="checkbox" {{#if halfToMissed}}checked{{/if}} />
+            <span class="adm-dmg-half-icon {{#if halfToMissed}}is-on{{/if}}"></span>
             <span>½ урона преуспевшим</span>
           </div>
         {{/if}}
