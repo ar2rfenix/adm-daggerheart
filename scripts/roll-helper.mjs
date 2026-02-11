@@ -1132,8 +1132,7 @@ function _installRollMsgHandlersOnce() {
     if (!tok) return;
 
     const c = tok.center;
-    const scale = Math.max(0.5, canvas.stage?.scale?.x ?? 1);
-    await canvas.animatePan({ x: c.x, y: c.y, scale });
+    await canvas.animatePan({ x: c.x, y: c.y, scale: 1.5 });
     tok.control({ releaseOthers: true });
   }, true);
 

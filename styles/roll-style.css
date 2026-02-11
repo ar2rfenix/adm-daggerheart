@@ -886,26 +886,41 @@ position: absolute;
   color: rgba(255,255,255,.4);
 }
 
+/* Значение урона — базовый цвет белый */
 .adm-dmg-target-dmg{
   font-weight: 900;
   font-size: 14px;
   cursor: context-menu;
   min-width: 24px;
   text-align: right;
-}
-
-.adm-dmg-target--hit .adm-dmg-target-dmg{
-  color: #ff6b6b;
+  color: #fff;
 }
 
 .adm-dmg-target--miss .adm-dmg-target-dmg{
   color: rgba(255,255,255,.35);
 }
 
-.adm-dmg-target-res{
-  font-size: 11px;
-  color: rgba(255,255,255,.45);
-  font-style: italic;
+/* Цвет урона по устойчивости */
+.adm-dmg-val--resist{ color: #ff5555 !important; }
+.adm-dmg-val--vuln{ color: #55dd55 !important; }
+
+/* Крестик исключения */
+.adm-dmg-target-x{
+  font-size: 13px;
+  color: rgba(255,255,255,.25);
+  cursor: pointer;
+  user-select: none;
+  line-height: 1;
+  padding: 2px;
+}
+.adm-dmg-target-x:hover{
+  color: rgba(255,255,255,.5);
+}
+.adm-dmg-target-x.is-active{
+  color: #e03030;
+}
+.adm-dmg-target-x.is-active:hover{
+  color: #ff4444;
 }
 
 .adm-dmg-sep{
@@ -948,29 +963,7 @@ position: absolute;
   text-align: center;
 }
 
-/* Контекстное меню (для типа урона и x2/÷2/0) */
-.adm-dmg-ctxmenu{
-  background: #1a1a2e;
-  border: 1px solid rgba(255,255,255,.22);
-  border-radius: 6px;
-  padding: 4px 0;
-  box-shadow: 0 4px 16px rgba(0,0,0,.5);
-  min-width: 120px;
-}
-
-.adm-dmg-ctxmenu-item{
-  padding: 6px 14px;
-  color: #eee;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.adm-dmg-ctxmenu-item:hover{
-  background: rgba(255,255,255,.12);
-}
-
-/* Кости урона: красноватый оттенок */
+/* Кости урона: серые */
 .adm-rollmsg--dmg .adm-rollmsg-die--dmg{
-  --adm-die-color: #e04040;
+  --adm-die-color: #909090;
 }

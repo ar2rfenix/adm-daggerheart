@@ -51,9 +51,9 @@
               <div class="adm-dmg-target adm-dmg-target--hit"
                    data-token-id="{{t.tokenId}}"
                    data-scene-id="{{t.sceneId}}">
-                <span class="adm-dmg-target-name">{{t.name}}</span>
-                <span class="adm-dmg-target-dmg" data-adm-target-dmg>{{t.dmg}}</span>
-                {{#if t.resLabel}}<span class="adm-dmg-target-res">({{t.resLabel}})</span>{{/if}}
+                <span class="adm-dmg-target-name" data-adm-dmg-target-name>{{t.name}}</span>
+                <span class="adm-dmg-target-dmg {{t.dmgColor}}" data-adm-target-dmg>{{t.dmg}}</span>
+                <span class="adm-dmg-target-x {{#if t.excluded}}is-active{{/if}}" data-adm-target-x title="Исключить">&#10005;</span>
               </div>
             {{/each}}
           </div>
@@ -71,15 +71,15 @@
               <div class="adm-dmg-target adm-dmg-target--miss"
                    data-token-id="{{t.tokenId}}"
                    data-scene-id="{{t.sceneId}}">
-                <span class="adm-dmg-target-name">{{t.name}}</span>
-                <span class="adm-dmg-target-dmg" data-adm-target-dmg>{{t.dmg}}</span>
-                {{#if t.resLabel}}<span class="adm-dmg-target-res">({{t.resLabel}})</span>{{/if}}
+                <span class="adm-dmg-target-name" data-adm-dmg-target-name>{{t.name}}</span>
+                <span class="adm-dmg-target-dmg {{t.dmgColor}}" data-adm-target-dmg>{{t.dmg}}</span>
+                <span class="adm-dmg-target-x {{#if t.excluded}}is-active{{/if}}" data-adm-target-x title="Исключить">&#10005;</span>
               </div>
             {{/each}}
           </div>
 
-          <label class="adm-dmg-half-toggle" data-adm-dmg-half>
-            <input type="checkbox" {{#if halfToMissed}}checked{{/if}} />
+          <label class="adm-dmg-half-toggle">
+            <input type="checkbox" data-adm-dmg-half {{#if halfToMissed}}checked{{/if}} />
             <span>½ урона преуспевшим</span>
           </label>
         {{/if}}

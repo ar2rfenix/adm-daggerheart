@@ -22,14 +22,6 @@ function _damageTypeShort(key) {
   return String(k || "");
 }
 
-function _damageTypeFull(key) {
-  const k = String(key || "").trim().toLowerCase();
-  if (k === "physical") return "Физический";
-  if (k === "magical")  return "Магический";
-  if (k === "direct")   return "Прямой";
-  return k;
-}
-
 async function _confirm(title, content) {
   return Dialog.confirm({ title, content });
 }
@@ -58,7 +50,6 @@ function _parseDamageFormula(formula) {
   const parts = [];
   let mod = 0;
 
-  // Находим все NdS
   const diceRe = /(\d*)d(\d+)/gi;
   let m;
   while ((m = diceRe.exec(raw)) !== null) {
@@ -67,7 +58,6 @@ function _parseDamageFormula(formula) {
     parts.push({ count, sides });
   }
 
-  // Ищем модификатор в конце: +3, -2
   const modMatch = raw.match(/([+-]\s*\d+)\s*$/);
   if (modMatch) {
     mod = parseInt(modMatch[1].replace(/\s+/g, ""), 10) || 0;
@@ -78,14 +68,14 @@ function _parseDamageFormula(formula) {
 
 // -------------------------
 // Resilience: проверяем устойчивость токена к типу урона
-// Возвращает: { multiplier: 1|2|0.5|0, label: string }
+// Возвращает: { multiplier: 1|2|0.5|0, kind: ""|"resist"|"immune"|"vuln" }
 // -------------------------
 function _getTokenResilience(token, damageType) {
   const type = String(damageType || "").trim().toLowerCase();
-  if (!type || type === "direct") return { multiplier: 1, label: "" };
+  if (!type || type === "direct") return { multiplier: 1, kind: "" };
 
   const actor = token?.actor;
-  if (!actor) return { multiplier: 1, label: "" };
+  if (!actor) return { multiplier: 1, kind: "" };
 
   const FLAG_SCOPE = "adm-daggerheart";
   const FLAG_STATUS_DEFS = "statusDefs";
@@ -94,7 +84,6 @@ function _getTokenResilience(token, damageType) {
 
   const allMods = [];
 
-  // Собираем модификаторы из всех активных статусов
   const _collectDefs = (defs, activeWhen) => {
     if (!Array.isArray(defs)) return;
     for (const def of defs) {
@@ -108,42 +97,30 @@ function _getTokenResilience(token, damageType) {
     }
   };
 
-  // Статусы из предметов (при экипировке)
   for (const item of (actor.items ?? [])) {
     const equipped = !!item.system?.equipped;
     if (!equipped && item.type !== "status") continue;
     const defs = item.getFlag?.(FLAG_SCOPE, FLAG_STATUS_DEFS);
     if (Array.isArray(defs)) {
       _collectDefs(defs, "equip");
-      // status items activate on "backpack"
       if (item.type === "status") _collectDefs(defs, "backpack");
     }
   }
 
-  // Локальные статусы актёра
   const actorDefs = actor.getFlag?.(FLAG_SCOPE, FLAG_ACTOR_STATUS_DEFS);
   if (Array.isArray(actorDefs)) _collectDefs(actorDefs, "backpack");
 
-  // Applied статусы (от /st и т.д.)
   const appliedDefs = actor.getFlag?.(FLAG_SCOPE, FLAG_APPLIED_STATUS_DEFS);
   if (Array.isArray(appliedDefs)) _collectDefs(appliedDefs, "backpack");
 
-  // Ищем совпадение по типу урона
   const suffix = type === "physical" ? "phy" : type === "magical" ? "mag" : "";
-  if (!suffix) return { multiplier: 1, label: "" };
+  if (!suffix) return { multiplier: 1, kind: "" };
 
-  // Приоритет: иммунитет > сопротивление > уязвимость
-  if (allMods.includes(`immune_${suffix}`)) {
-    return { multiplier: 0, label: "Иммунитет" };
-  }
-  if (allMods.includes(`resist_${suffix}`)) {
-    return { multiplier: 0.5, label: "Сопротивление" };
-  }
-  if (allMods.includes(`vuln_${suffix}`)) {
-    return { multiplier: 2, label: "Уязвимость" };
-  }
+  if (allMods.includes(`immune_${suffix}`)) return { multiplier: 0, kind: "immune" };
+  if (allMods.includes(`resist_${suffix}`)) return { multiplier: 0.5, kind: "resist" };
+  if (allMods.includes(`vuln_${suffix}`)) return { multiplier: 2, kind: "vuln" };
 
-  return { multiplier: 1, label: "" };
+  return { multiplier: 1, kind: "" };
 }
 
 // -------------------------
@@ -153,15 +130,24 @@ function _resolveToken(tokenId, sceneId) {
   try {
     const scene = sceneId ? game.scenes?.get(sceneId) : canvas?.scene;
     if (!scene) return null;
-    const doc = scene.tokens?.get(tokenId);
-    return doc ?? null;
+    return scene.tokens?.get(tokenId) ?? null;
   } catch (_e) {
     return null;
   }
 }
 
 // -------------------------
-// Build dice row for damage (same look as roll message)
+// Damage color by resilience kind
+// white = normal, red = resist/immune, green = vuln
+// -------------------------
+function _dmgColorClass(resKind) {
+  if (resKind === "resist" || resKind === "immune") return "adm-dmg-val--resist";
+  if (resKind === "vuln") return "adm-dmg-val--vuln";
+  return "";
+}
+
+// -------------------------
+// Build dice row for damage
 // -------------------------
 function _buildDamageDiceRow(rolledDice, extraDice) {
   const out = [];
@@ -192,26 +178,6 @@ function _buildDamageDiceRow(rolledDice, extraDice) {
 }
 
 // -------------------------
-// Compute target damage values
-// -------------------------
-function _computeTargetDmg(baseDmg, token, damageType, override) {
-  if (override === "zero") return 0;
-
-  const res = _getTokenResilience(token, damageType);
-  let dmg = Math.floor(baseDmg * res.multiplier);
-
-  if (override === "x2") dmg = baseDmg * 2;
-  if (override === "half") dmg = Math.floor(baseDmg / 2);
-
-  return Math.max(0, dmg);
-}
-
-function _getResLabel(token, damageType) {
-  const res = _getTokenResilience(token, damageType);
-  return res.label;
-}
-
-// -------------------------
 // Sum extra dice
 // -------------------------
 function _sumExtraDice(arr) {
@@ -225,23 +191,48 @@ function _sumExtraDice(arr) {
 }
 
 // -------------------------
+// Compute per-target damage + color
+// -------------------------
+function _computeTargetView(t, baseDmg, damageType, isHalf) {
+  const token = _resolveToken(t.tokenId, t.sceneId);
+  const res = token ? _getTokenResilience(token, damageType) : { multiplier: t.resMultiplier ?? 1, kind: t.resKind ?? "" };
+  t.resMultiplier = res.multiplier;
+  t.resKind = res.kind;
+
+  const srcDmg = isHalf ? Math.floor(baseDmg / 2) : baseDmg;
+
+  let dmg;
+  if (t.excluded) {
+    dmg = 0;
+  } else if (t.override === "x2") {
+    dmg = srcDmg * 2;
+  } else if (t.override === "half") {
+    dmg = Math.floor(srcDmg / 2);
+  } else if (t.override === "zero") {
+    dmg = 0;
+  } else {
+    dmg = Math.max(0, Math.floor(srcDmg * res.multiplier));
+  }
+
+  t.dmg = dmg;
+  t.dmgColor = t.excluded ? "" : _dmgColorClass(res.kind);
+}
+
+// -------------------------
 // MAIN: create damage chat message
 // -------------------------
 export async function admDamageRollToChat(damageFormula, damageType, targets, isCrit) {
   const parsed = _parseDamageFormula(damageFormula);
   if (!parsed.parts.length) return;
 
-  // Build combined roll formula
   const rollParts = parsed.parts.map(p => `${p.count}d${p.sides}`);
   const combinedRoll = new Roll(rollParts.join(" + "));
   await combinedRoll.evaluate();
 
-  // DSN
   if (game.dice3d) {
     try { await game.dice3d.showForRoll(combinedRoll, game.user, true); } catch (_e) {}
   }
 
-  // Собираем результаты отдельных костей
   const rolledDice = [];
   let dieIdx = 0;
   for (const term of combinedRoll.dice) {
@@ -257,10 +248,8 @@ export async function admDamageRollToChat(damageFormula, damageType, targets, is
   const diceSum = rolledDice.reduce((s, d) => s + d.value, 0);
   const modTotal = parsed.mod;
   const extraDice = [];
-  const extraSum = 0;
-  const damageTotal = diceSum + modTotal + extraSum;
+  const damageTotal = diceSum + modTotal;
 
-  // Targets
   const type = String(damageType || "physical").trim().toLowerCase();
 
   const hitTargets = [];
@@ -268,30 +257,32 @@ export async function admDamageRollToChat(damageFormula, damageType, targets, is
 
   for (const t of (targets ?? [])) {
     const token = _resolveToken(t.tokenId, t.sceneId);
-    const resLabel = token ? _getResLabel(token, type) : "";
-    const res = token ? _getTokenResilience(token, type) : { multiplier: 1, label: "" };
+    const res = token ? _getTokenResilience(token, type) : { multiplier: 1, kind: "" };
 
     const entry = {
       tokenId: t.tokenId,
       sceneId: t.sceneId,
       name: t.name,
       ok: t.ok,
-      override: t.ok ? null : "zero",
+      override: null,
+      excluded: false,
       resMultiplier: res.multiplier,
-      resLabel,
+      resKind: res.kind,
+      dmg: 0,
+      dmgColor: "",
     };
 
     if (t.ok) {
-      entry.dmg = Math.max(0, Math.floor(damageTotal * res.multiplier));
+      _computeTargetView(entry, damageTotal, type, false);
       hitTargets.push(entry);
     } else {
       entry.dmg = 0;
+      entry.dmgColor = "";
       missTargets.push(entry);
     }
   }
 
   const bg = "linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%)";
-
   const dice = _buildDamageDiceRow(rolledDice, extraDice);
 
   const data = {
@@ -368,42 +359,10 @@ async function _rerenderDmgMessage(message, flagsState) {
   const extraSum = _sumExtraDice(s.extraDice);
   const damageTotal = diceSum + modTotal + extraSum;
 
-  // Пересчитываем урон по таргетам
-  for (const t of s.hitTargets) {
-    const token = _resolveToken(t.tokenId, t.sceneId);
-    const res = token ? _getTokenResilience(token, type) : { multiplier: t.resMultiplier ?? 1, label: "" };
-    t.resMultiplier = res.multiplier;
-    t.resLabel = res.label;
-
-    if (t.override === "x2") t.dmg = damageTotal * 2;
-    else if (t.override === "half") t.dmg = Math.floor(damageTotal / 2);
-    else if (t.override === "zero") t.dmg = 0;
-    else t.dmg = Math.max(0, Math.floor(damageTotal * res.multiplier));
-  }
-
-  for (const t of s.missTargets) {
-    const token = _resolveToken(t.tokenId, t.sceneId);
-    const res = token ? _getTokenResilience(token, type) : { multiplier: t.resMultiplier ?? 1, label: "" };
-    t.resMultiplier = res.multiplier;
-    t.resLabel = res.label;
-
-    if (s.halfToMissed) {
-      // ½ от базового урона с учётом устойчивости
-      const base = Math.floor(damageTotal / 2);
-      if (t.override === "x2") t.dmg = base * 2;
-      else if (t.override === "half") t.dmg = Math.floor(base / 2);
-      else if (t.override === "zero") t.dmg = 0;
-      else t.dmg = Math.max(0, Math.floor(base * res.multiplier));
-    } else {
-      if (t.override === "zero") t.dmg = 0;
-      else if (t.override === "x2") t.dmg = damageTotal * 2;
-      else if (t.override === "half") t.dmg = Math.floor(damageTotal / 2);
-      else t.dmg = 0;
-    }
-  }
+  for (const t of s.hitTargets) _computeTargetView(t, damageTotal, type, false);
+  for (const t of s.missTargets) _computeTargetView(t, damageTotal, type, !!s.halfToMissed);
 
   const bg = "linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%)";
-
   const dice = _buildDamageDiceRow(s.rolledDice, s.extraDice);
 
   const data = {
@@ -442,55 +401,90 @@ async function _rerenderDmgMessage(message, flagsState) {
 }
 
 // -------------------------
-// Context menu helper (small floating menu)
+// Context menu (styled like roll mod menu)
 // -------------------------
-function _openSmallMenu(anchor, items) {
-  // Убираем предыдущее меню
-  document.querySelectorAll(".adm-dmg-ctxmenu").forEach(el => el.remove());
+const __ADM_DMG_MENU_ID = "__admDmgCtxMenuV1";
 
+function _closeDmgMenu() {
+  const el = document.getElementById(__ADM_DMG_MENU_ID);
+  if (el) el.remove();
+  globalThis.__admDmgMenuOpenV1 = null;
+}
+
+function _openDmgMenu(anchorEl, items) {
+  _closeDmgMenu();
+
+  const rect = anchorEl.getBoundingClientRect();
   const menu = document.createElement("div");
-  menu.className = "adm-dmg-ctxmenu";
+  menu.id = __ADM_DMG_MENU_ID;
+  menu.className = "adm-rollmsg-modmenu";
 
   for (const item of items) {
-    const row = document.createElement("div");
-    row.className = "adm-dmg-ctxmenu-item";
-    row.textContent = item.label;
-    row.addEventListener("click", (ev) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "adm-rollmsg-modmenu-item";
+    btn.textContent = item.label;
+    btn.addEventListener("click", (ev) => {
+      ev.preventDefault();
       ev.stopPropagation();
-      menu.remove();
+      _closeDmgMenu();
       item.callback();
     });
-    menu.appendChild(row);
+    menu.appendChild(btn);
   }
 
   document.body.appendChild(menu);
 
-  // Позиционируем рядом с anchor
-  const rect = anchor.getBoundingClientRect();
-  menu.style.position = "fixed";
-  menu.style.left = `${rect.right + 4}px`;
-  menu.style.top = `${rect.top}px`;
-  menu.style.zIndex = "10000";
+  const mrect = menu.getBoundingClientRect();
+  const left = Math.round(rect.left + rect.width / 2 - mrect.width / 2);
+  const top = Math.round(rect.top - mrect.height - 8);
+  menu.style.left = `${Math.max(8, left)}px`;
+  menu.style.top = `${Math.max(8, top)}px`;
 
-  // Закрытие по клику вовне
-  const _close = (ev) => {
-    if (!menu.contains(ev.target)) {
-      menu.remove();
-      document.removeEventListener("mousedown", _close, true);
+  globalThis.__admDmgMenuOpenV1 = { anchor: anchorEl };
+
+  const onDown = (ev) => {
+    if (ev.target === menu || menu.contains(ev.target)) return;
+    _closeDmgMenu();
+    document.removeEventListener("mousedown", onDown, true);
+    document.removeEventListener("keydown", onKey, true);
+  };
+  const onKey = (ev) => {
+    if (ev.key === "Escape") {
+      _closeDmgMenu();
+      document.removeEventListener("mousedown", onDown, true);
+      document.removeEventListener("keydown", onKey, true);
     }
   };
-  setTimeout(() => document.addEventListener("mousedown", _close, true), 0);
+  document.addEventListener("mousedown", onDown, true);
+  document.addEventListener("keydown", onKey, true);
 }
 
 // -------------------------
-// Mod menu (reuse same style as roll messages)
+// Mod menu (± dice, same style as roll messages)
 // -------------------------
 function _openModMenu(anchor, isNeg, callback) {
   const items = [4, 6, 8, 10, 12, 20].map(sides => ({
-    label: `d${sides}`,
+    label: `${isNeg ? "-" : "+"}1d${sides}`,
     callback: () => callback(sides, isNeg),
   }));
-  _openSmallMenu(anchor, items);
+  _openDmgMenu(anchor, items);
+}
+
+// -------------------------
+// Pan to token helper
+// -------------------------
+async function _panToToken(tokenId, sceneId) {
+  if (!canvas?.scene) return;
+  if (sceneId && canvas.scene.id !== sceneId) {
+    ui.notifications?.warn?.("Токен на другой сцене.");
+    return;
+  }
+  const tok = canvas.tokens?.get(tokenId);
+  if (!tok) return;
+  const c = tok.center;
+  await canvas.animatePan({ x: c.x, y: c.y, scale: 1.5 });
+  tok.control({ releaseOthers: true });
 }
 
 // -------------------------
@@ -517,7 +511,6 @@ export function admDamageInit() {
 
     const st = foundry.utils.duplicate(state);
 
-    // Ищем в rolledDice
     const rIdx = st.rolledDice.findIndex(d => String(d.id) === dieId);
     if (rIdx >= 0) {
       const d = st.rolledDice[rIdx];
@@ -527,7 +520,6 @@ export function admDamageInit() {
       return;
     }
 
-    // Ищем в extraDice
     const eIdx = (st.extraDice ?? []).findIndex(d => String(d.id) === dieId);
     if (eIdx >= 0) {
       const d = st.extraDice[eIdx];
@@ -560,7 +552,6 @@ export function admDamageInit() {
 
     const st = foundry.utils.duplicate(state);
 
-    // Ищем в rolledDice
     const rIdx = st.rolledDice.findIndex(d => String(d.id) === dieId);
     if (rIdx >= 0) {
       st.rolledDice.splice(rIdx, 1);
@@ -568,7 +559,6 @@ export function admDamageInit() {
       return;
     }
 
-    // Ищем в extraDice
     const eIdx = (st.extraDice ?? []).findIndex(d => String(d.id) === dieId);
     if (eIdx >= 0) {
       st.extraDice.splice(eIdx, 1);
@@ -674,7 +664,7 @@ export function admDamageInit() {
     });
   }, true);
 
-  // --- RMB on damage type label => change type menu ---
+  // --- RMB on damage header => change type menu ---
   document.addEventListener("contextmenu", async (ev) => {
     const el = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-header[data-adm-dmg-header]");
     if (!el) return;
@@ -688,27 +678,26 @@ export function admDamageInit() {
     ev.preventDefault();
     ev.stopPropagation();
 
-    _openSmallMenu(el, [
+    _openDmgMenu(el, [
       { label: "Физический", callback: async () => {
         const st = foundry.utils.duplicate(state);
         st.damageType = "physical";
-        // Сбрасываем overrides при смене типа — устойчивости пересчитаются
         for (const t of (st.hitTargets ?? [])) { t.override = null; }
-        for (const t of (st.missTargets ?? [])) { if (t.override !== "zero" || !t.ok) t.override = t.ok ? null : "zero"; }
+        for (const t of (st.missTargets ?? [])) { t.override = null; }
         await _rerenderDmgMessage(message, st);
       }},
       { label: "Магический", callback: async () => {
         const st = foundry.utils.duplicate(state);
         st.damageType = "magical";
         for (const t of (st.hitTargets ?? [])) { t.override = null; }
-        for (const t of (st.missTargets ?? [])) { if (t.override !== "zero" || !t.ok) t.override = t.ok ? null : "zero"; }
+        for (const t of (st.missTargets ?? [])) { t.override = null; }
         await _rerenderDmgMessage(message, st);
       }},
       { label: "Прямой", callback: async () => {
         const st = foundry.utils.duplicate(state);
         st.damageType = "direct";
         for (const t of (st.hitTargets ?? [])) { t.override = null; }
-        for (const t of (st.missTargets ?? [])) { if (t.override !== "zero" || !t.ok) t.override = t.ok ? null : "zero"; }
+        for (const t of (st.missTargets ?? [])) { t.override = null; }
         await _rerenderDmgMessage(message, st);
       }},
     ]);
@@ -733,7 +722,7 @@ export function admDamageInit() {
 
     const tokenId = targetEl.dataset.tokenId;
 
-    _openSmallMenu(el, [
+    _openDmgMenu(el, [
       { label: "×2", callback: async () => {
         const st = foundry.utils.duplicate(state);
         const t = [...(st.hitTargets ?? []), ...(st.missTargets ?? [])].find(x => x.tokenId === tokenId);
@@ -761,10 +750,24 @@ export function admDamageInit() {
     ]);
   }, true);
 
-  // --- ½ урона переключатель ---
-  document.addEventListener("change", async (ev) => {
-    const label = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-half-toggle[data-adm-dmg-half]");
-    if (!label) return;
+  // --- LMB on target name => pan to token ---
+  document.addEventListener("click", async (ev) => {
+    const el = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-target-name[data-adm-dmg-target-name]");
+    if (!el) return;
+
+    const targetEl = el.closest(".adm-dmg-target[data-token-id]");
+    if (!targetEl) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    await _panToToken(targetEl.dataset.tokenId, targetEl.dataset.sceneId);
+  }, true);
+
+  // --- LMB on exclude cross => toggle ---
+  document.addEventListener("click", async (ev) => {
+    const el = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-target-x[data-adm-target-x]");
+    if (!el) return;
 
     const message = _findMessageFromEvent(ev);
     if (!message) return;
@@ -772,10 +775,32 @@ export function admDamageInit() {
     const state = _getDmgFlagsState(message);
     if (!state) return;
 
-    const checked = !!label.querySelector("input[type=checkbox]")?.checked;
+    const targetEl = el.closest(".adm-dmg-target[data-token-id]");
+    if (!targetEl) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    const tokenId = targetEl.dataset.tokenId;
+    const st = foundry.utils.duplicate(state);
+    const t = [...(st.hitTargets ?? []), ...(st.missTargets ?? [])].find(x => x.tokenId === tokenId);
+    if (t) t.excluded = !t.excluded;
+    await _rerenderDmgMessage(message, st);
+  }, true);
+
+  // --- ½ урона чекбокс ---
+  document.addEventListener("change", async (ev) => {
+    const cb = ev.target?.closest?.(".adm-rollmsg--dmg input[data-adm-dmg-half]");
+    if (!cb) return;
+
+    const message = _findMessageFromEvent(ev);
+    if (!message) return;
+
+    const state = _getDmgFlagsState(message);
+    if (!state) return;
 
     const st = foundry.utils.duplicate(state);
-    st.halfToMissed = checked;
+    st.halfToMissed = !!cb.checked;
     await _rerenderDmgMessage(message, st);
   }, true);
 
@@ -807,13 +832,17 @@ async function _refreshLastDmgTargets() {
   const st = foundry.utils.duplicate(state);
   const type = String(st.damageType || "physical").trim().toLowerCase();
 
-  // Собираем текущие tokenId из обоих списков
   const existingIds = new Set([
     ...(st.hitTargets ?? []).map(t => t.tokenId),
     ...(st.missTargets ?? []).map(t => t.tokenId),
   ]);
 
-  // Добавляем новые таргеты в hit-список
+  const diceSum = (st.rolledDice ?? []).reduce((s, d) => s + (Number(d.value) || 0), 0);
+  const modTotal = Math.trunc(Number(st.modTotal) || 0);
+  const extraSum = _sumExtraDice(st.extraDice ?? []);
+  const damageTotal = diceSum + modTotal + extraSum;
+
+  let added = false;
   for (const t of set) {
     const token = t?.object ?? t;
     const id = token?.id;
@@ -823,28 +852,28 @@ async function _refreshLastDmgTargets() {
     const name = token?.name ?? token?.document?.name ?? "—";
     const res = _getTokenResilience(token, type);
 
-    const diceSum = (st.rolledDice ?? []).reduce((s, d) => s + (Number(d.value) || 0), 0);
-    const modTotal = Math.trunc(Number(st.modTotal) || 0);
-    const extraSum = _sumExtraDice(st.extraDice ?? []);
-    const damageTotal = diceSum + modTotal + extraSum;
-
-    st.hitTargets.push({
+    const entry = {
       tokenId: String(id),
       sceneId: String(sceneId),
       name: String(name),
       ok: true,
       override: null,
+      excluded: false,
       resMultiplier: res.multiplier,
-      resLabel: res.label,
+      resKind: res.kind,
       dmg: Math.max(0, Math.floor(damageTotal * res.multiplier)),
-    });
+      dmgColor: _dmgColorClass(res.kind),
+    };
+
+    st.hitTargets.push(entry);
+    added = true;
   }
 
-  await _rerenderDmgMessage(msg, st);
+  if (added) await _rerenderDmgMessage(msg, st);
 }
 
 // -------------------------
-// Safe math evaluator (same as roll-helper)
+// Safe math evaluator
 // -------------------------
 function _evalMathExpr(expr, fallback = 0) {
   const raw = String(expr ?? "").trim();
