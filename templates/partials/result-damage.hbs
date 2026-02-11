@@ -10,7 +10,7 @@
     <div class="adm-rollmsg-row {{#if verticalMod}}adm-dmg-row--compact{{/if}}">
       <div class="adm-rollmsg-dice">
         {{#each dice as |d|}}
-          <div class="adm-rollmsg-die adm-rollmsg-die--{{d.kind}} {{#if d.isNeg}}is-neg{{/if}}"
+          <div class="adm-rollmsg-die adm-rollmsg-die--{{d.kind}} {{#if d.isNeg}}is-neg{{/if}} {{#if d.isDropped}}is-dropped{{/if}}"
                data-die-id="{{d.id}}">
             <span class="adm-roll-diesvg adm-rollmsg-diesvg"
                   style="--adm-die-svg: url('{{d.svg}}'); --adm-die-scale: {{d.scale}};"></span>

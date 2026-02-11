@@ -41,7 +41,8 @@ async function _rollDieWithDsn(sides) {
 }
 
 // -------------------------
-// Parse damage formula: "3d6+3" => { parts: [{count:3, sides:6}], mod: 3 }
+// Parse damage formula: "3d6+3" => { parts: [{count:3, sides:6, mods:""}], mod: 3 }
+// Supports Foundry modifiers: kh, kl, dh, dl  (e.g. "3d8dl1+3")
 // -------------------------
 function _parseDamageFormula(formula) {
   const raw = String(formula || "").trim();
@@ -50,12 +51,13 @@ function _parseDamageFormula(formula) {
   const parts = [];
   let mod = 0;
 
-  const diceRe = /(\d*)d(\d+)/gi;
+  const diceRe = /(\d*)d(\d+)((?:[a-z<>=!]+\d*)*)/gi;
   let m;
   while ((m = diceRe.exec(raw)) !== null) {
     const count = Math.max(1, parseInt(m[1], 10) || 1);
     const sides = parseInt(m[2], 10) || 6;
-    parts.push({ count, sides });
+    const mods = (m[3] || "").toLowerCase();
+    parts.push({ count, sides, mods });
   }
 
   const modMatch = raw.match(/([+-]\s*\d+)\s*$/);
@@ -64,6 +66,39 @@ function _parseDamageFormula(formula) {
   }
 
   return { parts, mod };
+}
+
+// -------------------------
+// Mark active/inactive dice based on kh/kl/dh/dl modifiers
+// Mutates each die in the array: sets d.active = true/false
+// -------------------------
+function _markActiveDice(rolledDice, rollMods) {
+  for (const d of rolledDice) d.active = true;
+  if (!rollMods || !rolledDice.length) return;
+
+  const m = rollMods.match(/^(kh|kl|dh|dl)(\d+)$/i);
+  if (!m) return;
+
+  const type = m[1].toLowerCase();
+  const count = Math.min(parseInt(m[2], 10) || 0, rolledDice.length);
+  if (count <= 0) return;
+
+  const sorted = [...rolledDice].sort((a, b) => a.value - b.value);
+  let activeSet;
+
+  if (type === "kh") {
+    activeSet = new Set(sorted.slice(sorted.length - count).map(d => d.id));
+  } else if (type === "kl") {
+    activeSet = new Set(sorted.slice(0, count).map(d => d.id));
+  } else if (type === "dh") {
+    activeSet = new Set(sorted.slice(0, sorted.length - count).map(d => d.id));
+  } else if (type === "dl") {
+    activeSet = new Set(sorted.slice(count).map(d => d.id));
+  }
+
+  if (activeSet) {
+    for (const d of rolledDice) d.active = activeSet.has(d.id);
+  }
 }
 
 // -------------------------
@@ -160,6 +195,7 @@ function _buildDamageDiceRow(rolledDice, extraDice) {
       scale: 1,
       text: String(d.value),
       isNeg: false,
+      isDropped: d.active === false,
     });
   }
 
@@ -233,13 +269,16 @@ export async function admDamageRollToChat(damageFormula, damageType, targets, is
   const parsed = _parseDamageFormula(damageFormula);
   if (!parsed.parts.length) return;
 
-  const rollParts = parsed.parts.map(p => `${p.count}d${p.sides}`);
+  const rollParts = parsed.parts.map(p => `${p.count}d${p.sides}${p.mods}`);
   const combinedRoll = new Roll(rollParts.join(" + "));
   await combinedRoll.evaluate();
 
   if (game.dice3d) {
     try { await game.dice3d.showForRoll(combinedRoll, game.user, true); } catch (_e) {}
   }
+
+  // Collect dice modifiers for active/inactive marking (single-group case)
+  const rollMods = parsed.parts.length === 1 ? (parsed.parts[0].mods || "") : "";
 
   const rolledDice = [];
   let dieIdx = 0;
@@ -253,7 +292,8 @@ export async function admDamageRollToChat(damageFormula, damageType, targets, is
     }
   }
 
-  const diceSum = rolledDice.reduce((s, d) => s + d.value, 0);
+  _markActiveDice(rolledDice, rollMods);
+  const diceSum = rolledDice.reduce((s, d) => s + (d.active !== false ? d.value : 0), 0);
   const modTotal = parsed.mod;
   const extraDice = [];
   const damageTotal = diceSum + modTotal;
@@ -321,6 +361,7 @@ export async function admDamageRollToChat(damageFormula, damageType, targets, is
     damageType: type,
     isCrit: !!isCrit,
     modTotal,
+    rollMods,
     rolledDice,
     extraDice,
     hitTargets,
@@ -366,7 +407,8 @@ async function _rerenderDmgMessage(message, flagsState) {
 
   const type = String(s.damageType || "physical").trim().toLowerCase();
 
-  const diceSum = s.rolledDice.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+  _markActiveDice(s.rolledDice, s.rollMods || "");
+  const diceSum = s.rolledDice.reduce((sum, d) => sum + (d.active !== false ? (Number(d.value) || 0) : 0), 0);
   const modTotal = Math.trunc(Number(s.modTotal) || 0);
   const extraSum = _sumExtraDice(s.extraDice);
   const damageTotal = diceSum + modTotal + extraSum;

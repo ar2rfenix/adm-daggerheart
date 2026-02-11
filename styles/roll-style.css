@@ -1051,3 +1051,8 @@ position: absolute;
 .adm-rollmsg--dmg .adm-rollmsg-die--dmg{
   --adm-die-color: #909090;
 }
+
+/* Dropped dice (dl1, dh1 etc.) — dimmed + strikethrough value */
+.adm-rollmsg--dmg .adm-rollmsg-die.is-dropped{
+  opacity: .3;
+}
