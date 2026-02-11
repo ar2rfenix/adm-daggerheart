@@ -856,8 +856,28 @@ function _resolveDamageFormula(rawFormula, actor, caster) {
 
 /**
  * Substitute attribute tokens (Сила, Мастерство, Чутьё, Магия, etc.)
- * with their numeric values. Uses admPathForLabel + admMagicValue.
+ * with their numeric values. Uses admPathForLabel + fallback map.
  */
+
+// Прямой маппинг имён → путей, для случаев когда admPathForLabel
+// не находит (напр. "Уклонение" хранится как "Уклонение / СЛ")
+const _attrNameToPath = {
+  "сила":        "system.traits.strength.value",
+  "проворность": "system.traits.agility.value",
+  "ловкость":    "system.traits.agility.value",
+  "искусность":  "system.traits.finesse.value",
+  "точность":    "system.traits.finesse.value",
+  "чутьё":       "system.traits.instinct.value",
+  "инстинкт":    "system.traits.instinct.value",
+  "влияние":     "system.traits.presence.value",
+  "харизма":     "system.traits.presence.value",
+  "знание":      "system.traits.knowledge.value",
+  "уклонение":   "system.resources.dodge.value",
+  "броня":       "system.resources.armor.value",
+  "мастерство":  "system.mastery",
+  "уровень":     "system.level",
+};
+
 function _substituteAttrTokens(raw, actor, caster) {
   let expr = String(raw ?? "").trim();
   if (!expr) return "0";
@@ -875,7 +895,7 @@ function _substituteAttrTokens(raw, actor, caster) {
       const t = m.trim();
       if (admIsMagicLabel(t)) return String(admMagicValue(base) || 0);
 
-      const path = admPathForLabel(t);
+      const path = admPathForLabel(t) || _attrNameToPath[t.toLowerCase()] || "";
       if (path) return String(Number(foundry.utils.getProperty(base, path) ?? 0) || 0);
 
       return m;
