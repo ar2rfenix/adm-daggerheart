@@ -7,7 +7,8 @@
   "CARD": "Карта",
   "NOTES": "Заметки",
   "EXPERIENCE": "Опыт",
-  "BACKPACK": "Рюкзак"
+  "BACKPACK": "Рюкзак",
+  "STATUS": "Статус"
 },
 "CARD": {
   "TEMPLATE": {

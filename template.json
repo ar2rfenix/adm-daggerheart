@@ -63,7 +63,7 @@
     }
   },
   "Item": {
-    "types": ["weapon", "armor", "gear", "relic", "ability", "enemyAbility", "card"],
+    "types": ["weapon", "armor", "gear", "relic", "ability", "enemyAbility", "card", "status"],
     "weapon": {
       "grip": "oneHanded",
       "weaponType": "primary",
@@ -130,6 +130,8 @@
         "value": 0,
         "max": 0
       }
+    },
+    "status": {
     }
   }
 }

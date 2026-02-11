@@ -483,6 +483,20 @@ export class ADMRelicSheet extends ADMBaseItemSheet {
   };
   
 }
+export class ADMStatusSheet extends ADMBaseItemSheet {
+  static DEFAULT_OPTIONS = {
+    ...ADMBaseItemSheet.DEFAULT_OPTIONS,
+    height: 420,
+  };
+
+  static PARTS = {
+    body: {
+      template: "systems/adm-daggerheart/templates/item/status.hbs",
+      scrollable: [".sheet-body"],
+    },
+  };
+}
+
 export class ADMCardSheet extends ADMBaseItemSheet {
 
 

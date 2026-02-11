@@ -6,6 +6,7 @@ import {
   ADMEnemyAbilitySheet,
   ADMGearSheet,
   ADMRelicSheet,
+  ADMStatusSheet,
   ADMCardSheet
 } from "./module/sheets/item-sheets.mjs";
 import { admOpenPcRollDialog, admOpenNpcRollDialog } from "./module/roll/roll.mjs";
@@ -231,6 +232,7 @@ card: {
   ItemsCollection.registerSheet("adm-daggerheart", ADMGearSheet, { types: ["gear"], makeDefault: true });
   ItemsCollection.registerSheet("adm-daggerheart", ADMRelicSheet, { types: ["relic"], makeDefault: true });
 ItemsCollection.registerSheet("adm-daggerheart", ADMCardSheet, { types: ["card"], makeDefault: true });
+  ItemsCollection.registerSheet("adm-daggerheart", ADMStatusSheet, { types: ["status"], makeDefault: true });
 
 
 });

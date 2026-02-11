@@ -5,7 +5,8 @@
       "TRAITS": "Traits",
       "WEAPON": "Weapon",
       "NOTES": "Notes",
-      "EXPERIENCE": "Experience"
+      "EXPERIENCE": "Experience",
+      "STATUS": "Status"
     },
     "RES": {
       "HP": "HP",
