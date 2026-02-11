@@ -102,6 +102,74 @@ function _installGlobalDelegatedHandlers() {
   if (globalThis.__admStatusDelegatedHandlers) return;
   globalThis.__admStatusDelegatedHandlers = true;
 
+  // --- drag-drop: status-item onto .adm-statuses (item sheets) ---
+  document.addEventListener("dragover", (ev) => {
+    if (ev.target?.closest?.(".adm-statuses")) {
+      ev.preventDefault();
+      ev.dataTransfer.dropEffect = "copy";
+    }
+  }, true);
+
+  document.addEventListener("drop", async (ev) => {
+    const statusesEl = ev.target?.closest?.(".adm-statuses");
+    if (!statusesEl) return;
+
+    const uuid = _extractDroppedItemUUID(ev);
+    if (!uuid) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    const statusItem = await _resolveStatusItem(uuid);
+    if (!statusItem) return;
+
+    // Resolve the owning document via any action button inside the statuses section
+    const btn =
+      statusesEl.querySelector("[data-action='adm-status-add']") ||
+      statusesEl.querySelector("[data-action='adm-actor-status-add']");
+    if (!btn) return;
+
+    const { app, doc } = _resolveItemAppFromButton(btn);
+    if (!app || !doc || !doc.isOwner) return;
+
+    const isActorAction = btn.dataset.action?.includes("actor");
+    const flagKey = isActorAction ? FLAG_KEY_ACTOR : FLAG_KEY_ITEM;
+
+    // Read status effects from the dropped status-item
+    const droppedDefs = _readStatusDefs(statusItem, FLAG_KEY_ITEM);
+
+    // If no statusDefs on the item, create one from item-level data
+    if (!droppedDefs.length) {
+      droppedDefs.push({
+        id: foundry.utils.randomID(),
+        name: statusItem.name || "Статус",
+        img: statusItem.img || "icons/svg/aura.svg",
+        text: "",
+        when: isActorAction ? "backpack" : "equip",
+        mods: [],
+      });
+    }
+
+    // Read target's current statusDefs
+    const defs = _readStatusDefs(doc, flagKey);
+
+    // Append each dropped def with a new ID
+    for (const d of droppedDefs) {
+      const clone = foundry.utils.deepClone(d);
+      clone.id = foundry.utils.randomID();
+      if (isActorAction) clone.when = "backpack";
+      defs.push(clone);
+    }
+
+    await _writeStatusDefs(doc, defs, flagKey);
+
+    if (flagKey === FLAG_KEY_ACTOR && doc instanceof Actor) {
+      await admSyncActorStatusMods(doc);
+    }
+
+    app.render?.({ force: true });
+  }, true);
+
   document.addEventListener(
     "click",
     async (ev) => {
@@ -316,6 +384,80 @@ class ADMStatusDialog extends Dialog {
           await admInitTinyMCE(editorId);
         } catch (e) {
           console.error("admInitTinyMCE failed:", e);
+        }
+      });
+    }
+
+    // --------------------------------------------------
+    // Drag-drop: status-item onto dialog (merge data)
+    // --------------------------------------------------
+    const form = root.querySelector(".adm-status-form");
+    if (form) {
+      form.addEventListener("dragover", (ev) => {
+        ev.preventDefault();
+        ev.dataTransfer.dropEffect = "copy";
+      });
+
+      form.addEventListener("drop", async (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        const uuid = _extractDroppedItemUUID(ev);
+        if (!uuid) return;
+
+        const statusItem = await _resolveStatusItem(uuid);
+        if (!statusItem) return;
+
+        const droppedDefs = _readStatusDefs(statusItem, FLAG_KEY_ITEM);
+
+        // Item-level fallbacks
+        const itemName = String(statusItem.name || "").trim();
+        const itemImg = String(statusItem.img || "icons/svg/aura.svg").trim();
+
+        // Prefer first statusDef's fields, fall back to item-level
+        const firstName = droppedDefs[0]?.name || itemName;
+        const firstImg =
+          (droppedDefs[0]?.img && droppedDefs[0].img !== "icons/svg/aura.svg")
+            ? droppedDefs[0].img
+            : itemImg;
+        const firstText = droppedDefs[0]?.text || "";
+
+        // Update name
+        const nameInput = form.querySelector('[name="name"]');
+        if (nameInput && firstName) nameInput.value = firstName;
+
+        // Update image
+        const imgInputEl = form.querySelector('[name="img"]');
+        const imgVisual = form.querySelector(".adm-status-img");
+        if (imgInputEl) imgInputEl.value = firstImg;
+        if (imgVisual) imgVisual.src = firstImg;
+
+        // Update text / description
+        if (firstText) {
+          const editorId = this._admEditorId;
+          const ed = editorId ? globalThis.tinymce?.get?.(editorId) : null;
+          if (ed) {
+            ed.setContent(firstText);
+          } else {
+            const ta = form.querySelector('[name="text"]');
+            if (ta) ta.value = firstText;
+          }
+        }
+
+        // Append mods from ALL statusDefs (additive)
+        const modsWrap = form.querySelector(".adm-status-mods");
+        if (modsWrap) {
+          for (const d of droppedDefs) {
+            const mods = Array.isArray(d.mods) ? d.mods : [];
+            for (const m of mods) {
+              const html = this._admRenderRowHTML(m).trim();
+              if (!html) continue;
+              const tmp = document.createElement("div");
+              tmp.innerHTML = html;
+              const row = tmp.firstElementChild;
+              if (row) modsWrap.appendChild(row);
+            }
+          }
         }
       });
     }
@@ -818,6 +960,39 @@ function _collectNumericPaths(obj, prefix, outSet) {
 
 
 
+
+/* -------------------------------------------- */
+/* Drag-drop helpers                            */
+/* -------------------------------------------- */
+
+function _extractDroppedItemUUID(ev) {
+  let raw = "";
+  try {
+    raw = ev.dataTransfer?.getData("text/plain") || ev.dataTransfer?.getData("application/json") || "";
+  } catch (_e) {}
+  if (!raw) return null;
+
+  let data;
+  try { data = JSON.parse(raw); } catch (_e) { return null; }
+
+  const uuid = data?.uuid || data?.document?.uuid || null;
+  if (!uuid) return null;
+
+  const type = String(data?.type || data?.documentName || "").toLowerCase();
+  if (type && type !== "item") return null;
+
+  return String(uuid);
+}
+
+async function _resolveStatusItem(uuid) {
+  try {
+    const doc = await fromUuid(uuid);
+    if (!doc || String(doc.type ?? "").toLowerCase() !== "status") return null;
+    return doc;
+  } catch (_e) {
+    return null;
+  }
+}
 
 /* -------------------------------------------- */
 /* Utils                                        */
