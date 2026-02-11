@@ -864,18 +864,16 @@ function _resolveDamageFormula(rawFormula, actor, caster) {
 const _attrNameToPath = {
   "сила":        "system.traits.strength.value",
   "проворность": "system.traits.agility.value",
-  "ловкость":    "system.traits.agility.value",
   "искусность":  "system.traits.finesse.value",
-  "точность":    "system.traits.finesse.value",
   "чутьё":       "system.traits.instinct.value",
-  "инстинкт":    "system.traits.instinct.value",
   "влияние":     "system.traits.presence.value",
-  "харизма":     "system.traits.presence.value",
   "знание":      "system.traits.knowledge.value",
   "уклонение":   "system.resources.dodge.value",
+  "сл":          "system.resources.dodge.value",
   "броня":       "system.resources.armor.value",
   "мастерство":  "system.mastery",
   "уровень":     "system.level",
+  "база":        "system.damage",
 };
 
 function _substituteAttrTokens(raw, actor, caster) {
