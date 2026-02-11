@@ -49,8 +49,8 @@
               <div class="adm-dmg-target adm-dmg-target--hit {{#if t.excluded}}is-excluded{{/if}}"
                    data-token-id="{{t.tokenId}}"
                    data-scene-id="{{t.sceneId}}">
-                <span class="adm-dmg-target-name" data-adm-dmg-target-name>{{t.name}}{{#if t.stress}} <span class="adm-dmg-target-stress">{{t.stress}}<i class="fa-solid fa-droplet"></i></span>{{/if}}</span>
-                <span class="adm-dmg-target-dmg {{t.dmgColor}}" data-adm-target-dmg>{{t.dmg}}</span>
+                <span class="adm-dmg-target-name" data-adm-dmg-target-name>{{t.name}}</span>
+                <span class="adm-dmg-target-val">{{#if t.stress}}<span class="adm-dmg-target-stress">{{t.stress}}<i class="fa-solid fa-droplet"></i></span>{{/if}}<span class="adm-dmg-target-dmg {{t.dmgColor}}" data-adm-target-dmg>{{t.dmg}}</span></span>
                 <span class="adm-dmg-target-x {{#if t.excluded}}is-active{{/if}}" data-adm-target-x title="Исключить">&#10005;</span>
               </div>
             {{/each}}
@@ -69,8 +69,8 @@
               <div class="adm-dmg-target adm-dmg-target--miss {{#if t.excluded}}is-excluded{{/if}}"
                    data-token-id="{{t.tokenId}}"
                    data-scene-id="{{t.sceneId}}">
-                <span class="adm-dmg-target-name" data-adm-dmg-target-name>{{t.name}}{{#if t.stress}} <span class="adm-dmg-target-stress">{{t.stress}}<i class="fa-solid fa-droplet"></i></span>{{/if}}</span>
-                <span class="adm-dmg-target-dmg {{t.dmgColor}}" data-adm-target-dmg>{{t.dmg}}</span>
+                <span class="adm-dmg-target-name" data-adm-dmg-target-name>{{t.name}}</span>
+                <span class="adm-dmg-target-val">{{#if t.stress}}<span class="adm-dmg-target-stress">{{t.stress}}<i class="fa-solid fa-droplet"></i></span>{{/if}}<span class="adm-dmg-target-dmg {{t.dmgColor}}" data-adm-target-dmg>{{t.dmg}}</span></span>
                 <span class="adm-dmg-target-x {{#if t.excluded}}is-active{{/if}}" data-adm-target-x title="Исключить">&#10005;</span>
               </div>
             {{/each}}

@@ -923,6 +923,14 @@ position: absolute;
   opacity: .45;
 }
 
+/* Обёртка стресс + урон */
+.adm-dmg-target-val{
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
 /* Значение урона — базовый цвет белый */
 .adm-dmg-target-dmg{
   font-weight: 900;
