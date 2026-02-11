@@ -1036,7 +1036,7 @@ function _openModMenu(anchorEl, isNegative, onPick) {
 
     const sub = document.createElement("div");
     sub.className = "adm-rollmsg-modmenu-sub";
-    for (const count of [2, 3]) {
+    for (const count of [3, 2]) {
       const subBtn = document.createElement("button");
       subBtn.type = "button";
       subBtn.className = "adm-rollmsg-modmenu-item";

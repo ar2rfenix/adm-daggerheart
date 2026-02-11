@@ -203,17 +203,20 @@ function _computeTargetView(t, baseDmg, damageType, isHalf, isMissTarget = false
     ? (isHalf ? Math.floor(baseDmg / 2) : 0)
     : baseDmg;
 
+  // Apply resilience first
+  const resDmg = Math.max(0, Math.floor(srcDmg * res.multiplier));
+
   let dmg;
   if (t.excluded) {
     dmg = 0;
   } else if (t.override === "x2") {
-    dmg = srcDmg * 2;
+    dmg = resDmg * 2;
   } else if (t.override === "half") {
-    dmg = Math.floor(srcDmg / 2);
+    dmg = Math.floor(resDmg / 2);
   } else if (t.override === "zero") {
     dmg = 0;
   } else {
-    dmg = Math.max(0, Math.floor(srcDmg * res.multiplier));
+    dmg = resDmg;
   }
 
   t.dmg = dmg;
@@ -494,7 +497,7 @@ function _openModMenu(anchor, isNeg, callback) {
 
     const sub = document.createElement("div");
     sub.className = "adm-rollmsg-modmenu-sub";
-    for (const count of [2, 3]) {
+    for (const count of [3, 2]) {
       const subBtn = document.createElement("button");
       subBtn.type = "button";
       subBtn.className = "adm-rollmsg-modmenu-item";

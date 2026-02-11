@@ -712,16 +712,31 @@ position: absolute;
 
 .adm-rollmsg-modmenu-sub{
   position: absolute;
-  right: calc(100% + 6px);
+  right: calc(100% + 4px);
   top: 50%;
   transform: translateY(-50%) translateX(8px);
   display: flex;
   flex-direction: row;
   gap: 4px;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(15,15,20,.96);
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease, transform 0.15s ease;
   white-space: nowrap;
+}
+
+/* Invisible bridge to keep hover active across the gap */
+.adm-rollmsg-modmenu-sub::after{
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 0;
+  width: 10px;
+  height: 100%;
 }
 
 .adm-rollmsg-modmenu-itemwrap:hover .adm-rollmsg-modmenu-sub{
@@ -859,6 +874,7 @@ position: absolute;
   font-size: 28px;
   font-weight: 900;
   color: #fff;
+  text-transform: uppercase;
 }
 
 /* Блок 3: таргеты урона */
@@ -965,6 +981,7 @@ position: absolute;
   width: 14px;
   height: 14px;
   cursor: pointer;
+  pointer-events: none;
 }
 
 /* Кнопка "Нанести урон" */
