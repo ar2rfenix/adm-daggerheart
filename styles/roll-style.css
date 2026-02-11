@@ -895,7 +895,7 @@ position: absolute;
 
 .adm-dmg-target{
   display: grid;
-  grid-template-columns: 1fr auto auto auto;
+  grid-template-columns: 1fr auto auto;
   cursor: context-menu;
   align-items: center;
   column-gap: 8px;
@@ -945,9 +945,6 @@ position: absolute;
   font-weight: 700;
   font-size: 13px;
   color: #3fa5be;
-  min-width: 16px;
-  text-align: right;
-  margin-right: -5px;
 }
 .adm-dmg-target-stress .fa-droplet{
   color: #3fa5be;
