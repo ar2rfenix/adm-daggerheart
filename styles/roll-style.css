@@ -944,14 +944,14 @@ position: absolute;
 .adm-dmg-target-stress{
   font-weight: 700;
   font-size: 13px;
-  color: #2b869d;
+  color: #3fa5be;
   min-width: 16px;
   text-align: right;
+  margin-right: -5px;
 }
 .adm-dmg-target-stress .fa-droplet{
-  color: #2b869d;
-  opacity: .85;
-  font-size: 11px;
+  color: #3fa5be;
+  font-size: 12px;
   margin-left: 1px;
 }
 

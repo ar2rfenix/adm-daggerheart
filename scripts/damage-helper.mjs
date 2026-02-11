@@ -749,7 +749,7 @@ function _openTargetDmgMenu(anchorEl, message, state, targetTokenIds) {
   menu.appendChild(btnFlat);
 
   // Stress scroll item
-  const _stressIcon = `<i class="fa-solid fa-droplet" style="color:#2b869d;opacity:.85"></i>`;
+  const _stressIcon = `<i class="fa-solid fa-droplet" style="color:#3fa5be;font-size:12px"></i>`;
   const fmtStress = (v) => `${v === 0 ? "±" : (v > 0 ? "+" : "")}${v}${_stressIcon}`;
   const btnStress = document.createElement("button");
   btnStress.type = "button";
