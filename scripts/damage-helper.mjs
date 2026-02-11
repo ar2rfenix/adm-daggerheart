@@ -69,35 +69,52 @@ function _parseDamageFormula(formula) {
 }
 
 // -------------------------
-// Mark active/inactive dice based on kh/kl/dh/dl modifiers
-// Mutates each die in the array: sets d.active = true/false
+// Mark active/inactive dice based on kh/kl/dh/dl modifiers.
+// Considers the FULL pool: rolledDice + positive extraDice of matching sides.
+// Mutates each die: sets d.active = true/false.
 // -------------------------
-function _markActiveDice(rolledDice, rollMods) {
+function _markActiveDice(rolledDice, extraDice, rollMods) {
   for (const d of rolledDice) d.active = true;
+  for (const d of (extraDice ?? [])) d.active = true;
   if (!rollMods || !rolledDice.length) return;
 
   const m = rollMods.match(/^(kh|kl|dh|dl)(\d+)$/i);
   if (!m) return;
 
   const type = m[1].toLowerCase();
-  const count = Math.min(parseInt(m[2], 10) || 0, rolledDice.length);
-  if (count <= 0) return;
+  const modCount = parseInt(m[2], 10) || 0;
+  if (modCount <= 0) return;
 
-  const sorted = [...rolledDice].sort((a, b) => a.value - b.value);
+  // Determine which die sides the modifier applies to
+  const modSides = rolledDice[0]?.sides;
+  if (!modSides) return;
+
+  // Build combined pool: rolledDice + positive extraDice of the same sides
+  const pool = [];
+  for (const d of rolledDice) {
+    if (d.sides === modSides) pool.push(d);
+  }
+  for (const d of (extraDice ?? [])) {
+    if (d.sides === modSides && !d.isNeg) pool.push(d);
+  }
+  if (!pool.length) return;
+
+  const effectiveCount = Math.min(modCount, pool.length);
+  const sorted = [...pool].sort((a, b) => a.value - b.value);
   let activeSet;
 
   if (type === "kh") {
-    activeSet = new Set(sorted.slice(sorted.length - count).map(d => d.id));
+    activeSet = new Set(sorted.slice(sorted.length - effectiveCount).map(d => d.id));
   } else if (type === "kl") {
-    activeSet = new Set(sorted.slice(0, count).map(d => d.id));
+    activeSet = new Set(sorted.slice(0, effectiveCount).map(d => d.id));
   } else if (type === "dh") {
-    activeSet = new Set(sorted.slice(0, sorted.length - count).map(d => d.id));
+    activeSet = new Set(sorted.slice(0, sorted.length - effectiveCount).map(d => d.id));
   } else if (type === "dl") {
-    activeSet = new Set(sorted.slice(count).map(d => d.id));
+    activeSet = new Set(sorted.slice(effectiveCount).map(d => d.id));
   }
 
   if (activeSet) {
-    for (const d of rolledDice) d.active = activeSet.has(d.id);
+    for (const d of pool) d.active = activeSet.has(d.id);
   }
 }
 
@@ -207,6 +224,7 @@ function _buildDamageDiceRow(rolledDice, extraDice) {
       scale: 1,
       text: String(Math.abs(d.value)),
       isNeg: !!d.isNeg,
+      isDropped: d.active === false,
     });
   }
 
@@ -220,6 +238,7 @@ function _sumExtraDice(arr) {
   if (!Array.isArray(arr)) return 0;
   let s = 0;
   for (const d of arr) {
+    if (d.active === false) continue; // dropped by kh/kl/dh/dl
     const v = Math.trunc(Number(d?.value) || 0);
     s += d.isNeg ? -v : v;
   }
@@ -236,11 +255,11 @@ function _computeTargetView(t, baseDmg, damageType, isHalf, isMissTarget = false
   t.resKind = res.kind;
 
   const srcDmg = isMissTarget
-    ? (isHalf ? Math.floor(baseDmg / 2) : 0)
+    ? (isHalf ? Math.ceil(baseDmg / 2) : 0)
     : baseDmg;
 
   // Apply resilience first
-  const resDmg = Math.max(0, Math.floor(srcDmg * res.multiplier));
+  const resDmg = Math.max(0, Math.ceil(srcDmg * res.multiplier));
 
   let dmg;
   if (t.excluded) {
@@ -248,7 +267,7 @@ function _computeTargetView(t, baseDmg, damageType, isHalf, isMissTarget = false
   } else if (t.override === "x2") {
     dmg = resDmg * 2;
   } else if (t.override === "half") {
-    dmg = Math.floor(resDmg / 2);
+    dmg = Math.ceil(resDmg / 2);
   } else if (t.override === "zero") {
     dmg = 0;
   } else {
@@ -292,10 +311,11 @@ export async function admDamageRollToChat(damageFormula, damageType, targets, is
     }
   }
 
-  _markActiveDice(rolledDice, rollMods);
-  const diceSum = rolledDice.reduce((s, d) => s + (d.active !== false ? d.value : 0), 0);
   const modTotal = parsed.mod;
   const extraDice = [];
+
+  _markActiveDice(rolledDice, extraDice, rollMods);
+  const diceSum = rolledDice.reduce((s, d) => s + (d.active !== false ? d.value : 0), 0);
   const damageTotal = diceSum + modTotal;
 
   const type = String(damageType || "physical").trim().toLowerCase();
@@ -407,7 +427,7 @@ async function _rerenderDmgMessage(message, flagsState) {
 
   const type = String(s.damageType || "physical").trim().toLowerCase();
 
-  _markActiveDice(s.rolledDice, s.rollMods || "");
+  _markActiveDice(s.rolledDice, s.extraDice, s.rollMods || "");
   const diceSum = s.rolledDice.reduce((sum, d) => sum + (d.active !== false ? (Number(d.value) || 0) : 0), 0);
   const modTotal = Math.trunc(Number(s.modTotal) || 0);
   const extraSum = _sumExtraDice(s.extraDice);
@@ -1120,7 +1140,7 @@ async function _refreshLastDmgTargets() {
       flatMod: 0,
       resMultiplier: res.multiplier,
       resKind: res.kind,
-      dmg: Math.max(0, Math.floor(damageTotal * res.multiplier)),
+      dmg: Math.max(0, Math.ceil(damageTotal * res.multiplier)),
       dmgColor: _dmgColorClass(res.kind),
     };
 
