@@ -422,15 +422,20 @@ class ADMStatusDialog extends Dialog {
             : itemImg;
         const firstText = droppedDefs[0]?.text || "";
 
-        // Update name
+        // Update name — only if currently empty
         const nameInput = form.querySelector('[name="name"]');
-        if (nameInput && firstName) nameInput.value = firstName;
+        if (nameInput && !String(nameInput.value || "").trim() && firstName) {
+          nameInput.value = firstName;
+        }
 
-        // Update image
+        // Update image — only if currently default (aura)
         const imgInputEl = form.querySelector('[name="img"]');
         const imgVisual = form.querySelector(".adm-status-img");
-        if (imgInputEl) imgInputEl.value = firstImg;
-        if (imgVisual) imgVisual.src = firstImg;
+        const currentImg = String(imgInputEl?.value || "").trim();
+        if (!currentImg || currentImg === "icons/svg/aura.svg") {
+          if (imgInputEl) imgInputEl.value = firstImg;
+          if (imgVisual) imgVisual.src = firstImg;
+        }
 
         // Update text / description
         if (firstText) {
