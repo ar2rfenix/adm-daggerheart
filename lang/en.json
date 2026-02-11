@@ -1,0 +1,63 @@
+{
+  "DAGGERHEART": {
+    "SECTIONS": {
+      "RESOURCES": "Resources",
+      "TRAITS": "Traits",
+      "WEAPON": "Weapon",
+      "NOTES": "Notes",
+      "EXPERIENCE": "Experience"
+    },
+    "RES": {
+      "HP": "HP",
+      "STRESS": "Stress",
+      "ARMOR": "Armor",
+      "HOPE": "Hope",
+      "FEAR": "Fear",
+      "DODGE": "Evasion"
+    },
+    "TRAITS": {
+      "AGILITY": "Agility",
+      "STRENGTH": "Strength",
+      "FINESSE": "Finesse",
+      "INSTINCT": "Instinct",
+      "PRESENCE": "Presence",
+      "KNOWLEDGE": "Knowledge"
+    },
+    "WEAPON": {
+      "GRIP_LABEL": "Grip",
+      "GRIP": {
+        "ONE_HANDED": "One-handed",
+        "TWO_HANDED": "Two-handed"
+      },
+      "TYPE_LABEL": "Weapon Type",
+      "TYPE": {
+        "PRIMARY": "Primary",
+        "SECONDARY": "Secondary"
+      },
+      "ATTRIBUTE": "Attribute",
+      "ATTACK_MOD": "Attack modifier",
+      "DAMAGE": "Damage formula",
+      "DAMAGE_TYPE": "Damage type"
+    },
+    "DAMAGE": {
+      "PHYSICAL": "Physical",
+      "MAGICAL": "Magical"
+    },
+    "ABILITY": {
+      "DESCRIPTION": "Description"
+    },
+    "UI": {
+      "EDIT_TOGGLE": "Toggle edit mode",
+      "CHANGE_IMAGE": "Change Image"
+    },
+    "THRESHOLDS": {
+      "NOTICEABLE": "Noticeable",
+      "HEAVY": "Heavy"
+    },
+    "MASTERY": "Mastery",
+    "TOOLTIP": {
+      "STEPPER": "LMB: +1 • RMB: -1"
+    },
+    "LEVEL": "Level"
+  }
+}

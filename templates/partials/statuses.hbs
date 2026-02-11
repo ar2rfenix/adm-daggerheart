@@ -1,0 +1,47 @@
+<details class="adm-card-spoiler" data-adm-spoiler="statuses">
+  <summary class="adm-card-spoiler-summary">Статусы</summary>
+
+  <div class="adm-statuses">
+    <button type="button" class="adm-status-add" data-action="adm-status-add">+Статус</button>
+
+    {{#if admStatuses.length}}
+      <div class="adm-status-list">
+        {{#each admStatuses as |s|}}
+          <div class="adm-status-card">
+            <div class="adm-status-topline">
+              <div class="adm-status-left">
+                <span class="adm-status-name">{{s.name}}</span>
+                {{#if s.text}}
+                  <span class="adm-status-desc">{{{s.text}}}</span>
+                {{/if}}
+              </div>
+
+              <div class="adm-status-actions">
+                <button type="button"
+                        class="adm-status-btn"
+                        data-action="adm-status-edit"
+                        data-status-id="{{s.id}}">✎</button>
+
+                <button type="button"
+                        class="adm-status-btn"
+                        data-action="adm-status-del"
+                        data-status-id="{{s.id}}">×</button>
+              </div>
+            </div>
+
+            {{#if s.mods.length}}
+              <div class="adm-status-mods">
+                {{#each s.mods as |m|}}
+                  <div class="adm-status-mod">
+                    <span class="k">{{m.label}}:</span>
+                    <span class="v">{{m.value}}</span>
+                  </div>
+                {{/each}}
+              </div>
+            {{/if}}
+          </div>
+        {{/each}}
+      </div>
+    {{/if}}
+  </div>
+</details>

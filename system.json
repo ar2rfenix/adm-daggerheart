@@ -1,0 +1,89 @@
+{
+  "id": "adm-daggerheart",
+  "title": "ADM Daggerheart (WIP)",
+  "description": "Base system scaffold for Foundry VTT v13 to build a Daggerheart system on top of.",
+  "version": "0.0.1",
+  "socket": true,
+  "compatibility": {
+    "minimum": 13,
+    "verified": 13
+  },
+  "authors": [
+    {
+      "name": "ADM"
+    }
+  ],
+  "esmodules": [
+    "adm-daggerheart.mjs"
+  ],
+  "styles": [
+    "styles/adm-daggerheart.css",
+	"styles/roll-style.css"
+	
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    },
+    {
+      "lang": "ru",
+      "name": "Русский",
+      "path": "lang/ru.json"
+    }
+  ],
+  "documentTypes": {
+    "Actor": {
+      "character": {
+        "htmlFields": [
+          "biography"
+        ]
+      },
+      "npc": {
+        "htmlFields": [
+          "biography"
+        ]
+      }
+    },
+    "Item": {
+      "weapon": {},
+      "armor": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "gear": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "relic": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "ability": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "enemyAbility": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "card": {
+        "htmlFields": [
+          "description"
+        ]
+      }
+    }
+  },
+  "initiative": "1d20",
+  "grid": {
+    "distance": 5,
+    "units": "ft"
+  },
+  "primaryTokenAttribute": "resources.hp"
+}

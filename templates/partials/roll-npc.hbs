@@ -1,0 +1,89 @@
+{{!-- systems/adm-daggerheart/templates/partials/roll-npc.hbs --}}
+
+<section class="adm-roll adm-roll--npc" data-adm-roll="npc">
+
+  <!-- Модификатор + реакция -->
+  <div class="adm-roll-header">
+
+    <div class="adm-roll-mod">
+      <div class="adm-roll-mod-sign">±</div>
+      <input class="adm-roll-input"
+             type="number"
+             name="system.attackMod"
+             data-adm-field="attackMod"
+             value="{{system.attackMod}}"
+             step="1">
+    </div>
+
+    <label class="adm-roll-check">
+      <input type="checkbox" name="isReaction" data-adm-field="isReaction" {{#if isReaction}}checked{{/if}}>
+      <span>Реакция</span>
+    </label>
+
+  </div>
+
+  <!-- Опыт -->
+  <div class="adm-roll-section">
+    <div class="adm-roll-exp-head">Опыт за страх</div>
+
+    <div class="adm-roll-exp-list">
+      {{#if experiences.length}}
+        {{#each experiences as |e|}}
+          <label class="adm-roll-exp-item adm-roll-exp-item--one">
+            <input type="checkbox"
+                   data-adm-exp-id="{{e.id}}"
+                   data-adm-exp-field="active"
+                   {{#if e.active}}checked{{/if}}>
+
+            <div class="adm-roll-exp-name">{{e.name}}</div>
+
+            <div class="adm-exp-val">{{e.value}}</div>
+          </label>
+        {{/each}}
+      {{else}}
+        <div style="opacity:.75;">Опытов нет</div>
+      {{/if}}
+    </div>
+  </div>
+
+  <!-- Важные статусы (пока пусто) -->
+  <div class="adm-roll-section">
+    <div class="adm-roll-exp-head">Важные статусы</div>
+    <div class="adm-roll-exp-list">
+      <div style="opacity:.75;">—</div>
+    </div>
+  </div>
+
+  <!-- Кнопки -->
+ <div class="adm-roll-actions adm-roll-actions--row3"
+     style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; width:100%;">
+
+  <button type="button"
+          class="adm-roll-btn"
+          data-adm-action="roll"
+          data-adm-roll-mode="disadvantage"
+          style="width:100%; background:#752c2c;">
+    Помеха
+  </button>
+
+  <button type="button"
+          class="adm-roll-btn"
+          data-adm-action="roll"
+          data-adm-roll-mode="normal"
+          style="width:100%;">
+    Обычный
+  </button>
+
+  <button type="button"
+          class="adm-roll-btn"
+          data-adm-action="roll"
+          data-adm-roll-mode="advantage"
+          style="width:100%; background:#28673b;">
+    Преимущество
+  </button>
+
+</div>
+
+
+
+</section>

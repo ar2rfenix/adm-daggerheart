@@ -1,0 +1,566 @@
+<section class="adm-weapon-sheet adm-card-sheet">
+  {{#if isEditMode}}
+    <div class="adm-weapon-edit sheet-body">
+      <div class="adm-weapon-edit-head">
+        <div class="adm-weapon-thumb" data-action="pick-img" data-tooltip="{{item.name}}">
+          <img src="{{item.img}}" alt="{{item.name}}" />
+        </div>
+
+        <div class="adm-weapon-edit-title">
+          <div class="adm-weapon-name-row">
+            <input class="adm-weapon-name" name="name" type="text" value="{{item.name}}" />
+
+            {{#if (eq system.template "domain")}}
+              <input
+                class="adm-weapon-tier-input"
+                name="system.level"
+                type="number"
+                value="{{#if system.level}}{{system.level}}{{else}}1{{/if}}"
+                placeholder="{{localize 'DAGGERHEART.LEVEL'}}"
+                data-tooltip="{{localize 'DAGGERHEART.LEVEL'}}"
+                min="1"
+                step="1"
+              />
+            {{/if}}
+          </div>
+
+          <div class="adm-weapon-subline">
+            <div class="adm-weapon-sub">
+              <div class="adm-card-row2">
+                <label class="adm-weapon-type-inline" data-tooltip="Шаблон">
+                  <select name="system.template">
+                    {{selectOptions config.card.templates selected=system.template localize=true}}
+                  </select>
+                </label>
+
+                {{#if (eq system.template "subclass")}}
+                  <label class="adm-weapon-type-inline" data-tooltip="Атрибут магии">
+                    <select name="system.magicAttribute">
+                      <option value="" {{#unless system.magicAttribute}}selected{{/unless}}>Выбери атрибут магии</option>
+                      <option value="strength"  {{#if (eq system.magicAttribute "strength")}}selected{{/if}}>Сила</option>
+                      <option value="agility"   {{#if (eq system.magicAttribute "agility")}}selected{{/if}}>Проворность</option>
+                      <option value="finesse"   {{#if (eq system.magicAttribute "finesse")}}selected{{/if}}>Искусность</option>
+                      <option value="instinct"  {{#if (eq system.magicAttribute "instinct")}}selected{{/if}}>Чутьё</option>
+                      <option value="presence"  {{#if (eq system.magicAttribute "presence")}}selected{{/if}}>Влияние</option>
+                      <option value="knowledge" {{#if (eq system.magicAttribute "knowledge")}}selected{{/if}}>Знание</option>
+                    </select>
+                  </label>
+                {{/if}}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {{#if (eq system.template "domain")}}
+        <div class="adm-card-row3">
+          <label>
+            <span>Домен</span>
+            <select name="system.domain">
+              {{selectOptions config.card.domains selected=system.domain localize=true}}
+            </select>
+          </label>
+
+          <label>
+            <span>Тип карты</span>
+            <select name="system.cardType">
+              {{selectOptions config.card.cardTypes selected=system.cardType localize=true}}
+            </select>
+          </label>
+
+          <label>
+            <span>Призыв</span>
+            <input
+              name="system.recallCost"
+              type="number"
+              min="0"
+              step="1"
+              value="{{#if system.recallCost}}{{system.recallCost}}{{else}}0{{/if}}"
+            />
+          </label>
+        </div>
+      {{/if}}
+
+      {{#if (eq system.template "class")}}
+
+        <details class="adm-card-spoiler" data-adm-spoiler="classParams">
+          <summary class="adm-card-spoiler-summary">Параметры</summary>
+
+          <div class="adm-card-row2">
+            <label>
+              <span>Домен 1</span>
+              <select name="system.domainA">
+                {{selectOptions config.card.domains selected=system.domainA localize=true}}
+              </select>
+            </label>
+
+            <label>
+              <span>Домен 2</span>
+              <select name="system.domainB">
+                {{selectOptions config.card.domains selected=system.domainB localize=true}}
+              </select>
+            </label>
+          </div>
+
+          <div class="adm-card-row2">
+            <label>
+              <span>Уклонение</span>
+              <input
+                name="system.evasion"
+                type="number"
+                step="1"
+                value="{{#if (or (eq system.evasion 0) system.evasion)}}{{system.evasion}}{{else}}0{{/if}}"
+              />
+            </label>
+
+            <label>
+              <span>Макс. Раны</span>
+              <input
+                name="system.maxWounds"
+                type="number"
+                step="1"
+                value="{{#if (or (eq system.maxWounds 0) system.maxWounds)}}{{system.maxWounds}}{{else}}0{{/if}}"
+              />
+            </label>
+          </div>
+
+          <div class="adm-card-row3">
+            <label>
+              <span>Сила</span>
+              <input
+                name="system.recommended.strength"
+                type="number"
+                step="1"
+                value="{{#if (or (eq system.recommended.strength 0) system.recommended.strength)}}{{system.recommended.strength}}{{else}}0{{/if}}"
+              />
+            </label>
+
+            <label>
+              <span>Проворность</span>
+              <input
+                name="system.recommended.agility"
+                type="number"
+                step="1"
+                value="{{#if (or (eq system.recommended.agility 0) system.recommended.agility)}}{{system.recommended.agility}}{{else}}0{{/if}}"
+              />
+            </label>
+
+            <label>
+              <span>Искусность</span>
+              <input
+                name="system.recommended.finesse"
+                type="number"
+                step="1"
+                value="{{#if (or (eq system.recommended.finesse 0) system.recommended.finesse)}}{{system.recommended.finesse}}{{else}}0{{/if}}"
+              />
+            </label>
+          </div>
+
+          <div class="adm-card-row3">
+            <label>
+              <span>Чутьё</span>
+              <input
+                name="system.recommended.instinct"
+                type="number"
+                step="1"
+                value="{{#if (or (eq system.recommended.instinct 0) system.recommended.instinct)}}{{system.recommended.instinct}}{{else}}0{{/if}}"
+              />
+            </label>
+
+            <label>
+              <span>Влияние</span>
+              <input
+                name="system.recommended.presence"
+                type="number"
+                step="1"
+                value="{{#if (or (eq system.recommended.presence 0) system.recommended.presence)}}{{system.recommended.presence}}{{else}}0{{/if}}"
+              />
+            </label>
+
+            <label>
+              <span>Знание</span>
+              <input
+                name="system.recommended.knowledge"
+                type="number"
+                step="1"
+                value="{{#if (or (eq system.recommended.knowledge 0) system.recommended.knowledge)}}{{system.recommended.knowledge}}{{else}}0{{/if}}"
+              />
+            </label>
+          </div>
+        </details>
+
+        <details class="adm-card-spoiler" data-adm-spoiler="subclass">
+          <summary class="adm-card-spoiler-summary">Подкласс</summary>
+
+          <div class="adm-card-dropblock">
+            <div class="adm-card-drophead">Подклассы</div>
+
+            <div class="adm-card-dropzone"
+                 data-drop-target="classSubclass"
+                 data-drop-types="card">
+              {{#if classSubclassList.length}}
+                <div class="adm-card-droplist">
+                  {{#each classSubclassList as |it|}}
+                    <div class="adm-card-dropitem" data-uuid="{{it.uuid}}">
+                      <a class="adm-card-dropitem-name" href="#"
+                         data-action="adm-card-open-linked"
+                         data-uuid="{{it.uuid}}"
+                         title="Открыть предмет">
+                        {{it.name}}
+                      </a>
+
+                      <button type="button"
+                              class="adm-card-dropitem-del"
+                              data-action="adm-card-remove-linked"
+                              data-drop-target="classSubclass"
+                              data-uuid="{{it.uuid}}"
+                              title="Удалить">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+                  {{/each}}
+                </div>
+              {{else}}
+                <div class="adm-card-drophint">Перетащите сюда несколько предметов типа Подкласс.</div>
+              {{/if}}
+            </div>
+          </div>
+        </details>
+
+        <details class="adm-card-spoiler" data-adm-spoiler="loadout">
+          <summary class="adm-card-spoiler-summary">Стартовое снаряжение</summary>
+
+          <div class="adm-card-dropblock">
+            <div class="adm-card-drophead">Оружие</div>
+
+            <div class="adm-card-dropzone"
+                 data-drop-target="classWeapons"
+                 data-drop-types="weapon">
+              {{#if classWeaponsList.length}}
+                <div class="adm-card-droplist">
+                  {{#each classWeaponsList as |it|}}
+                    <div class="adm-card-dropitem" data-uuid="{{it.uuid}}">
+                      <a class="adm-card-dropitem-name" href="#"
+                         data-action="adm-card-open-linked"
+                         data-uuid="{{it.uuid}}"
+                         title="Открыть предмет">
+                        {{it.name}}
+                      </a>
+
+                      <button type="button"
+                              class="adm-card-dropitem-del"
+                              data-action="adm-card-remove-linked"
+                              data-drop-target="classWeapons"
+                              data-uuid="{{it.uuid}}"
+                              title="Удалить">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+                  {{/each}}
+                </div>
+              {{else}}
+                <div class="adm-card-drophint">Перетащите сюда несколько предметов типа Оружие.</div>
+              {{/if}}
+            </div>
+          </div>
+
+          <div class="adm-card-dropblock">
+            <div class="adm-card-drophead">Броня</div>
+
+            <div class="adm-card-dropzone"
+                 data-drop-target="classArmors"
+                 data-drop-types="armor">
+              {{#if classArmorsList.length}}
+                <div class="adm-card-droplist">
+                  {{#each classArmorsList as |it|}}
+                    <div class="adm-card-dropitem" data-uuid="{{it.uuid}}">
+                      <a class="adm-card-dropitem-name" href="#"
+                         data-action="adm-card-open-linked"
+                         data-uuid="{{it.uuid}}"
+                         title="Открыть предмет">
+                        {{it.name}}
+                      </a>
+
+                      <button type="button"
+                              class="adm-card-dropitem-del"
+                              data-action="adm-card-remove-linked"
+                              data-drop-target="classArmors"
+                              data-uuid="{{it.uuid}}"
+                              title="Удалить">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+                  {{/each}}
+                </div>
+              {{else}}
+                <div class="adm-card-drophint">Перетащите сюда несколько предметов типа Броня.</div>
+              {{/if}}
+            </div>
+          </div>
+
+          <div class="adm-card-dropblock">
+            <div class="adm-card-drophead">Предметы</div>
+
+            <div class="adm-card-dropzone"
+                 data-drop-target="classItems"
+                 data-drop-types="gear:item">
+              {{#if classItemsList.length}}
+                <div class="adm-card-droplist">
+                  {{#each classItemsList as |it|}}
+                    <div class="adm-card-dropitem" data-uuid="{{it.uuid}}">
+                      <a class="adm-card-dropitem-name" href="#"
+                         data-action="adm-card-open-linked"
+                         data-uuid="{{it.uuid}}"
+                         title="Открыть предмет">
+                        {{it.name}}
+                      </a>
+
+                      <button type="button"
+                              class="adm-card-dropitem-del"
+                              data-action="adm-card-remove-linked"
+                              data-drop-target="classItems"
+                              data-uuid="{{it.uuid}}"
+                              title="Удалить">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+                  {{/each}}
+                </div>
+              {{else}}
+                <div class="adm-card-drophint">Перетащите сюда несколько предметов типа Предмет.</div>
+              {{/if}}
+            </div>
+          </div>
+
+          <div class="adm-card-dropblock">
+            <div class="adm-card-drophead">Расходники</div>
+
+            <div class="adm-card-dropzone"
+                 data-drop-target="classConsumables"
+                 data-drop-types="gear:consumable">
+              {{#if classConsumablesList.length}}
+                <div class="adm-card-droplist">
+                  {{#each classConsumablesList as |it|}}
+                    <div class="adm-card-dropitem" data-uuid="{{it.uuid}}">
+                      <a class="adm-card-dropitem-name" href="#"
+                         data-action="adm-card-open-linked"
+                         data-uuid="{{it.uuid}}"
+                         title="Открыть предмет">
+                        {{it.name}}
+                      </a>
+
+                      <button type="button"
+                              class="adm-card-dropitem-del"
+                              data-action="adm-card-remove-linked"
+                              data-drop-target="classConsumables"
+                              data-uuid="{{it.uuid}}"
+                              title="Удалить">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+                  {{/each}}
+                </div>
+              {{else}}
+                <div class="adm-card-drophint">Перетащите сюда несколько предметов типа Расходник.</div>
+              {{/if}}
+            </div>
+          </div>
+        </details>
+
+        <details class="adm-card-spoiler" data-adm-spoiler="classProperty">
+          <summary class="adm-card-spoiler-summary">Свойство класса</summary>
+          <div class="adm-weapon-notes">
+            <textarea class="adm-tinymce" name="system.description">{{system.description}}</textarea>
+          </div>
+        </details>
+
+        <details class="adm-card-spoiler" data-adm-spoiler="hopeProperty">
+          <summary class="adm-card-spoiler-summary">Свойство Надежды</summary>
+          <div class="adm-weapon-notes">
+            <textarea class="adm-tinymce" name="system.hopeProperty">{{system.hopeProperty}}</textarea>
+          </div>
+        </details>
+
+      {{/if}}
+
+      {{> "systems/adm-daggerheart/templates/partials/statuses.hbs"}}
+
+      {{#if (eq system.template "subclass")}}
+        <details class="adm-card-spoiler" data-adm-spoiler="baseText">
+          <summary class="adm-card-spoiler-summary">Основа (1 уровень)</summary>
+          <div class="adm-weapon-notes">
+            <textarea class="adm-tinymce" name="system.baseText">{{system.baseText}}</textarea>
+          </div>
+        </details>
+
+        <details class="adm-card-spoiler" data-adm-spoiler="specText">
+          <summary class="adm-card-spoiler-summary">
+            <span class="adm-card-spoiler-title">Специализация (5 уровень)</span>
+            <label class="adm-card-unlock" title="Разблокировано">
+              <input class="adm-card-unlock-input" type="checkbox" name="system.specUnlocked" {{#if system.specUnlocked}}checked{{/if}}>
+              <span>Разблок.</span>
+            </label>
+          </summary>
+
+          <div class="adm-weapon-notes">
+            <textarea class="adm-tinymce" name="system.specText">{{system.specText}}</textarea>
+          </div>
+        </details>
+
+        <details class="adm-card-spoiler" data-adm-spoiler="masteryText">
+          <summary class="adm-card-spoiler-summary">
+            <span class="adm-card-spoiler-title">Мастерство (8 уровень)</span>
+            <label class="adm-card-unlock" title="Разблокировано">
+              <input class="adm-card-unlock-input" type="checkbox" name="system.masteryUnlocked" {{#if system.masteryUnlocked}}checked{{/if}}>
+              <span>Разблок.</span>
+            </label>
+          </summary>
+
+          <div class="adm-weapon-notes">
+            <textarea class="adm-tinymce" name="system.masteryText">{{system.masteryText}}</textarea>
+          </div>
+        </details>
+
+      {{else if (eq system.template "class")}}
+        {{!-- class уже рисуется выше --}}
+      {{else}}
+        <div class="adm-weapon-notes">
+          <textarea class="adm-tinymce" name="system.description">{{system.description}}</textarea>
+        </div>
+      {{/if}}
+    </div>
+
+  {{else}}
+    <div class="adm-weapon-card sheet-body">
+      <div class="adm-weapon-card-overlay">
+
+        <div class="adm-weapon-view">
+          <div class="adm-weapon-view-left">
+            <img class="adm-weapon-view-img" src="{{item.img}}" alt="{{item.name}}">
+          </div>
+
+          <div class="adm-weapon-view-right">
+            <div class="adm-weapon-line adm-weapon-titleline">
+              <div class="adm-weapon-title">
+                {{#if (eq system.template "domain")}}[{{#if system.level}}{{system.level}}{{else}}1{{/if}}] {{/if}}{{item.name}}
+              </div>
+            </div>
+
+            {{#if (eq system.template "domain")}}
+              <div class="adm-weapon-line adm-weapon-summaryline">
+                {{localize (lookup config.card.templates system.template)}}: {{localize (lookup config.card.domains system.domain)}}
+              </div>
+
+              <div class="adm-weapon-line adm-weapon-summaryline">
+                Тип: {{localize (lookup config.card.cardTypes system.cardType)}}
+              </div>
+
+              <div class="adm-weapon-line adm-weapon-summaryline">
+                Призыв: {{#if system.recallCost}}{{system.recallCost}}{{else}}0{{/if}} {{stressWord}}
+              </div>
+
+            {{else if (eq system.template "class")}}
+              <div class="adm-weapon-line adm-weapon-summaryline">
+                Домены:
+                {{localize (lookup config.card.domains system.domainA)}} + {{localize (lookup config.card.domains system.domainB)}}
+              </div>
+
+              <div class="adm-weapon-line adm-weapon-summaryline">
+                Атрибуты:
+                [{{#if (or (eq system.recommended.strength 0) system.recommended.strength)}}{{system.recommended.strength}}{{else}}0{{/if}}]
+                [{{#if (or (eq system.recommended.agility 0) system.recommended.agility)}}{{system.recommended.agility}}{{else}}0{{/if}}]
+                [{{#if (or (eq system.recommended.finesse 0) system.recommended.finesse)}}{{system.recommended.finesse}}{{else}}0{{/if}}]
+                [{{#if (or (eq system.recommended.instinct 0) system.recommended.instinct)}}{{system.recommended.instinct}}{{else}}0{{/if}}]
+                [{{#if (or (eq system.recommended.presence 0) system.recommended.presence)}}{{system.recommended.presence}}{{else}}0{{/if}}]
+                [{{#if (or (eq system.recommended.knowledge 0) system.recommended.knowledge)}}{{system.recommended.knowledge}}{{else}}0{{/if}}]
+              </div>
+
+              <div class="adm-weapon-line adm-weapon-summaryline">
+                Подклассы:
+                {{#if classSubclassList.length}}
+                  {{#each classSubclassList as |it|}}{{it.name}}{{#unless @last}}, {{/unless}}{{/each}}
+                {{else}}
+                  —
+                {{/if}}
+              </div>
+
+              <div class="adm-weapon-line adm-weapon-summaryline">
+                Уклонение: {{#if (or (eq system.evasion 0) system.evasion)}}{{system.evasion}}{{else}}0{{/if}}
+                • Макс. Раны: {{#if (or (eq system.maxWounds 0) system.maxWounds)}}{{system.maxWounds}}{{else}}0{{/if}}
+              </div>
+
+            {{else if (eq system.template "subclass")}}
+              <div class="adm-weapon-line adm-weapon-summaryline">
+                {{localize (lookup config.card.templates system.template)}}
+              </div>
+
+              <div class="adm-weapon-line adm-weapon-summaryline">
+                Атрибут магии:
+                {{#if system.magicAttribute}}
+                  {{#if (eq system.magicAttribute "strength")}}Сила{{/if}}
+                  {{#if (eq system.magicAttribute "agility")}}Проворность{{/if}}
+                  {{#if (eq system.magicAttribute "finesse")}}Искусность{{/if}}
+                  {{#if (eq system.magicAttribute "instinct")}}Чутьё{{/if}}
+                  {{#if (eq system.magicAttribute "presence")}}Влияние{{/if}}
+                  {{#if (eq system.magicAttribute "knowledge")}}Знание{{/if}}
+                {{else}}
+                  Нет
+                {{/if}}
+              </div>
+
+            {{else}}
+              <div class="adm-weapon-line adm-weapon-summaryline">
+                {{localize (lookup config.card.templates system.template)}}
+              </div>
+            {{/if}}
+          </div>
+        </div>
+
+        {{#if (eq system.template "subclass")}}
+          <details class="adm-card-spoiler" data-adm-spoiler="baseTextView">
+            <summary class="adm-card-spoiler-summary">Основа (1 уровень)</summary>
+            <div class="adm-weapon-card-notes">
+              <div class="adm-richtext">{{{baseTextHTML}}}</div>
+            </div>
+          </details>
+
+          <details class="adm-card-spoiler" data-adm-spoiler="specTextView">
+            <summary class="adm-card-spoiler-summary">Специализация (5 уровень)</summary>
+            <div class="adm-weapon-card-notes">
+              <div class="adm-richtext">{{{specTextHTML}}}</div>
+            </div>
+          </details>
+
+          <details class="adm-card-spoiler" data-adm-spoiler="masteryTextView">
+            <summary class="adm-card-spoiler-summary">Мастерство (8 уровень)</summary>
+            <div class="adm-weapon-card-notes">
+              <div class="adm-richtext">{{{masteryTextHTML}}}</div>
+            </div>
+          </details>
+
+        {{else if (eq system.template "class")}}
+          <details class="adm-card-spoiler" data-adm-spoiler="classPropertyView">
+            <summary class="adm-card-spoiler-summary">Свойство класса</summary>
+            <div class="adm-weapon-card-notes">
+              <div class="adm-richtext">{{{classPropertyHTML}}}</div>
+            </div>
+          </details>
+
+          <details class="adm-card-spoiler" data-adm-spoiler="hopePropertyView">
+            <summary class="adm-card-spoiler-summary">Свойство Надежды</summary>
+            <div class="adm-weapon-card-notes">
+              <div class="adm-richtext">{{{hopePropertyHTML}}}</div>
+            </div>
+          </details>
+
+        {{else}}
+          <div class="adm-weapon-card-notes">
+            <div class="adm-richtext">{{{descriptionHTML}}}</div>
+          </div>
+        {{/if}}
+
+      </div>
+    </div>
+  {{/if}}
+</section>

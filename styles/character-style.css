@@ -1,0 +1,1902 @@
+/* =========================
+   Character Sheet
+   ========================= */
+
+/* Base */
+.hr-gold {
+  border-bottom: 1px solid #f3c267;
+  margin: 10px 18px 7px;
+}
+
+.adm-char-sheet {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.adm-char-grid {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  min-width: 0;
+}
+
+/* Columns */
+.adm-sheet-left {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  scrollbar-width: none;
+
+  border-right: 1px solid var(--color-border-light-primary);
+  overflow: auto;
+  overflow-x: hidden;
+}
+.adm-sheet-left::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.adm-sheet-right {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  scrollbar-width: none;
+
+  overflow: auto;
+  overflow-x: hidden;
+  padding: 12px;
+}
+.adm-sheet-right::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Portrait */
+.adm-portrait {
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+}
+
+.adm-portrait-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.adm-nameplate {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  padding: 8px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+  color: #fff;
+  text-align: left;
+}
+
+.adm-name-text {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: center;
+  text-shadow: 2px 2px 2px #000;
+}
+
+.adm-name-input {
+  width: 100%;
+  height: 28px;
+}
+
+.adm-left-content {
+  margin-bottom: 12px;
+  margin-left: 12px;
+  padding: 10px;
+  border: 1px solid var(--adm-trait-gold);
+  border-radius: 8px;
+}
+
+
+
+/* Left stats */
+.adm-stat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--color-border-light-primary);
+}
+
+.adm-stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 14px;
+  opacity: 0.9;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.adm-stat-value {
+  justify-self: end;
+  text-align: right;
+
+  font-weight: 600;
+  display: inline-flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+
+  min-width: 74px;
+}
+
+.adm-stepper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  width: fit-content;
+  padding: 2px 6px;
+
+  cursor: pointer;
+  user-select: none;
+  border-radius: 8px;
+  margin-right: -6px;
+}
+.adm-stepper:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+span.adm-ico {
+  width: 12px;
+}
+
+.adm-sep {
+  opacity: 0.7;
+}
+
+.adm-stat input[type="number"] {
+  width: 25px;
+  height: 24px;
+  padding: 0 4px;
+  text-align: right;
+}
+
+/* Thresholds */
+.adm-thresholds {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border-light-primary);
+  font-size: 14px;
+}
+
+.adm-thresholds input[type="number"] {
+  width: 52px;
+  height: 24px;
+  padding: 0 4px;
+  text-align: right;
+}
+
+/* Experience */
+.adm-exp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 4px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #f3c267;
+}
+
+.adm-exp-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.adm-exp-add {
+  width: 24px;
+  height: 24px;
+
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 6px;
+
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.adm-exp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adm-exp-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0;
+  align-items: center;
+}
+
+.adm-exp-name-view {
+  cursor: help;
+  font-size: 14px;
+}
+
+.adm-exp-val-view {
+  justify-self: end;
+  font-weight: 600;
+  font-size: 14px;
+  min-width: 22px;
+  text-align: right;
+}
+
+.adm-exp-name {
+  height: 24px;
+  padding: 0 4px;
+}
+
+.adm-exp-val {
+  width: 25px;
+  height: 24px;
+  padding: 0 4px;
+  text-align: right;
+}
+
+.adm-exp-del {
+  width: 22px;
+  height: 22px;
+
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 6px;
+
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.adm-exp-desc {
+  grid-column: 1 / -1;
+  resize: vertical;
+  min-height: 44px;
+}
+
+/* Level/Mastery lines */
+.adm-level-line,
+.adm-mastery-line {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+
+  padding: 3px 0;
+  border-bottom: 1px solid var(--color-border-light-primary);
+}
+
+.adm-level-line input[type="number"],
+.adm-mastery-line input[type="number"] {
+  width: 25px;
+  height: 24px;
+  padding: 0 4px;
+  text-align: right;
+}
+
+/* Traits (old grid, оставлено как в исходнике) */
+.adm-traits-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0;
+  align-items: start;
+}
+
+.adm-trait-card {
+  border-radius: 0;
+  padding: 5px 0;
+  display: grid;
+  gap: 4px;
+  margin: 0 3px;
+}
+
+.adm-trait-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 600;
+  text-align: center;
+}
+
+.adm-trait-value {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 34px;
+  font-weight: 700;
+  color: #000;
+
+  padding: 2px 0;
+  background: #fff;
+}
+
+.adm-trait-value input[type="number"] {
+  width: 64px;
+  height: 34px;
+  text-align: center;
+
+  font-size: 22px;
+  padding: 0 4px;
+}
+
+.adm-trait-mark {
+  display: flex;
+  justify-content: center;
+}
+
+.adm-trait-mark input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+/* =========================
+   Inventory (Character)
+   ========================= */
+
+.adm-backpack {
+  margin-top: 14px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 14px;
+}
+
+.adm-backpack-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.adm-backpack-title {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.adm-backpack-list {
+  display: grid;
+  gap: 6px;
+}
+
+.adm-backpack-row {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-backpack-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-light-primary);
+}
+
+.adm-backpack-link {
+  text-decoration: none;
+}
+
+.adm-backpack-empty {
+  opacity: 0.8;
+  font-size: 13px;
+  padding: 10px;
+}
+
+/* Inventory — new layout */
+
+.adm-inv-section {
+  margin-top: 10px;
+  border-left: 2px solid transparent;
+}
+
+.adm-frame {
+  margin: 10px;
+  color: #000;
+}
+
+.adm-inv-section--equipped {
+  border-left: 1px solid var(--adm-trait-gold);
+  border-right: 1px solid var(--adm-trait-gold);
+  border-bottom: 1px solid var(--adm-trait-gold);
+  border-radius: 0 0 8px 8px;
+  background: #070404;
+}
+
+.adm-inv-section--backpack {
+  border: 1px solid #433f64;
+  border-radius: 8px;
+}
+
+.adm-inv-title {
+  font-weight: 700;
+  font-size: 14px;
+  opacity: 0.9;
+  padding-top: 1.6px;
+}
+
+span.adm-inv-title-chip.adm-inv-title-chip--equipped {
+  background: #f3c267;
+  margin-left: revert-layer;
+  padding: 0 9px 3px 8px;
+  color: #000;
+  border-radius: 8px 0 0;
+}
+
+span.adm-inv-title-chip.adm-inv-title-chip--backpack {
+background: #433f64;
+    padding: 5px 12px 4px 12px;
+    margin-top: -2px;
+    border-radius: 8px 0 0;
+    height: 30px;
+}
+
+.adm-inv-row {
+  display: grid;
+  grid-template-columns: 46px 1fr 30px;
+  gap: 7px;
+  align-items: center;
+
+  padding: 0;
+  border-radius: 0 12px 0 0;
+  background: rgb(255, 255, 255);
+
+  min-width: 0;
+  border: none;
+}
+
+.adm-inv-icon {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+background: black;
+  border-radius: 0;
+  border: none;
+  cursor: context-menu;
+}
+
+.adm-inv-mid {
+  min-width: 0;
+  display: grid;
+}
+
+.adm-inv-topline {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.adm-inv-name {
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.adm-inv-subline {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.adm-inv-meta {
+  font-size: 12px;
+  opacity: 1;
+  min-width: 0;
+}
+
+.adm-inv-damage {
+  display: inline-flex;
+  gap: 5px;
+  align-items: baseline;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.adm-inv-dmgtype {
+  opacity: 0.95;
+  font-weight: 700;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.adm-inv-equipbtn {
+  width: 30px;
+  height: 45px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 0 8px 0 0;
+  padding: 0;
+  line-height: 1;
+
+  border-left: 2px solid #000;
+  color: #fff;
+  background: #f3c267;
+}
+.adm-inv-equipbtn:hover {
+  background: #433f64;
+}
+.adm-inv-equipbtn:focus,
+.adm-inv-equipbtn:focus-visible {
+  outline: 0;
+  box-shadow: none;
+}
+
+.adm-inv-equipbtn i {
+  font-size: 16px;
+}
+
+.adm-inv-feature {
+  border-radius: 0;
+  font-size: 12px;
+  color: #fff;
+  opacity: 1;
+}
+
+.adm-inv-feature-bg {
+  background: #3d3a5c;
+  padding: 6px 5px 5px 10px;
+}
+
+.adm-inv-feature p {
+  margin: 0;
+}
+
+.adm-inv-feature strong {
+  font-weight: 800;
+}
+
+.adm-inv-line3 p {
+  margin: 0;
+}
+
+.adm-inv-line3 strong {
+  font-weight: 700;
+}
+
+.adm-inv-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 4px;
+
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.adm-inv-attack,
+.adm-inv-dmg {
+  font-weight: 700;
+  font-size: 12px;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.adm-inv-equip {
+  margin-top: 2px;
+}
+
+.adm-inv-dot {
+  cursor: pointer;
+  user-select: none;
+  line-height: 1;
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+/* =========================
+   Statuses (Actor Sheet)
+   ========================= */
+.adm-actor-status-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+
+
+.adm-actor-status-icon{
+  width:45px;
+  height:45px;
+  object-fit:contain;
+  flex:0 0 45px;
+}
+
+.adm-actor-status-main{
+  flex:1;
+  min-width:0;
+}
+
+.adm-actor-statuses {
+  margin-top: 14px;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.adm-actor-statuses-title {
+  font-weight: 700;
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 0; /* финальное значение (позднее правило важнее) */
+}
+
+.adm-actor-statuses-empty {
+  opacity: 0.8;
+  font-size: 13px;
+}
+
+.adm-actor-statuses-list {
+  display: grid;
+  gap: 10px;
+}
+
+.adm-actor-status-card {
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.adm-actor-status-top {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.adm-actor-status-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.adm-actor-status-desc {
+  font-size: 13px;
+  opacity: 0.95;
+}
+.adm-actor-status-desc p {
+  margin: 0;
+}
+
+.adm-actor-status-mods {
+  margin-top: 8px;
+  margin-left: 0;     /* ключевое */
+  padding-left: 0;    /* ключевое */
+  width: 100%;        /* строка на всю карточку */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+
+.adm-actor-status-mod {
+display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--color-border-light-primary);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 12px;
+    background: rgb(62 59 93);
+}
+
+.adm-actor-status-mod .k {
+  opacity: 0.9;
+}
+.adm-actor-status-mod .v {
+  font-weight: 700;
+}
+
+/* =========================
+   Traits (Character) — v2
+   ========================= */
+
+:root {
+  --adm-trait-badge-bg: url("icons/Stats BG-2.png");
+  --adm-trait-gold: #f3c267;
+  --adm-trait-badge-w: clamp(108px, 14vw, 140px);
+  --adm-trait-badge-h: clamp(92px, 12vw, 118px);
+}
+
+.adm-traits-grid.adm-traits-grid--v2 {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0;
+  align-items: start;
+
+  justify-items: center;
+  padding: 0;
+  margin: 0;
+}
+
+.adm-trait-card--v2 {
+  width: 100%;
+  display: grid;
+
+  justify-items: center;
+  align-items: start;
+  gap: 0;
+
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.adm-trait-chip {
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+
+  padding: 4px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--adm-trait-gold);
+
+  background: rgb(0, 0, 0);
+
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1;
+  text-transform: uppercase;
+
+  max-width: 100%;
+}
+
+.adm-trait-d12 {
+  font-size: 0;
+}
+
+.adm-trait-card--v2:hover .adm-trait-d12 {
+  animation: admTraitSpin 0.9s linear infinite;
+}
+
+@keyframes admTraitSpin {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.adm-trait-badge {
+  position: relative;
+
+  display: grid;
+  place-items: center;
+
+  width: 65px;
+  height: 65px;
+  margin-top: -7px;
+}
+
+.adm-trait-badge::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background-image: var(--adm-trait-badge-bg);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+
+  transform: scale(1);
+  transition: transform 160ms;
+}
+
+.adm-trait-card--v2:hover .adm-trait-badge::before {
+  transform: scale(1.04);
+}
+
+.adm-trait-value-display {
+  position: relative;
+  z-index: 1;
+
+  font-weight: 800;
+  font-size: 35px;
+  line-height: 1;
+  color: #000;
+
+  margin-top: -11px;
+}
+
+.adm-trait-input {
+  position: relative;
+  z-index: 1;
+
+  font-weight: 800;
+  width: 64px;
+  height: 40px;
+
+  text-align: center;
+  font-size: 24px;
+}
+
+.adm-trait-dot {
+  position: relative;
+  display: grid;
+  place-items: center;
+
+  cursor: pointer;
+  user-select: none;
+  margin-top: -11px;
+}
+
+.adm-trait-checkbox {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.adm-trait-dot-ui {
+  width: 15px;
+  height: 15px;
+
+  border-radius: 999px;
+  border: 2px solid var(--adm-trait-gold);
+
+  background: rgb(3, 3, 3);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25) inset;
+
+  transition: background 120ms, transform 120ms;
+}
+
+.adm-trait-card--v2:hover .adm-trait-dot-ui {
+  transform: scale(1.05);
+}
+
+.adm-trait-checkbox:checked + .adm-trait-dot-ui {
+  background: var(--adm-trait-gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-trait-card--v2:hover .adm-trait-d12 {
+    animation: none;
+  }
+  .adm-trait-badge::before {
+    transition: none;
+  }
+}
+
+/* Wounds / thresholds */
+.adm-wounds-th {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin-top: 2px;
+  border: 1px solid #433f64;
+}
+
+.adm-wounds-side {
+  width: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  line-height: 1;
+  opacity: 0.55;
+  margin-top: 5px;
+}
+
+.adm-wounds-skulls {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 2px;
+  font-size: 12px;
+}
+
+.adm-wounds-skulls i {
+  font-size: 12px;
+  line-height: 1;
+  padding-top: 1px;
+}
+
+.adm-wounds-mid {
+  width: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 3px;
+}
+
+.adm-wounds-arrow {
+  width: 30px;
+  height: 25px;
+
+  background: url("icons/DH-Arrow.png") center / contain no-repeat;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adm-wounds-value {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
+}
+
+.adm-wounds-caption {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.75;
+  line-height: 1;
+  margin-top: -2px;
+}
+
+.adm-wounds-input {
+  width: 25px;
+  height: 18px;
+
+  text-align: center;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+
+  color: #fff;
+  background: #000;
+
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 0;
+
+  outline: 0;
+  padding: 0;
+}
+
+/* Magic trait */
+.adm-trait-chip.adm-trait-chip--magic {
+  background: #3d3a5c;
+}
+
+.adm-trait-magic {
+  margin-left: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.adm-trait-magic-checkbox {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+/* Magic checkbox in badge */
+.adm-trait-magic--inbadge {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  z-index: 5;
+
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.adm-trait-badge .adm-trait-input {
+  padding-left: 22px;
+}
+
+.adm-trait-magic--inbadge .adm-trait-magic-checkbox {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 2px;
+
+  cursor: pointer;
+  position: relative;
+}
+
+.adm-trait-magic--inbadge .adm-trait-magic-checkbox:checked {
+  background: #fff;
+  border-color: #000;
+}
+
+.adm-trait-magic--inbadge .adm-trait-magic-checkbox:checked::after {
+  content: "";
+  position: absolute;
+
+  width: 6px;
+  height: 10px;
+  left: 4px;
+  top: 1px;
+
+  border-right: 2px solid #000;
+  border-bottom: 2px solid #000;
+  transform: rotate(45deg);
+}
+
+/* Status header controls */
+.adm-actor-statuses-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.adm-actor-status-add {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+
+  border-radius: 999px;
+  border: 1px solid var(--color-border-light-primary);
+  background: transparent;
+
+  cursor: pointer;
+
+  display: grid;
+  place-items: center;
+
+  font-weight: 700;
+  line-height: 1;
+}
+.adm-actor-status-add:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.adm-actor-status-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  height: 15px;
+}
+
+.adm-actor-status-src {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+
+  font-size: 12px;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.adm-actor-status-btn,
+.adm-actor-status-del {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  opacity: 0.85;
+  cursor: pointer;
+  place-items: center;
+}
+
+.adm-actor-status-btn {
+  display: grid;
+}
+.adm-actor-status-del {
+  margin-left: 6px;
+  display: inline-grid;
+}
+
+.adm-actor-status-btn:hover,
+.adm-actor-status-del:hover {
+  opacity: 1;
+}
+.adm-actor-status-btn i,
+.adm-actor-status-del i {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.adm-right-tabs {
+    position: relative;
+    opacity: 0.9;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin: 10px 0 0px;
+margin-bottom: 0;
+}
+
+/* длинная горизонтальная полоса */
+.adm-right-tabs::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: rgba(243, 194, 103, 0.55);
+  border-radius: 2px;
+}
+
+.adm-right-tab {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  border: 0;
+
+  /* FIX: делаем кнопку "коробкой" фиксированной высоты */
+  display: inline-flex;
+  align-items: center;
+
+  /* ВЫСОТА ПУНКТА МЕНЮ — меняйте тут */
+  height: 24px;
+
+  /* вместо padding:0 */
+  padding: 0 10px;
+
+  margin: 0;
+  color: rgba(255,255,255,0.85);
+  font-weight: 700;
+  cursor: pointer;
+
+  /* FIX: убираем line-height:1, чтобы не ломало вертикаль */
+  line-height: normal;
+}
+
+/* активная вкладка */
+.adm-right-tab.is-active {
+  background: #f3c267;
+
+  /* FIX: убрать revert-layer, он может давать странные эффекты */
+  margin-left: 0;
+
+  /* padding задаём единообразно */
+  padding: 0 10px;
+
+  color: #000;
+  border-radius: 6px 6px 0 0;
+}
+
+.adm-tab-panel[hidden] {
+  display: none !important;
+}
+
+/* FIX: вкладки (Equipment / Statuses) — активная панель должна иметь высоту */
+.adm-sheet-right {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* шапка вкладок не должна растягиваться */
+.adm-sheet-right .adm-right-tabs {
+  flex: 0 0 auto;
+}
+
+/* панели вкладок занимают остаток высоты и скроллятся */
+.adm-sheet-right .adm-tab-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  
+}
+
+/* на всякий — чтобы сам контейнер статусов не мог схлопнуться */
+.adm-sheet-right .adm-actor-statuses {
+  min-height: 1px;
+}
+/* контейнер вкладок */
+.adm-right-tabs{
+  display:flex;
+  align-items:flex-end;
+  gap:14px;
+  position:relative;
+}
+
+/* обёртка "Статусы + плюс" */
+.adm-right-tabwrap{
+  position:relative;
+  display:inline-flex;
+  align-items:flex-end;
+}
+
+/* обёртка "Статусы" */
+.adm-right-tabwrap[data-adm-tabwrap="statuses"]{
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;     /* центрируем содержимое */
+  justify-content: flex-end;
+  gap: 6px;                /* расстояние между вкладкой и "+" */
+}
+
+/* контейнер для "+" (можно не задавать размеры, но оставим) */
+.adm-add-st{
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* сама кнопка "+" */
+.adm-add-st .adm-actor-status-add{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 14px;          /* меняйте тут */
+  height: 14px;         /* меняйте тут */
+  padding: 0;
+
+  font-size: 10px;      /* чтобы + влез */
+  line-height: 1;       /* не фиксированное в px */
+
+  border: 1px solid rgb(243 194 103 / 55%);
+  border-radius: 4px;
+  background: #f3c267;
+  color: rgb(0 0 0 / 90%);
+}
+
+/* показывать "+" только когда активна вкладка "Статусы" */
+.adm-right-tabwrap[data-adm-tabwrap="statuses"] .adm-add-st{
+  display: none;
+}
+.adm-right-tabwrap[data-adm-tabwrap="statuses"]:has(.adm-right-tab.is-active) .adm-add-st{
+  display: flex;
+}
+.adm-right-tabwrap[data-adm-tabwrap="statuses"]{ gap: 6px; }
+.adm-add-st {
+    position: absolute;
+    z-index: 1;
+    top: 25px;
+}
+
+
+
+/* Чтобы первый блок не перекрывал вкладки, вкладки выше по слою */
+.adm-right-tabs{
+  position: relative;
+  z-index: 5;
+}
+/* правая колонка — без прокрутки */
+.adm-sheet-right{
+  overflow: hidden;   /* ВАЖНО: убираем скролл у всей колонки */
+}
+
+/* панель вкладки — тоже без прокрутки */
+.adm-sheet-right .adm-tab-panel{
+  overflow: hidden;   /* чтобы не появлялась полоса тут */
+  min-height: 0;
+}
+
+/* блок статусов занимает доступную высоту и сам скроллится */
+.adm-tab-panel[data-adm-panel="statuses"]{
+  min-height: 0;
+  display: flex;
+}
+
+/* контейнер статусов — на всю высоту панели */
+.adm-tab-panel[data-adm-panel="statuses"] .adm-actor-statuses{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden; /* рамка и фон остаются, скролл будет у списка */
+}
+
+/* скроллим именно список */
+.adm-tab-panel[data-adm-panel="statuses"] .adm-actor-statuses-list{
+  max-height: 100%;
+  overflow: auto;
+  padding-top: 8px;          /* буфер сверху — первый статус не прилипает к меню */
+  scrollbar-width: none;     /* Firefox */
+}
+.adm-tab-panel[data-adm-panel="statuses"] .adm-actor-statuses-list::-webkit-scrollbar{
+  width: 0;
+  height: 0;                 /* Chrome */
+}
+.adm-tab-panel[data-adm-panel="statuses"] .adm-actor-statuses-list{
+  scroll-snap-type: y proximity;
+}
+.adm-tab-panel[data-adm-panel="statuses"] .adm-actor-status-card{
+  scroll-snap-align: start;
+}
+/* правая колонка не скроллится */
+.adm-sheet-right{
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* любая панель вкладки скроллится */
+.adm-sheet-right .adm-tab-panel{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: none;
+}
+.adm-sheet-right .adm-tab-panel::-webkit-scrollbar{
+  width: 0;
+  height: 0;
+}
+
+/* но для "Статусов" вы оставляете свой особый скролл только у списка */
+.adm-tab-panel[data-adm-panel="statuses"]{
+  overflow: hidden;
+}
+/* =========================
+   FIX: Экипировка — нормальный скролл, без залезания на меню,
+   без верхнего бордера/скругления у блока equipped
+   ========================= */
+
+/* Панель экипировки скроллится как обычная вкладка */
+.adm-tab-panel[data-adm-panel="equip"]{
+  overflow: auto !important;          /* ВАЖНО: вернуть скролл */
+  padding-top: 8px !important;        /* отступ от меню (подберите 6..12) */
+  min-height: 0;
+  scrollbar-width: none;
+}
+.adm-tab-panel[data-adm-panel="equip"]::-webkit-scrollbar{
+  width: 0;
+  height: 0;
+}
+
+.adm-tab-panel[data-adm-panel="equip"]{
+  padding-top: 0 !important;   /* или 1-2px если надо */
+}
+.adm-tab-panel[data-adm-panel="equip"] .adm-inv-section:first-child{
+  margin-top: 0 !important;
+}
+
+/* у equipped нет верхней линии и верхнего скругления */
+.adm-inv-section--equipped{
+  border-top: 0 !important;
+  border-radius: 0 0 8px 8px !important;
+}
+
+
+
+/* =========================
+   Inventory card layout: icon spans full height
+   ========================= */
+
+.adm-inv-card {
+  display: grid;
+  grid-template-columns: 45px 1fr auto;
+  grid-auto-rows: auto;
+  align-items: stretch;
+}
+
+.adm-inv-col-icon {
+  grid-column: 1;
+  grid-row: 1 / span 2; /* тянем на 2 строки: контент + описание/свойства */
+  background: black;
+  align-self: stretch;
+}
+
+.adm-inv-col-icon .adm-inv-icon {
+  width: 45px;
+  height: 100%;
+  min-height: 45px;
+
+  border-radius: 0;
+  border: none;
+  cursor: context-menu;
+
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.adm-inv-col-main {
+  grid-column: 2;
+  background: white;
+  grid-row: 1;
+  min-width: 0;
+  padding: 5px 10px;
+}
+
+.adm-inv-col-action {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adm-inv-col-feature {
+  grid-column: 2 / span 2;
+  grid-row: 2;
+  min-width: 0;
+}
+.adm-inv-title--backpack {
+  display: flex;
+align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    height: 30px;
+}
+
+.adm-backpack-tabs {
+  display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 10px;
+    margin-top: 5px;
+}
+
+.adm-backpack-tab {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  line-height: 1;
+  color: inherit; /* базовый цвет */
+}
+
+.adm-backpack-tab i {
+  font-size: 18px;
+  opacity: 0.85;
+  transition: opacity 120ms linear, color 120ms linear;
+}
+
+.adm-backpack-tab:hover i,
+.adm-backpack-tab.is-active i {
+  color: #f3c267;
+  opacity: 1;
+}
+
+/* =========================
+   Currency row (4 columns)
+   ========================= */
+
+.adm-currency-row {
+width: 100%;
+    display: grid;
+grid-template-columns: repeat(4, 1fr);
+    margin: 15px 0 15px;
+    border: solid 1px #f3c267;
+    border-radius: 8px;
+    text-shadow: 0px 1px 2px black;
+    color: white;
+}
+
+.adm-currency-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+    padding: 10px;
+}
+
+.adm-currency-icon,
+.adm-currency-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+  user-select: none;
+}
+
+.adm-currency-icon {
+  cursor: pointer;
+}
+
+.adm-currency-icon i {
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.adm-currency-value {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.adm-currency-delta {
+  margin-left: 6px;
+  opacity: 0.85;
+  font-weight: 700;
+}
+/* =========================
+   Currency row hover FX
+   ========================= */
+
+.adm-currency-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+}
+
+.adm-currency-cell {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+/* диагональная зебра поверх текущего background (встроенного inline) */
+.adm-currency-cell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(255,255,255,0.18) 0px,
+    rgba(255,255,255,0.18) 8px,
+    rgba(0,0,0,0.00) 8px,
+    rgba(0,0,0,0.00) 16px
+  );
+}
+
+.adm-currency-cell:hover {
+  transform: scale(1.03);
+  filter: brightness(1.05);
+  z-index: 1;
+}
+
+.adm-currency-cell:hover::after {
+  opacity: 0.35;
+}
+
+.adm-currency-cell .adm-currency-icon i,
+.adm-currency-cell .adm-currency-value {
+  transition: transform 120ms ease;
+}
+
+.adm-currency-cell:hover .adm-currency-icon i,
+.adm-currency-cell:hover .adm-currency-value {
+  transform: scale(1.06);
+}
+
+/* чтобы клик ловила именно ячейка */
+.adm-currency-cell .adm-currency-icon,
+.adm-currency-cell .adm-currency-value {
+  pointer-events: none;
+}
+/* =========================
+   Inventory context menu (black)
+   ========================= */
+.adm-inv-context-menu{
+  position: fixed;
+  z-index: 100000;
+  display: none;
+  min-width: 190px;
+  padding: 6px;
+  background: rgba(0,0,0,0.95);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
+}
+
+.adm-inv-context-menu .adm-inv-context-item{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #ffffff;
+  font-family: "Oswald", var(--font-primary), sans-serif;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  text-align: left;
+}
+
+.adm-inv-context-menu .adm-inv-context-item i{
+  width: 16px;
+  text-align: center;
+  opacity: 0.9;
+}
+
+.adm-inv-context-menu .adm-inv-context-item span{
+  flex: 1 1 auto;
+}
+
+.adm-inv-context-menu .adm-inv-context-item:hover{
+  background: rgba(255,255,255,0.08);
+}
+
+.adm-inv-context-menu .adm-inv-context-item:active{
+  background: rgba(255,255,255,0.12);
+}
+
+.adm-inv-context-menu .adm-inv-context-item.is-danger{
+  color: #ffb3b3;
+}
+
+.adm-inv-context-menu .adm-inv-context-item.is-danger:hover{
+  background: rgba(255,0,0,0.12);
+}
+
+.adm-inv-context-menu .adm-inv-context-sep{
+  height: 1px;
+  margin: 6px 2px;
+  background: rgba(255,255,255,0.12);
+}
+/* =========================
+   Inventory context submenu
+   ========================= */
+.adm-inv-context-menu .adm-has-submenu{
+  position: relative;
+}
+
+.adm-inv-context-menu .adm-inv-context-subchev{
+  margin-left: auto;
+  opacity: 0.7;
+}
+
+.adm-inv-context-menu .adm-inv-context-sub{
+  position: absolute;
+  top: -6px;
+  left: calc(100% + 6px);
+  min-width: 220px;
+  padding: 6px;
+  background: rgba(0,0,0,0.95);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+  display: none;
+   pointer-events: auto;
+}
+
+.adm-inv-context-menu .adm-has-submenu.is-open .adm-inv-context-sub{
+  display: block;
+}
+
+
+.adm-inv-context-subtitle{
+  padding: 6px 8px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.adm-inv-context-sublist{
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adm-inv-context-subitem{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.adm-inv-context-subitem:hover{
+  background: rgba(255,255,255,0.08);
+}
+
+.adm-inv-context-subicon{
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: cover;
+  display: block;
+}
+
+.adm-inv-context-subname{
+  flex: 1 1 auto;
+}
+
+.adm-inv-context-subempty{
+  padding: 8px 10px;
+  opacity: 0.7;
+  font-size: 13px;
+}
+/* Cards subtabs */
+.adm-cards-subtabs {
+  display: flex;
+  gap: 14px;
+  padding: 10px 12px 6px 12px;
+  align-items: center;
+}
+
+.adm-cards-subtab {
+  background: transparent;
+  border: none;
+  color: inherit;
+  padding: 6px 2px;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+  opacity: 0.9;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+
+.adm-cards-subtab:hover {
+  opacity: 1;
+  border-bottom-color: rgba(255, 255, 255, 0.65);
+}
+
+.adm-cards-subtab.is-active {
+  opacity: 1;
+  border-bottom-color: rgba(255, 255, 255, 0.95);
+}
+
+.adm-cards-panel {
+  padding: 10px 12px;
+}
+
+.adm-cards-empty {
+  opacity: 0.75;
+  padding: 8px 0;
+}
+/* =========================
+   Domain Cards (new, clean)
+   - header row: white
+   - spoiler row: white + right image full height
+   - button: right top
+   ========================= */
+
+.adm-inv-card--domain{
+  display: grid;
+  grid-template-columns: 1fr 30px; /* контент + правая колонка (30px) */
+  grid-template-rows: auto auto;   /* header, spoiler */
+  align-items: stretch;
+  min-width: 0;
+}
+
+/* header block (row1 col1) */
+.adm-inv-card--domain .adm-domaincard-head{
+grid-column: 1;
+    border-bottom: 2px solid black;
+    grid-row: 1;
+    background: #fff;
+    color: #000000;
+    padding: 10px 12px;
+    min-width: 0;
+}
+
+/* action (row1 col2) */
+/* чтобы кнопка доставала до картинки */
+.adm-inv-card--domain .adm-domaincard-action{
+  align-items: stretch;     /* растягиваем по высоте строки header */
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border-bottom: 2px solid black;
+}
+
+.adm-inv-card--domain .adm-domaincard-action .adm-inv-equipbtn{
+  width: 30px;
+  min-width: 30px;
+
+  height: 100%;             /* ключевое: на всю высоту header */
+  min-height: 30px;         /* чтобы не схлопнулась */
+
+  padding: 0;
+  margin: 0;
+
+  border-radius: 0 8px 0 0;
+  border-left: 2px solid #000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* spoiler wrapper занимает всю вторую строку
+   IMPORTANT: убираем padding, чтобы правая картинка была в край
+*/
+.adm-inv-card--domain .adm-domaincard-spoiler{
+  grid-column: 1 / span 2;
+  grid-row: 2;
+  background: #fff;
+  color: #000;
+  padding: 0;           /* было 10px 12px 12px */
+  min-width: 0;
+}
+
+/* внутри спойлера: текст + картинка справа */
+.adm-inv-card--domain .adm-domaincard-spoiler-grid{
+  display: grid;
+  grid-template-columns: 1fr 30px; /* было 60px */
+  gap: 0;                          /* было 12px */
+  align-items: stretch;
+  min-width: 0;
+}
+
+/* текстовая часть — сюда переносим padding */
+.adm-inv-card--domain .adm-domaincard-desc{
+  min-width: 0;
+  padding: 10px 12px 12px;
+}
+
+/* правая картинка — без отступов, как продолжение кнопки */
+.adm-inv-card--domain .adm-domaincard-img{
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  margin: 0;
+}
+
+.adm-inv-card--domain .adm-domaincard-rightimg{
+  width: 30px;          /* было 60px */
+  height: 100%;
+  min-height: 0;
+
+  padding: 0;
+  margin: 0;
+
+  border-radius: 0;
+  border: none;
+  cursor: context-menu;
+
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* чтобы <p> в описании не давали лишних отступов (как у оружия) */
+.adm-inv-card--domain .adm-domaincard-desc p{
+  margin: 0;
+}
+
+.adm-inv-meta.card {
+    font-size: 14px;
+}
+
+.adm-inv-topline.card {
+display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: baseline;
+    min-width: 0;
+}
+
+.adm-inv-card.adm-inv-row--backpack.adm-inv-row--maincard.adm-inv-row--maincards {
+    display: block;
+    padding: 0;
+}
+
+.hand_dom {
+    background: #ddb160;
+    padding: 3px 1px;
+    border-radius: 0px 0px 8px 9px;
+}
+.dom {
+    background: #3e3b5d;
+    border: 1px solid #3e3b5d;
+}

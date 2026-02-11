@@ -1,0 +1,91 @@
+.adm-skill-row {
+	    display: grid;
+    grid-template-columns: 46px 1fr;
+    gap: 10px;
+    align-items: center;
+    overflow: hidden;
+    padding: 0;
+    background: rgb(255, 255, 255);
+    min-width: 0;
+    border: none;
+	color: black;
+	    margin-bottom: 20px;
+}
+/* Строка умения: место под правую полосу */
+.adm-skill-row{
+  position: relative;           /* нужно для ::after */
+  padding-right: 5px;           /* чтобы контент не залезал под полосу */
+}
+
+/* Правая вертикальная полоса */
+.adm-skill-row::after{
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  height: 100%;
+  background: transparent;      /* по умолчанию */
+}
+
+/* Цвета по типу */
+.adm-skill-row--action::after{
+  background: #d43b3b;          /* красный */
+}
+
+.adm-skill-row--passive::after{
+  background: #2b869d;          /* голубой */
+}
+
+.adm-skill-row--reaction::after{
+  background: #e2c44a;          /* желтый */
+}
+
+
+
+
+
+.adm-skill-topline {
+    border-bottom: 2px solid #433f64;
+    padding: 5px 5px 5px 0px;
+}
+
+.adm-richtext {
+    padding: 0px 0 5px 0;
+	margin-top: -5px;
+    line-height: 20px;
+}
+/* Контейнер правой части */
+.adm-inv-attack{
+  display: flex;
+  align-items: center;
+  gap: 10px;            /* можно оставить */
+  white-space: nowrap;
+}
+
+/* Делим: дистанция | страх | стресс | счётчик */
+.adm-inv-attack > *{
+  position: relative;
+  padding-right: 10px;  /* место под линию */
+}
+
+/* Линия после каждого элемента, кроме последнего */
+.adm-inv-attack > *:not(:last-child)::after{
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 14px;         /* высота линии */
+  background: rgba(0,0,0,0.35);
+}
+
+/* Чтобы линии не конфликтовали с gap — можно чуть уменьшить отступ */
+.adm-inv-attack{
+  gap: 8px;
+}
+.adm-inv-attack > *{
+  padding-right: 8px;
+}
+.adm-inv-attack, .adm-inv-attack * { pointer-events: auto !important; }

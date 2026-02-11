@@ -1,0 +1,162 @@
+<section class="adm-weapon-sheet">
+  {{#if isEditMode}}
+    <div class="adm-weapon-edit sheet-body">
+      <div class="adm-weapon-edit-head">
+        <div class="adm-weapon-thumb" data-action="pick-img" data-tooltip="{{item.name}}">
+          <img src="{{item.img}}" alt="{{item.name}}" />
+        </div>
+
+        <div class="adm-weapon-edit-title">
+          <div class="adm-weapon-name-row">
+            <input class="adm-weapon-name" name="name" type="text" value="{{item.name}}" />
+
+            <input
+              class="adm-weapon-tier-input"
+              name="system.tier"
+              type="number"
+              value="{{#if system.tier}}{{system.tier}}{{else}}1{{/if}}"
+              placeholder="тир"
+              data-tooltip="тир"
+              min="1"
+              step="1"
+            />
+          </div>
+
+          <div class="adm-weapon-subline">
+            <div class="adm-weapon-sub">{{localize "DAGGERHEART.ENEMY_ABILITY.TITLE"}}</div>
+
+            <!-- Тип умения -->
+            <label class="adm-weapon-type-inline" data-tooltip="{{localize 'DAGGERHEART.ENEMY_ABILITY.TYPE_LABEL'}}">
+<select name="system.abilityType">
+  <option value="action" {{#if (eq system.abilityType "action")}}selected{{/if}}>
+    {{localize "DAGGERHEART.ENEMY_ABILITY.TYPE.ACTION"}}
+  </option>
+  <option value="passive" {{#if (eq system.abilityType "passive")}}selected{{/if}}>
+    {{localize "DAGGERHEART.ENEMY_ABILITY.TYPE.PASSIVE"}}
+  </option>
+  <option value="reaction" {{#if (eq system.abilityType "reaction")}}selected{{/if}}>
+    {{localize "DAGGERHEART.ENEMY_ABILITY.TYPE.REACTION"}}
+  </option>
+</select>
+
+            </label>
+
+            <!-- Дистанция -->
+            <label class="adm-weapon-type-inline" data-tooltip="{{localize 'DAGGERHEART.ENEMY_ABILITY.RANGE_LABEL'}}">
+              <select name="system.range">
+                {{selectOptions config.ranges selected=system.range localize=true}}
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Порядок: страх/стресс, ниже счётчик тек/макс -->
+      <div class="adm-weapon-grid">
+        <label>
+          <span>{{localize "DAGGERHEART.ENEMY_ABILITY.FEAR"}}</span>
+          <input name="system.fear" type="number" value="{{#if system.fear}}{{system.fear}}{{else}}0{{/if}}" />
+        </label>
+
+        <label>
+          <span>{{localize "DAGGERHEART.ENEMY_ABILITY.STRESS"}}</span>
+          <input name="system.stress" type="number" value="{{#if system.stress}}{{system.stress}}{{else}}0{{/if}}" />
+        </label>
+
+        <label>
+          <span>{{localize "DAGGERHEART.ENEMY_ABILITY.COUNTER_VALUE"}}</span>
+          <input name="system.counter.value" type="number" value="{{#if system.counter.value}}{{system.counter.value}}{{else}}0{{/if}}" />
+        </label>
+
+        <label>
+          <span>{{localize "DAGGERHEART.ENEMY_ABILITY.COUNTER_MAX"}}</span>
+          <input name="system.counter.max" type="number" value="{{#if system.counter.max}}{{system.counter.max}}{{else}}0{{/if}}" />
+        </label>
+      </div>
+
+      {{> "systems/adm-daggerheart/templates/partials/statuses.hbs"}}
+
+      <div class="adm-weapon-notes">
+        <textarea class="adm-tinymce" name="system.notes">{{system.notes}}</textarea>
+      </div>
+    </div>
+
+  {{else}}
+    <div class="adm-weapon-card sheet-body">
+      <div class="adm-weapon-card-overlay">
+
+        <div class="adm-weapon-view">
+          <!-- left image -->
+          <div class="adm-weapon-view-left">
+            <img class="adm-weapon-view-img" src="{{item.img}}" alt="{{item.name}}">
+          </div>
+
+          <!-- right content -->
+          <div class="adm-weapon-view-right">
+
+            <!-- 1) Название -->
+            <div class="adm-weapon-line adm-weapon-titleline">
+              <div class="adm-weapon-title">
+                {{item.name}}
+              </div>
+            </div>
+
+            <!-- 2) Умение противника 1 тира (Действие | Близко) — "Нет" не показываем -->
+            <div class="adm-weapon-line adm-weapon-summaryline">
+              {{localize "DAGGERHEART.ENEMY_ABILITY.TITLE"}}
+              {{#if system.tier}}{{system.tier}}{{else}}1{{/if}}
+              тира
+              (
+              {{#if system.abilityType}}
+{{#if (eq system.abilityType "action")}}{{localize "DAGGERHEART.ENEMY_ABILITY.TYPE.ACTION"}}{{/if}}
+{{#if (eq system.abilityType "passive")}}{{localize "DAGGERHEART.ENEMY_ABILITY.TYPE.PASSIVE"}}{{/if}}
+{{#if (eq system.abilityType "reaction")}}{{localize "DAGGERHEART.ENEMY_ABILITY.TYPE.REACTION"}}{{/if}}
+
+              {{else}}
+                {{localize "DAGGERHEART.ENEMY_ABILITY.TYPE.ACTION"}}
+              {{/if}}
+
+              {{#if system.range}}
+                {{#unless (eq system.range "none")}}
+                  | {{localize (lookup config.ranges system.range)}}
+                {{/unless}}
+              {{/if}}
+              )
+            </div>
+
+            <!-- 3) Ресурсы: показываем только если есть что выводить -->
+            {{#if (or system.fear (or system.stress system.counter.max))}}
+              <div class="adm-weapon-line adm-weapon-statsline">
+                <span class="k">Ресурсы:</span>
+
+                {{#if system.fear}}
+                  <span class="v">{{localize "DAGGERHEART.ENEMY_ABILITY.FEAR"}} - {{system.fear}}</span>
+                {{/if}}
+
+                {{#if system.stress}}
+                  {{#if system.fear}}<span class="sep">,</span>{{/if}}
+                  <span class="v">{{localize "DAGGERHEART.ENEMY_ABILITY.STRESS"}} - {{system.stress}}</span>
+                {{/if}}
+
+                {{#if system.counter.max}}
+                  {{#if (or system.fear system.stress)}}<span class="sep">,</span>{{/if}}
+                  <span class="v">
+                    Счётчик
+                    {{#if system.counter.value}}{{system.counter.value}}{{else}}0{{/if}}/{{system.counter.max}}
+                  </span>
+                {{/if}}
+              </div>
+            {{/if}}
+
+          </div>
+        </div>
+
+        <!-- 4) Описание — заголовок убран -->
+        <div class="adm-weapon-card-notes">
+          <div class="adm-richtext">{{{notesHTML}}}</div>
+        </div>
+
+      </div>
+    </div>
+  {{/if}}
+</section>

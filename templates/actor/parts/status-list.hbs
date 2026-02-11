@@ -1,0 +1,103 @@
+<div class="adm-actor-statuses">
+  {{#if activeStatuses.length}}
+    <div class="adm-actor-statuses-list">
+      {{#each activeStatuses as |s|}}
+        <div class="adm-actor-status-card">
+
+          <!-- ROW: ICON (left) + CONTENT (right) -->
+          <div class="adm-actor-status-row" style="display:flex; align-items:stretch; gap:10px;">
+
+            <!-- LEFT: icon block 45px, full height -->
+            <div style="flex:0 0 45px; width:45px; align-self:stretch;">
+              <img
+                class="adm-actor-status-icon"
+                src="{{s.img}}"
+                title="{{s.name}}"
+                style="
+                  background: black;
+                  border-radius: 0;
+                  border: none;
+                  cursor: context-menu;
+                  width: 100%;
+                  height: 100%;
+                  object-fit: cover;
+                  object-position: center;
+                  display: block;
+                "
+              />
+            </div>
+
+            <!-- RIGHT: all content -->
+            <div class="adm-actor-status-main" style="flex:1 1 auto; min-width:0; display:flex; flex-direction:column;">
+
+              <!-- NAME + actions/source -->
+              <div class="adm-actor-status-top" style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+                <div class="adm-actor-status-name" style="min-width:0;">
+                  {{s.name}}
+                </div>
+
+                {{#if s.isActorStatus}}
+                  <div class="adm-actor-status-actions" style="flex:0 0 auto; white-space:nowrap;">
+                    <button type="button"
+                            class="adm-actor-status-btn"
+                            data-action="adm-actor-status-edit"
+                            data-status-id="{{s.id}}"
+                            title="Редактировать">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+
+                    <button type="button"
+                            class="adm-actor-status-btn"
+                            data-action="adm-actor-status-del"
+                            data-status-id="{{s.id}}"
+                            title="Удалить">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                {{else}}
+                  <div class="adm-actor-status-src" style="flex:0 0 auto; white-space:nowrap;">
+                    Источник: {{s.sourceName}}
+
+                    {{#if s.isApplied}}
+                      <button type="button"
+                              class="adm-actor-status-del"
+                              data-action="adm-applied-status-del"
+                              data-actor-uuid="{{s.actorUuid}}"
+                              data-status-id="{{s.appliedStatusId}}"
+                              title="Удалить">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    {{/if}}
+                  </div>
+                {{/if}}
+              </div>
+
+              <!-- DESCRIPTION -->
+              {{#if s.textHTML}}
+                <div class="adm-actor-status-desc" style="margin-top:4px;">
+                  {{{s.textHTML}}}
+                </div>
+              {{/if}}
+
+              <!-- TAGS / MODS -->
+              {{#if s.traitMods.length}}
+                <div class="adm-actor-status-mods" style="margin-top:6px;">
+                  {{#each s.traitMods as |m|}}
+                    <div class="adm-actor-status-mod">
+                      <span class="k">{{m.label}}</span>
+                      <span class="v">{{m.value}}</span>
+                    </div>
+                  {{/each}}
+                </div>
+              {{/if}}
+
+            </div>
+          </div>
+
+        </div>
+      {{/each}}
+    </div>
+  {{else}}
+    <div class="adm-actor-statuses-empty">Нет активных статусов</div>
+  {{/if}}
+</div>

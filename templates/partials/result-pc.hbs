@@ -1,0 +1,99 @@
+<section class="adm-rollmsg adm-rollmsg--pc" data-adm-rollmsg data-adm-bg="{{bg}}">
+
+
+  <div class="adm-rollmsg-inner">
+    <div style="border-radius: 8px;
+        background: rgba(0, 0, 0, .16);
+        border: 1px solid rgba(255, 255, 255, .14);
+        padding: 10px 13px;">
+
+      <div class="adm-rollmsg-title">
+        {{#if weaponName}}
+          {{#if weaponUuid}}
+            <a class="adm-rollmsg-itemlink"
+               href="#"
+               data-action="adm-open-item"
+               data-uuid="{{weaponUuid}}">{{weaponName}}</a>
+          {{else}}
+            <span class="adm-rollmsg-itemtext">{{weaponName}}</span>
+          {{/if}}
+          <span class="adm-rollmsg-title-tail"> ({{traitLabel}} {{traitSigned}})</span>
+        {{else}}
+          <span class="adm-rollmsg-title-only">{{traitLabel}} {{traitSigned}}</span>
+        {{/if}}
+      </div>
+
+      {{#if usedExpsText}}
+        <div class="adm-rollmsg-exps">{{usedExpsText}}</div>
+      {{/if}}
+
+      {{!-- NEW: эффекты ресурсов (только если реально применились) --}}
+      {{#if hasEffects}}
+        <div class="adm-rollmsg-effects">
+          {{#each effects as |e|}}
+            <div class="adm-rollmsg-effectline" style="color: {{e.color}};">{{e.text}}</div>
+          {{/each}}
+        </div>
+      {{/if}}
+    </div>
+
+    <div class="adm-rollmsg-row">
+      <div class="adm-rollmsg-dice">
+        {{#each dice as |d|}}
+          <div class="adm-rollmsg-die adm-rollmsg-die--{{d.kind}} {{#if d.isAdv}}is-adv{{/if}} {{#if d.isNeg}}is-neg{{/if}}"
+               data-die-id="{{d.id}}">
+<span class="adm-roll-diesvg adm-rollmsg-diesvg"
+      style="--adm-die-svg: url('{{d.svg}}'); --adm-die-scale: {{d.scale}};"></span>
+
+            <div class="adm-rollmsg-die-val">{{d.text}}</div>
+          </div>
+        {{/each}}
+
+        <div class="adm-rollmsg-modwrap">
+          <div class="adm-rollmsg-modbtn adm-has-tooltip"
+               data-adm-modbtn
+               data-tooltip="ЛКМ +Кость | ПКМ -Кость">
+            <span class="adm-roll-diesvg adm-rollmsg-diesvg"
+                  style="--adm-die-svg: url('{{d8Svg}}'); --adm-die-color: rgba(255,255,255,.22);"></span>
+            <div class="adm-rollmsg-modbtn-text">±</div>
+          </div>
+
+          <input class="adm-rollmsg-modinput"
+                 type="text"
+                 value="{{modTotal}}"
+                 data-adm-modinput
+                 inputmode="text"
+                 autocomplete="off"
+                 spellcheck="false" />
+        </div>
+      </div>
+    </div>
+
+    {{#if targets.length}}
+      <div class="adm-rollmsg-targets">
+        {{#each targets as |t|}}
+          <div class="adm-rollmsg-target {{t.cls}}"
+               data-token-id="{{t.tokenId}}"
+               data-scene-id="{{t.sceneId}}">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span class="adm-rollmsg-target-num">{{t.dodge}}</span>
+            <span class="adm-rollmsg-target-sep">|</span>
+            <span class="adm-rollmsg-target-name">{{t.name}}</span>
+          </div>
+        {{/each}}
+      </div>
+    {{/if}}
+
+    <div class="adm-rollmsg-total">
+      <div class="adm-rollmsg-total-num">{{total}}</div>
+      <div class="adm-rollmsg-total-label">{{resultLabel}}</div>
+    </div>
+	
+{{#if weaponDamageText}}
+  <button type="button" class="adm-rollmsg-dmgbtn" data-adm-dmgbtn>{{weaponDamageText}}</button>
+{{/if}}
+{{#if weaponAnimText}}
+  <div class="dh-wapon-anim" style="display:none;">{{weaponAnimText}}</div>
+{{/if}}
+  </div>
+</section>

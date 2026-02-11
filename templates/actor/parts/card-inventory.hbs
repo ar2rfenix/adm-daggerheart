@@ -1,0 +1,197 @@
+{{!-- systems/adm-daggerheart/templates/actor/parts/card-inventory.hbs --}}
+<section class="adm-cards-root">
+
+  {{!-- ========================= --}}
+  {{!-- MAIN CARDS (NO IMAGE)     --}}
+  {{!-- ========================= --}}
+  {{#if (eq mode "main")}}
+    <div class="adm-inv">
+      <div class="">
+
+        {{#if mainCards.length}}
+          {{#each mainCards as |it|}}
+            <div class="adm-frame">
+              <div class="adm-inv-card adm-inv-row--backpack adm-inv-row--maincard adm-inv-row--maincards"
+                   data-item-id="{{it.id}}">
+
+                <div class="adm-inv-col-main">
+                  <div class="adm-inv-topline card">
+                    <button
+                      type="button"
+                      class="adm-inv-name adm-maincard-name adm-maincards__name"
+                      data-action="open-item"
+                      data-item-id="{{it.id}}"
+                      title="Открыть"
+                      style="all:unset; cursor:pointer; display:block;"
+                    >
+                      {{#if it.templateLabel}}
+                        {{it.templateLabel}} {{it.name}}
+                      {{else}}
+                        {{it.name}}
+                      {{/if}}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="adm-inv-col-action"></div>
+
+              </div>
+            </div>
+          {{/each}}
+        {{else}}
+          <div class="adm-inv-empty" style="opacity:.6;padding:6px 2px;">Нет основных карт</div>
+        {{/if}}
+
+      </div>
+    </div>
+  {{/if}}
+
+
+  {{!-- ========================= --}}
+  {{!-- DOMAIN CARDS              --}}
+  {{!-- ========================= --}}
+  {{#if (eq mode "domains")}}
+    <div class="adm-inv">
+
+      {{!-- EQUIPPED DOMAIN --}}
+      <div class="hand_dom">
+
+
+        {{#if equippedDomainCards.length}}
+          {{#each equippedDomainCards as |it|}}
+            <div class="adm-frame">
+              <div class="adm-inv-card adm-inv-card--domain adm-inv-row--equipped" data-item-id="{{it.id}}">
+
+                <div class="adm-domaincard-head adm-inv-col-main" data-item-id="{{it.id}}">
+                  <div class="adm-inv-topline card">
+                    <div class="adm-inv-name" data-item-id="{{it.id}}">
+                      {{#if it.level}}[{{it.level}}] {{/if}}{{it.name}}
+                    </div>
+                  </div>
+
+                  <div class="adm-inv-subline">
+                    <div class="adm-inv-meta card">
+                      {{#if it.cardTypeLabel}}{{it.cardTypeLabel}}{{else}}Карта{{/if}}
+                      домена
+                      {{it.domainLabel}}
+                      {{#if it.recallPretty}} | {{it.recallPretty}}{{/if}}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="adm-domaincard-action">
+                  <button
+                    type="button"
+                    class="adm-inv-equipbtn adm-has-tooltip dom"
+                    data-action="unequip-item"
+                    data-item-id="{{it.id}}"
+                    aria-label="Убрать в запас"
+                    data-adm-tooltip="Убрать в запас"
+                  >
+                    <i class="fas fa-arrow-down"></i>
+                  </button>
+                </div>
+
+ 
+<div class="adm-domaincard-spoiler" hidden>
+  <div class="adm-domaincard-spoiler-grid">
+    <div class="adm-domaincard-desc">
+      {{#if it.descriptionHTML}}
+        <div class="adm-inv-meta card">
+          {{{it.descriptionHTML}}}
+        </div>
+      {{else}}
+        <div class="adm-inv-meta card" style="opacity:.7;">Нет описания</div>
+      {{/if}}
+    </div>
+
+    <div class="adm-domaincard-img" aria-hidden="true">
+      <img
+        class="adm-domaincard-rightimg"
+        src="{{it.img}}"
+        data-item-id="{{it.id}}"
+        title="{{it.name}}"
+        alt=""
+      />
+    </div>
+  </div>
+</div>
+
+
+
+              </div>
+            </div>
+          {{/each}}
+        {{else}}
+          <div class="adm-inv-empty" style="opacity:.6;padding:6px 2px;">Нет экипированных карт</div>
+        {{/if}}
+      </div>
+
+      {{!-- BACKPACK DOMAIN --}}
+      <div class="adm-inv-section adm-inv-section--backpack">
+        <div class="adm-inv-title adm-inv-title--backpack">
+          <span class="adm-inv-title-chip adm-inv-title-chip--backpack">Запас</span>
+        </div>
+
+        {{#if backpackDomainCards.length}}
+          {{#each backpackDomainCards as |it|}}
+            <div class="adm-frame">
+              <div class="adm-inv-card adm-inv-card--domain adm-inv-row--backpack" data-item-id="{{it.id}}">
+
+                <div class="adm-domaincard-head adm-inv-col-main" data-item-id="{{it.id}}">
+                  <div class="adm-inv-topline card">
+                    <div class="adm-inv-name" data-item-id="{{it.id}}">
+                      {{#if it.level}}[{{it.level}}] {{/if}}{{it.name}}
+                    </div>
+                  </div>
+
+                  <div class="adm-inv-subline">
+                    <div class="adm-inv-meta card">
+                      {{#if it.cardTypeLabel}}{{it.cardTypeLabel}}{{else}}Карта{{/if}}
+                      домена
+                      {{it.domainLabel}}
+                      {{#if it.recallPretty}} | {{it.recallPretty}}{{/if}}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="adm-domaincard-action">
+                  <button
+                    type="button"
+                    class="adm-inv-equipbtn adm-has-tooltip"
+                    data-action="equip-item"
+                    data-item-id="{{it.id}}"
+                    aria-label="Экипировать"
+                    data-adm-tooltip="Экипировать (см. Призыв)"
+                  >
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </div>
+
+                {{!-- Картинку убрали --}}
+                <div class="adm-domaincard-spoiler" hidden>
+                  <div class="adm-domaincard-spoiler-grid">
+                    <div class="adm-domaincard-desc">
+                      {{#if it.descriptionHTML}}
+                        <div class="adm-inv-meta card">
+                          {{{it.descriptionHTML}}}
+                        </div>
+                      {{else}}
+                        <div class="adm-inv-meta card" style="opacity:.7;">Нет описания</div>
+                      {{/if}}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          {{/each}}
+        {{else}}
+          <div class="adm-inv-empty" style="opacity:.6;padding:6px 2px;">Нет карт в запасе</div>
+        {{/if}}
+      </div>
+
+    </div>
+  {{/if}}
+
+</section>

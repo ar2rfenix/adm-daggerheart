@@ -1,0 +1,112 @@
+<div class="adm-inv" data-actor-uuid="{{actor.uuid}}">
+
+  <div class="adm-inv-section">
+    <div class="adm-inv-title">
+    </div>
+
+    {{#if list.length}}
+      {{#each list as |it|}}
+        <div class="adm-skill-row
+  {{#if (eq it.bucket "actions")}}adm-skill-row--action{{/if}}
+  {{#if (eq it.bucket "passives")}}adm-skill-row--passive{{/if}}
+  {{#if (eq it.bucket "reactions")}}adm-skill-row--reaction{{/if}}
+" data-item-id="{{it.id}}">
+
+          <img
+            class="adm-inv-icon" style="
+			  background: black;
+  border-radius: 0;
+  border: none;
+  cursor: context-menu;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;"
+            src="{{it.img}}"
+            data-item-id="{{it.id}}"
+            data-action="open-item"
+          />
+
+          <div class="adm-inv-mid">
+            <!-- HEADER -->
+            <div class="adm-skill-topline" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <!-- LEFT: Название -->
+              <div class="adm-inv-name" style="min-width:0;">
+                {{it.name}}
+              </div>
+
+              <!-- RIGHT: Дистанция + Ресурсы -->
+              <div class="adm-inv-attack" style="opacity:0.85; display:flex; align-items:center; gap:10px; flex:0 0 auto; white-space:nowrap;">
+                {{#if it.rangeLabel}}
+                    <span
+    class="adm-inv-range adm-btn-pop adm-has-tooltip"
+    data-action="adm-toggle-range-ring"
+    data-range-key="{{it.rangeKey}}"
+    data-adm-tooltip="Показать/скрыть кольцо дистанции"
+    style="cursor:pointer;"
+  >
+    {{it.rangeLabel}}
+  </span>
+                {{/if}}
+
+                <!-- FEAR: черепки -->
+{{#if it.fear}}
+  <span
+    class="adm-ea-fear adm-has-tooltip"
+    data-action="apply-fear"
+    data-amount="{{it.fear}}"
+    data-tooltip="Страх: -{{it.fear}}"
+    style="display:inline-flex; gap:4px; align-items:center;"
+  >
+    {{#each it.fearIcons}}
+      <i class="fa-solid fa-skull"></i>
+    {{/each}}
+  </span>
+{{/if}}
+{{#if it.stress}}
+  <span
+    class="adm-ea-stress adm-has-tooltip"
+    data-action="apply-stress"
+    data-amount="{{it.stress}}"
+    data-tooltip="Стресс: +{{it.stress}}"
+    style="display:inline-flex; gap:4px; align-items:center;"
+  >
+    {{#each it.stressIcons}}
+      <i class="fa-solid fa-droplet" style="font-size: 13px; color: #2b869d; opacity: 0.85;"></i>
+    {{/each}}
+  </span>
+{{/if}}
+{{#if it.counterMax}}
+  <span
+    class="adm-ea-counter adm-has-tooltip"
+    data-action="counter"
+    data-tooltip="Счётчик: ЛКМ +1, ПКМ -1"
+    style="display:inline-flex; gap:4px; align-items:center;"
+  >
+    <i class="fa-solid fa-hourglass"></i>
+    <span>{{#if it.counterValue}}{{it.counterValue}}{{else}}0{{/if}}/{{it.counterMax}}</span>
+  </span>
+{{/if}}
+
+              </div>
+            </div>
+
+            <!-- DESCRIPTION (под шапкой) -->
+            {{#if it.hasNotes}}
+              <div class="adm-inv-subline" style="opacity:0.9; margin-top:4px;">
+                <div class="adm-richtext">{{{it.notesHTML}}}</div>
+              </div>
+            {{/if}}
+          </div>
+        </div>
+      {{/each}}
+    {{else}}
+      <div style="opacity:0.75; padding:10px 0;">
+        Нет умений
+      </div>
+    {{/if}}
+
+
+  </div>
+</div>

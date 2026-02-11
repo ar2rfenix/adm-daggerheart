@@ -1,0 +1,516 @@
+<section class="adm-char-sheet">
+  <div class="adm-char-grid">
+
+    <!-- LEFT -->
+    <aside class="adm-sheet-left">
+     <div class="adm-portrait adm-has-tooltip"
+     data-adm-tooltip="{{#if system.motivation}}{{system.motivation}}{{/if}}{{#if system.tactics}}{{#if system.motivation}}&#10;{{/if}}Тактика: {{system.tactics}}{{/if}}">
+
+        <img class="adm-portrait-img" src="{{actor.img}}" />
+        <div class="adm-nameplate">
+          {{#if isEditMode}}
+            <input class="adm-name-input" name="name" type="text" value="{{actor.name}}" />
+          {{else}}
+            <div class="adm-name-text">{{actor.name}}</div>
+          {{/if}}
+        </div>
+      </div>
+
+    {{#if isEditMode}}
+  <div class="adm-left-content">
+    <div class="adm-left-block">
+
+      <!-- TIER (EDIT) -->
+      <div class="adm-level-line">
+        <span class="adm-stat-label">
+          <span class="adm-ico">
+            <i class="fa-regular fa-circle-up" style="font-size: 13px;"></i>
+          </span>
+          <span class="adm-label-text">Тир</span>
+        </span>
+
+        <input name="system.tier" type="number" min="1" value="{{system.tier}}" />
+      </div>
+
+      <!-- NPC TYPE (EDIT) -->
+      <div class="adm-mastery-line">
+        <span class="adm-stat-label">
+          <span class="adm-ico">
+            <i class="fa-solid fa-swords" style="font-size:13px;"></i>
+          </span>
+          <span class="adm-label-text">Тип</span>
+        </span>
+
+        <select name="system.npcType">
+          {{#each config.npcTypes as |label key|}}
+            <option value="{{key}}" {{#if (eq ../system.npcType key)}}selected{{/if}}>
+              {{lookup ../configL.npcTypes key}}
+            </option>
+          {{/each}}
+        </select>
+      </div>
+
+    </div>
+  </div>
+{{/if}}
+
+<div style="
+  margin-bottom: 12px;
+  margin-left: 12px;
+  border: 1px solid var(--adm-trait-gold);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.18);
+">
+  <div class="adm-left-block" style="padding:0;">
+    {{#unless isEditMode}}
+      <div class="adm-npc-attackline adm-default-attack-left"
+           style="position:relative; padding: 12px 10px; overflow:hidden;">
+
+        <!-- d20 водяной знак справа -->
+        <i class="fa-solid fa-dice-d20"
+           style="
+             position:absolute;
+             right:-6px;
+             top:50%;
+             transform:translateY(-50%);
+             font-size:78px;
+             opacity:0.14;
+             z-index:0;
+             pointer-events:none;
+           "></i>
+
+        <div style="position:relative; z-index:1; display:flex; flex-direction:column; gap:6px;">
+
+          <!-- 1 строка: НАЗВАНИЕ ПО ЦЕНТРУ -->
+          <div style="display:flex; justify-content:center; line-height:1.1;">
+<span class="adm-npc-attack-name"
+      data-action="adm-open-npc-attack-roll"
+      data-trait="{{system.attackTrait}}"
+      data-mod="{{system.attackMod}}"
+      data-adm-attack-name="{{system.defaultAttackName}}"
+      data-adm-attack-anim="{{system.attackAnimation}}"
+      data-adm-damage="{{system.damage}}"
+      data-adm-damage-type="{{system.damageType}}"
+      style="font-size:18px; font-weight:700; letter-spacing:0.2px; text-align:center; cursor:pointer;">
+  {{system.defaultAttackName}}
+</span>
+
+
+
+          </div>
+
+          <!-- РАМКА ДЛЯ 2-3 СТРОК -->
+          <div style="
+            width:100%;
+            padding: 6px 8px;
+            border-radius: 3px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(0,0,0,0.22);
+            box-sizing:border-box;
+            text-align:center;
+            display:flex;
+            flex-direction:column;
+            gap:4px;
+          ">
+
+            <!-- 2 строка: МОД | ДИСТАНЦИЯ (по центру, без сокращений) -->
+            <div style="
+              display:flex;
+              justify-content:center;
+              align-items:baseline;
+              gap:8px;
+              line-height:1.1;
+              font-size:12px;
+              white-space:nowrap;
+            ">
+<span class="adm-npc-attack-range-text adm-btn-pop adm-has-tooltip"
+      data-action="adm-toggle-range-ring"
+      data-range-key="{{system.range}}"
+      data-adm-tooltip="Показать/скрыть кольцо дистанции"
+      style="cursor:pointer;">
+  {{rangeLabel}}
+</span>
+
+
+            </div>
+
+            <!-- 3 строка: УРОН ТИП (по центру, без сокращений) -->
+            <div style="
+display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 8px;
+    line-height: 1.1;
+    font-size: 17px;
+    white-space: nowrap;
+    margin-top: 5px;
+            ">
+              <span class="adm-npc-attack-dmg">{{system.damage}} {{damageTypeLabel}}</span>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    {{/unless}}
+  </div>
+</div>
+
+
+
+
+<div class="adm-left-content">
+  <div class="adm-left-block">
+
+    <!-- DODGE (СЛ) -->
+    <div class="adm-stat">
+      <span class="adm-stat-label">
+        <span class="adm-ico">
+          <i class="fa-duotone fa-solid fa-person-running-fast" style="font-size: 13px;"></i>
+        </span>
+        <span class="adm-label-text">СЛ</span>
+      </span>
+
+      {{#if isEditMode}}
+        <span class="adm-stat-value">
+          <input name="system.resources.dodge.value" type="number" min="0" value="{{system.resources.dodge.value}}" />
+        </span>
+      {{else}}
+        <span class="adm-stat-value">{{system.resources.dodge.value}}</span>
+      {{/if}}
+    </div>
+
+    <!-- THRESHOLDS -->
+    <div class="adm-wounds-th">
+
+      <div class="adm-wounds-side">
+        <div class="adm-wounds-skulls">
+          1 <i class="fa-solid fa-droplet"></i>
+        </div>
+      </div>
+
+      <div class="adm-wounds-mid">
+        <div class="adm-wounds-arrow">
+          {{#if isEditMode}}
+            <input class="adm-wounds-input"
+                   name="system.damageThresholds.noticeable"
+                   type="number" min="1"
+                   value="{{system.damageThresholds.noticeable}}" />
+          {{else}}
+            <div class="adm-wounds-value">{{system.damageThresholds.noticeable}}</div>
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="adm-wounds-side">
+        <div class="adm-wounds-skulls">
+          2 <i class="fa-solid fa-droplet"></i>
+        </div>
+      </div>
+
+      <div class="adm-wounds-mid">
+        <div class="adm-wounds-arrow">
+          {{#if isEditMode}}
+            <input class="adm-wounds-input"
+                   name="system.damageThresholds.heavy"
+                   type="number" min="1"
+                   value="{{system.damageThresholds.heavy}}" />
+          {{else}}
+            <div class="adm-wounds-value">{{system.damageThresholds.heavy}}</div>
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="adm-wounds-side">
+        <div class="adm-wounds-skulls">
+          3 <i class="fa-solid fa-droplet"></i>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="hr-gold"></div>
+
+    <!-- HP / WOUNDS -->
+    <div class="adm-stat">
+      <span class="adm-stat-label">
+        <span class="adm-ico">
+          <i class="fa-solid fa-droplet" style="font-size: 13px; color: #9d2b2b; opacity: 0.85;"></i>
+        </span>
+        <span class="adm-label-text">{{localize "DAGGERHEART.RES.HP"}}</span>
+      </span>
+
+      {{#if isEditMode}}
+        <span class="adm-stat-value">
+          <input name="system.resources.hp.value" type="number" min="0" value="{{system.resources.hp.value}}" />
+          <span class="adm-sep">/</span>
+          <input name="system.resources.hp.max" type="number" min="0" value="{{system.resources.hp.max}}" />
+        </span>
+      {{else}}
+        <span class="adm-stat-value">
+          <span class="adm-stepper adm-has-tooltip"
+                data-path="system.resources.hp.value"
+                data-max-path="system.resources.hp.max"
+                data-adm-tooltip="{{localize "DAGGERHEART.TOOLTIP.STEPPER"}}">
+            {{system.resources.hp.value}}/{{system.resources.hp.max}}
+          </span>
+        </span>
+      {{/if}}
+    </div>
+
+    <!-- STRESS -->
+    <div class="adm-stat">
+      <span class="adm-stat-label">
+        <span class="adm-ico">
+          <i class="fa-solid fa-droplet" style="font-size: 13px; color: #2b869d; opacity: 0.85;"></i>
+        </span>
+        <span class="adm-label-text">{{localize "DAGGERHEART.RES.STRESS"}}</span>
+      </span>
+
+      {{#if isEditMode}}
+        <span class="adm-stat-value">
+          <input name="system.resources.stress.value" type="number" min="0" value="{{system.resources.stress.value}}" />
+          <span class="adm-sep">/</span>
+          <input name="system.resources.stress.max" type="number" min="0" value="{{system.resources.stress.max}}" />
+        </span>
+      {{else}}
+        <span class="adm-stat-value">
+          <span class="adm-stepper adm-has-tooltip"
+                data-path="system.resources.stress.value"
+                data-max-path="system.resources.stress.max"
+                data-adm-tooltip="{{localize "DAGGERHEART.TOOLTIP.STEPPER"}}">
+            {{system.resources.stress.value}}/{{system.resources.stress.max}}
+          </span>
+        </span>
+      {{/if}}
+    </div>
+
+  </div>
+</div>
+
+
+      <div class="adm-left-content">
+        <div class="adm-left-block">
+
+          <!-- EXPERIENCE -->
+          <div class="adm-exp">
+            <div class="adm-exp-head">
+              <span class="adm-exp-title">Опыты</span>
+              {{#if isEditMode}}
+                <button type="button" class="adm-exp-add" data-action="add-exp">+</button>
+              {{/if}}
+            </div>
+
+            <div class="adm-exp-list">
+              {{#each system.experiences as |exp idx|}}
+                <div class="adm-exp-row">
+                  {{#if ../isEditMode}}
+                    <input class="adm-exp-name" type="text" value="{{exp.name}}" data-exp-index="{{idx}}" data-exp-field="name" />
+                    <input class="adm-exp-val" type="number" min="0" value="{{exp.value}}" data-exp-index="{{idx}}" data-exp-field="value" />
+                    <button type="button" class="adm-exp-del" data-action="del-exp" data-index="{{idx}}">×</button>
+                    <textarea class="adm-exp-desc" rows="2" data-exp-index="{{idx}}" data-exp-field="gainText">{{exp.gainText}}</textarea>
+                  {{else}}
+                    <span class="adm-exp-name-view adm-has-tooltip"
+                          data-adm-tooltip="{{exp.name}}
+{{exp.gainText}}"
+                          tabindex="0">
+                      {{exp.name}}
+                    </span>
+                    <span class="adm-exp-val-view">{{exp.value}}</span>
+                  {{/if}}
+                </div>
+              {{/each}}
+
+              {{#unless system.experiences.length}}
+                <div class="adm-exp-row">
+                  <span class="adm-exp-name-view" style="opacity:0.75;">Нет опытов</span>
+                </div>
+              {{/unless}}
+            </div>
+          </div>
+
+        </div>
+      </div>
+	  {{#unless isEditMode}}
+  <div class="adm-left-content">
+    <div class="adm-left-block">
+
+      <!-- TIER (VIEW) -->
+      <div class="adm-level-line">
+        <span class="adm-stat-label">
+          <span class="adm-ico">
+            <i class="fa-regular fa-circle-up" style="font-size: 13px;"></i>
+          </span>
+          <span class="adm-label-text">Тир</span>
+        </span>
+
+        <span class="adm-stat-value">{{system.tier}}</span>
+      </div>
+
+      <!-- NPC TYPE (VIEW) -->
+      <div class="adm-mastery-line">
+        <span class="adm-stat-label">
+          <span class="adm-ico">
+            <i class="fa-solid fa-swords" style="font-size:13px;"></i>
+          </span>
+          <span class="adm-label-text">Тип</span>
+        </span>
+
+        <span class="adm-stat-value">{{npcTypeLabel}}</span>
+      </div>
+
+    </div>
+  </div>
+{{/unless}}
+
+
+    </aside>
+
+    <!-- RIGHT -->
+    <main class="adm-sheet-right">
+	
+	 <!-- DEFAULT ATTACK -->
+<div class="adm-npc-attackwrap">
+  {{#if isEditMode}}
+    <div style="font-weight: 700; margin-bottom: 8px;">Стандартная атака</div>
+
+    <div style="display:grid; grid-template-columns: 1fr 120px 150px; gap:10px; align-items:end; margin-bottom:10px;">
+      <label style="display:block;">
+        <div style="opacity:0.85; margin-bottom:4px;">Имя атаки</div>
+        <input name="system.defaultAttackName" type="text" value="{{system.defaultAttackName}}" style="width:100%;" />
+      </label>
+
+      <label style="display:block;">
+        <div style="opacity:0.85; margin-bottom:4px;">Модификатор</div>
+        <input name="system.attackMod" type="number" value="{{system.attackMod}}" style="width:100%;" />
+      </label>
+
+      <label style="display:block;">
+        <div style="opacity:0.85; margin-bottom:4px;">Дистанция</div>
+        <select name="system.range" style="width:100%;">
+          {{#each config.ranges as |label key|}}
+            <option value="{{key}}" {{#if (eq ../system.range key)}}selected{{/if}}>
+              {{lookup ../configL.ranges key}}
+            </option>
+          {{/each}}
+        </select>
+      </label>
+    </div>
+
+    <!-- строка: Название анимации | Формула урона | Тип урона -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr 200px; gap:10px; align-items:end;">
+      <label style="display:block;">
+        <div style="opacity:0.85; margin-bottom:4px;">Название анимации</div>
+        <input
+          name="system.attackAnimation"
+          type="text"
+          value="{{system.attackAnimation}}"
+          style="width:100%;"
+          placeholder="например: Когти"
+        />
+      </label>
+
+      <label style="display:block;">
+        <div style="opacity:0.85; margin-bottom:4px;">Формула урона</div>
+        <input name="system.damage" type="text" value="{{system.damage}}" style="width:100%;" />
+      </label>
+
+      <label style="display:block;">
+        <div style="opacity:0.85; margin-bottom:4px;">Тип урона</div>
+        <select name="system.damageType" style="width:100%;">
+          {{#each config.damageTypes as |label key|}}
+            <option value="{{key}}" {{#if (eq ../system.damageType key)}}selected{{/if}}>
+              {{lookup ../configL.damageTypes key}}
+            </option>
+          {{/each}}
+        </select>
+      </label>
+    </div>
+  {{/if}}
+</div>
+
+
+    <!-- MOTIVATION / TACTICS -->
+      {{#if isEditMode}}
+        <div style="margin-bottom: 10px;margin-top: 30px;">
+          <div style="font-weight: 700; margin-bottom: 6px;">Описание</div>
+          <textarea name="system.motivation" rows="3" style="width:100%;">{{system.motivation}}</textarea>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <div style="font-weight: 700; margin-bottom: 6px;">Тактика</div>
+          <textarea name="system.tactics" rows="4" style="width:100%;">{{system.tactics}}</textarea>
+        </div>
+      {{/if}}
+
+          
+
+
+          <!-- TABS -->
+      <div class="adm-right-tabs" data-adm-tabs>
+        <button type="button" class="adm-right-tab is-active" data-adm-tab="abilities">
+          <i class="fa-solid fa-border-all"></i>
+        </button>
+
+        {{#if hasEnemyPassives}}
+          <button type="button" class="adm-right-tab" data-adm-tab="passives">Пассивные</button>
+        {{/if}}
+
+        {{#if hasEnemyActions}}
+          <button type="button" class="adm-right-tab" data-adm-tab="actions">Действия</button>
+        {{/if}}
+
+        {{#if hasEnemyReactions}}
+          <button type="button" class="adm-right-tab" data-adm-tab="reactions">Реакции</button>
+        {{/if}}
+
+        <div class="adm-right-tabwrap" data-adm-tabwrap="statuses">
+          <button type="button" class="adm-right-tab" data-adm-tab="statuses">Статусы ({{statusTabCount}})</button>
+          <div class="adm-add-st">
+            <button type="button"
+                    class="adm-actor-status-add"
+                    data-action="adm-actor-status-add"
+                    title="Добавить">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANELS -->
+      <div class="adm-tab-panel is-active" data-adm-panel="abilities">
+        {{> "systems/adm-daggerheart/templates/actor/parts/enemy-inventory.hbs" title="Умения" list=enemyAbilities}}
+		    <!-- КНОПКА СОЗДАНИЯ -->
+    <div style="margin-top:10px;">
+      <button type="button" class="adm-btn" data-action="create-enemy-ability">
+        + Новое умение
+      </button>
+    </div>
+      </div>
+
+      {{#if hasEnemyPassives}}
+        <div class="adm-tab-panel" data-adm-panel="passives" hidden>
+          {{> "systems/adm-daggerheart/templates/actor/parts/enemy-inventory.hbs" title="Пассивные" list=enemyAbilitiesPassives}}
+        </div>
+      {{/if}}
+
+      {{#if hasEnemyActions}}
+        <div class="adm-tab-panel" data-adm-panel="actions" hidden>
+          {{> "systems/adm-daggerheart/templates/actor/parts/enemy-inventory.hbs" title="Действия" list=enemyAbilitiesActions}}
+        </div>
+      {{/if}}
+
+      {{#if hasEnemyReactions}}
+        <div class="adm-tab-panel" data-adm-panel="reactions" hidden>
+          {{> "systems/adm-daggerheart/templates/actor/parts/enemy-inventory.hbs" title="Реакции" list=enemyAbilitiesReactions}}
+        </div>
+      {{/if}}
+
+      <div class="adm-tab-panel" data-adm-panel="statuses" hidden>
+        {{> "systems/adm-daggerheart/templates/actor/parts/status-list.hbs"}}
+      </div>
+
+
+
+    </main>
+  </div>
+</section>

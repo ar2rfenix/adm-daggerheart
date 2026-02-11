@@ -1,0 +1,135 @@
+{
+  "Actor": {
+    "types": ["character", "npc"],
+    "character": {
+      "biography": "",
+      "resources": {
+        "hp": { "value": 10, "max": 10 },
+        "stress": { "value": 0, "max": 10 },
+        "armor": { "value": 0, "max": 10 },
+        "hope": { "value": 0, "max": 10 },
+        "dodge": { "value": 1 }
+      },
+      "currency": {
+        "coin": { "value": 0, "max": 10 },
+        "handful": { "value": 0, "max": 10 },
+        "bag": { "value": 0, "max": 10 },
+        "chest": { "value": 0, "max": 1 }
+      },
+      "traits": {
+        "agility": { "value": 0, "marked": false },
+        "strength": { "value": 0, "marked": false },
+        "finesse": { "value": 0, "marked": false },
+        "instinct": { "value": 0, "marked": false },
+        "presence": { "value": 0, "marked": false },
+        "knowledge": { "value": 0, "marked": false }
+      },
+      "level": 1,
+      "mastery": 1,
+      "damageThresholds": {
+        "noticeable": 1,
+        "heavy": 1
+      },
+      "experiences": [
+        {
+          "name": "Пример опыта",
+          "gainText": "Краткое описание получения опыта.",
+          "value": 0
+        }
+      ]
+    },
+    "npc": {
+      "biography": "",
+      "tier": 1,
+      "npcType": "normal",
+      "resources": {
+        "hp": { "value": 0, "max": 0 },
+        "stress": { "value": 0, "max": 3 },
+        "dodge": { "value": 10 }
+      },
+      "damageThresholds": {
+        "noticeable": 1,
+        "heavy": 1
+      },
+      "experiences": [],
+      "tactics": "",
+      "motivation": "",
+      "defaultAttackName": "",
+      "attackMod": 0,
+      "damage": "",
+      "damageType": "physical",
+      "range": "melee",
+      "attackAnimation": ""
+    }
+  },
+  "Item": {
+    "types": ["weapon", "armor", "gear", "relic", "ability", "enemyAbility", "card"],
+    "weapon": {
+      "grip": "oneHanded",
+      "weaponType": "primary",
+      "attribute": "agility",
+      "attackMod": 0,
+      "damage": "1d6",
+      "damageType": "physical",
+      "tier": 1,
+      "range": "melee",
+      "price": 0,
+      "notes": "",
+      "attackAnimation": ""
+    },
+    "card": {
+      "template": "domain",
+      "domain": "arcana",
+      "cardType": "ability",
+      "recallCost": 0,
+      "level": 1,
+      "description": "",
+      "domainA": "arcana",
+      "domainB": "codex",
+      "recommended": {
+        "strength": 0,
+        "agility": 0,
+        "finesse": 0,
+        "instinct": 0,
+        "presence": 0,
+        "knowledge": 0
+      },
+      "subclass": [],
+      "classWeapons": [],
+      "classArmors": [],
+      "classItems": [],
+      "classConsumables": [],
+      "magicAttribute": "",
+      "baseText": "",
+      "specText": "",
+      "masteryText": "",
+      "specUnlocked": false,
+      "masteryUnlocked": false
+    },
+    "armor": {
+      "tier": 1,
+      "baseDefense": 0,
+      "price": 0,
+      "damageThresholds": {
+        "noticeable": 0,
+        "heavy": 0
+      },
+      "description": ""
+    },
+    "ability": {
+      "description": "",
+      "notes": ""
+    },
+    "enemyAbility": {
+      "abilityType": "action",
+      "notes": "",
+      "range": "none",
+      "fear": 0,
+      "stress": 0,
+      "counter": {
+        "value": 0,
+        "max": 0
+      }
+    }
+  }
+}

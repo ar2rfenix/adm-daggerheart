@@ -1,0 +1,153 @@
+{{!-- systems/adm-daggerheart/templates/partials/roll-pc.hbs --}}
+
+<section class="adm-roll adm-roll--pc" data-adm-roll="pc">
+
+  <!-- Атрибут + реакция -->
+  <div class="adm-roll-header">
+    <select class="adm-roll-select" name="trait" data-adm-field="trait">
+      {{#each traits as |t|}}
+        <option value="{{t.key}}" {{#if t.selected}}selected{{/if}}>{{t.label}}</option>
+      {{/each}}
+    </select>
+
+    <label class="adm-roll-check">
+      <input type="checkbox" name="isReaction" data-adm-field="isReaction" {{#if isReaction}}checked{{/if}}>
+      <span>Реакция</span>
+    </label>
+  </div>
+
+  <!-- Кубики + модификатор -->
+  <div class="adm-roll-dice">
+
+    <!-- Hope d12 -->
+    <div class="adm-roll-dice-col adm-roll-dice-col--menu">
+      <button type="button"
+              class="adm-roll-diebtn adm-roll-diebtn--hope"
+              data-adm-action="toggle-die-menu"
+              data-adm-die-target="hope"
+              aria-haspopup="true"
+              aria-expanded="false">
+        <div class="adm-roll-diebtn-inner">
+          <span class="adm-roll-diesvg"
+                data-adm-die-img="hope"
+                style="--adm-die-svg: url('{{hopeDieSrc}}');"></span>
+          <span class="adm-roll-dieicon" data-adm-die-icon="hope">d{{hopeDie}}</span>
+        </div>
+      </button>
+
+      <div class="adm-roll-diemenu" data-adm-die-menu="hope" hidden>
+        {{#each dieOptions as |d|}}
+          <button type="button"
+                  class="adm-roll-diemenu-item {{#if (eq d ../hopeDie)}}is-active{{/if}}"
+                  data-adm-action="pick-die"
+                  data-adm-die-target="hope"
+                  data-adm-die-value="{{d}}">
+            d{{d}}
+          </button>
+        {{/each}}
+      </div>
+    </div>
+
+    <!-- Fear d12 -->
+    <div class="adm-roll-dice-col adm-roll-dice-col--menu">
+      <button type="button"
+              class="adm-roll-diebtn adm-roll-diebtn--fear"
+              data-adm-action="toggle-die-menu"
+              data-adm-die-target="fear"
+              aria-haspopup="true"
+              aria-expanded="false">
+        <div class="adm-roll-diebtn-inner">
+          <span class="adm-roll-diesvg"
+                data-adm-die-img="fear"
+                style="--adm-die-svg: url('{{fearDieSrc}}');"></span>
+          <span class="adm-roll-dieicon" data-adm-die-icon="fear">d{{fearDie}}</span>
+        </div>
+      </button>
+
+      <div class="adm-roll-diemenu" data-adm-die-menu="fear" hidden>
+        {{#each dieOptions as |d|}}
+          <button type="button"
+                  class="adm-roll-diemenu-item {{#if (eq d ../fearDie)}}is-active{{/if}}"
+                  data-adm-action="pick-die"
+                  data-adm-die-target="fear"
+                  data-adm-die-value="{{d}}">
+            d{{d}}
+          </button>
+        {{/each}}
+      </div>
+    </div>
+
+    <!-- Advantage d6 -->
+    <div class="adm-roll-dice-col">
+      <button type="button"
+              class="adm-roll-diebtn adm-roll-diebtn--adv"
+              data-adm-action="bump-adv">
+        <div class="adm-roll-diebtn-inner">
+          <span class="adm-roll-diesvg"
+                data-adm-die-img="adv"
+                style="--adm-die-svg: url('{{advDieSrc}}');"></span>
+          <span class="adm-roll-dieicon" data-adm-die-icon="adv">{{adv}}</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- Disadvantage d6 -->
+    <div class="adm-roll-dice-col">
+      <button type="button"
+              class="adm-roll-diebtn adm-roll-diebtn--dis"
+              data-adm-action="bump-dis">
+        <div class="adm-roll-diebtn-inner">
+          <span class="adm-roll-diesvg"
+                data-adm-die-img="dis"
+                style="--adm-die-svg: url('{{disDieSrc}}');"></span>
+          <span class="adm-roll-dieicon" data-adm-die-icon="dis">{{dis}}</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- Mod -->
+    <div class="adm-roll-mod">
+      <div class="adm-roll-mod-sign">±</div>
+      <input class="adm-roll-input" type="number" name="mod" data-adm-field="mod" value="{{mod}}" step="1">
+    </div>
+
+  </div>
+
+  <!-- Опыт -->
+  <div class="adm-roll-section">
+    <div class="adm-roll-exp-head">Опыт за надежду</div>
+
+    <div class="adm-roll-exp-list">
+      {{#if experiences.length}}
+        {{#each experiences as |e|}}
+          <label class="adm-roll-exp-item adm-roll-exp-item--one">
+            <input type="checkbox"
+                   data-adm-exp-id="{{e.id}}"
+                   data-adm-exp-field="active"
+                   {{#if e.active}}checked{{/if}}>
+
+            <div class="adm-roll-exp-name">{{e.name}}</div>
+
+            <div class="adm-exp-val">{{e.value}}</div>
+          </label>
+        {{/each}}
+      {{else}}
+        <div style="opacity:.75;">Опытов нет</div>
+      {{/if}}
+    </div>
+  </div>
+
+  <!-- Важные статусы (пока пусто) -->
+  <div class="adm-roll-section">
+    <div class="adm-roll-exp-head">Важные статусы</div>
+    <div class="adm-roll-exp-list">
+      <div style="opacity:.75;">—</div>
+    </div>
+  </div>
+
+  <!-- Кнопки -->
+  <div class="adm-roll-actions">
+    <button type="button" class="adm-roll-btn" data-adm-action="roll">Бросок</button>
+  </div>
+
+</section>

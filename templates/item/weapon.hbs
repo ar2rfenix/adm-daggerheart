@@ -1,0 +1,187 @@
+<section class="adm-weapon-sheet">
+  {{#if isEditMode}}
+    <div class="adm-weapon-edit sheet-body">
+      <div class="adm-weapon-edit-head">
+        <div class="adm-weapon-thumb" data-action="pick-img" data-tooltip="{{item.name}}">
+          <img src="{{item.img}}" alt="{{item.name}}" />
+        </div>
+
+        <div class="adm-weapon-edit-title">
+
+<div class="adm-weapon-name-row">
+  <!-- имя + анимация (делим место имени на 2) -->
+  <div class="adm-weapon-name-split" style="display:flex; gap:8px; flex:1; min-width:0;">
+    <input
+      class="adm-weapon-name"
+      name="name"
+      type="text"
+      value="{{item.name}}"
+      style="flex:1; min-width:0;"
+    />
+
+    <input
+      class="adm-weapon-name"
+      name="system.attackAnimation"
+      type="text"
+      value="{{system.attackAnimation}}"
+      placeholder="Название анимации"
+      style="flex:1; min-width:0;"
+    />
+  </div>
+
+  <!-- тир (как было) -->
+  <input
+    class="adm-weapon-tier-input"
+    name="system.tier"
+    type="number"
+    value="{{#if system.tier}}{{system.tier}}{{else}}1{{/if}}"
+    placeholder="тир"
+    data-tooltip="тир"
+    min="1"
+    step="1"
+  />
+</div>
+
+
+          <div class="adm-weapon-subline">
+
+
+            <!-- ✅ Тип перенесён сюда: после названия, до цены -->
+            <label class="adm-weapon-type-inline" data-tooltip="{{localize 'DAGGERHEART.WEAPON.TYPE_LABEL'}}">
+              <select name="system.weaponType">
+                {{selectOptions config.weapon.weaponTypes selected=system.weaponType localize=true}}
+              </select>
+            </label>
+
+            <label class="adm-weapon-price">
+              <span class="adm-weapon-price-label">Цена в горстях</span>
+              <input class="adm-weapon-price-input" name="system.price" type="number" value="{{#if system.price}}{{system.price}}{{else}}0{{/if}}" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="adm-weapon-grid">
+        <label>
+          <span>{{localize "DAGGERHEART.WEAPON.GRIP_LABEL"}}</span>
+          <select name="system.grip">
+            {{selectOptions config.weapon.grips selected=system.grip localize=true}}
+          </select>
+        </label>
+
+        <!-- ✅ Новое поле: дистанция -->
+        <label>
+          <span>Дистанция</span>
+          <select name="system.range">
+            {{selectOptions config.ranges selected=system.range localize=true}}
+          </select>
+        </label>
+
+        <label>
+          <span>{{localize "DAGGERHEART.WEAPON.ATTRIBUTE"}}</span>
+          <select name="system.attribute">
+            {{selectOptions config.weapon.attributes selected=system.attribute localize=true}}
+          </select>
+        </label>
+
+        <label>
+          <span>{{localize "DAGGERHEART.WEAPON.ATTACK_MOD"}}</span>
+          <input name="system.attackMod" type="number" value="{{system.attackMod}}" />
+        </label>
+
+        <label>
+          <span>{{localize "DAGGERHEART.WEAPON.DAMAGE"}}</span>
+          <input name="system.damage" type="text" value="{{system.damage}}" />
+        </label>
+
+        <label>
+          <span>{{localize "DAGGERHEART.WEAPON.DAMAGE_TYPE"}}</span>
+          <select name="system.damageType">
+            {{selectOptions config.weapon.damageTypes selected=system.damageType localize=true}}
+          </select>
+        </label>
+      </div>
+	  
+	  
+	  
+{{> "systems/adm-daggerheart/templates/partials/statuses.hbs"}}
+
+
+
+
+
+      <div class="adm-weapon-notes">
+        <textarea class="adm-tinymce" name="system.notes">{{system.notes}}</textarea>
+      </div>
+    </div>
+
+  {{else}}
+    <div class="adm-weapon-card sheet-body">
+      <div class="adm-weapon-card-overlay">
+
+        <div class="adm-weapon-view">
+          <!-- left image -->
+          <div class="adm-weapon-view-left">
+            <img class="adm-weapon-view-img" src="{{item.img}}" alt="{{item.name}}">
+          </div>
+
+          <!-- right content -->
+          <div class="adm-weapon-view-right">
+
+            <!-- row 1: [tier] name + price -->
+            <div class="adm-weapon-line adm-weapon-titleline">
+              <div class="adm-weapon-title">
+                 {{item.name}}
+              </div>
+
+              <div class="adm-weapon-price" data-tooltip="Цена в горстях">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{#if system.price}}{{system.price}}{{else}}0{{/if}}</span>
+              </div>
+            </div>
+
+            <!-- Строка 1 (как у тебя было) -->
+            <div class="adm-weapon-line adm-weapon-summaryline">
+              {{localize (lookup config.weapon.weaponTypes system.weaponType)}}
+              {{localize (lookup config.weapon.grips system.grip)}}
+              {{localize "DAGGERHEART.SECTIONS.WEAPON"}}
+              {{#if system.tier}}{{system.tier}}{{else}}1{{/if}}
+              тира
+            </div>
+
+            <!-- ✅ Строка 2: Дистанция | Атрибут (+мод) | Урон -->
+            <div class="adm-weapon-line adm-weapon-statsline">
+              <span class="v">{{localize (lookup config.ranges system.range)}}</span>
+              <span class="sep">|</span>
+
+              <span class="v">{{localize (lookup config.weapon.attributes system.attribute)}}</span>
+
+              {{#if system.attackMod}}
+                {{#if (gt system.attackMod 0)}}
+                  <span class="v">(+{{system.attackMod}})</span>
+                {{else}}
+                  <span class="v">({{system.attackMod}})</span>
+                {{/if}}
+              {{/if}}
+
+              <span class="sep">|</span>
+
+              <span class="k">Урон:</span>
+              <span class="v">
+                {{system.damage}}
+                {{localize (lookup config.weapon.damageTypes system.damageType)}}
+              </span>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="adm-weapon-card-notes">
+          <div class="adm-weapon-notes-title">Свойства:</div>
+          <div class="adm-richtext">{{{notesHTML}}}</div>
+        </div>
+
+      </div>
+    </div>
+  {{/if}}
+</section>

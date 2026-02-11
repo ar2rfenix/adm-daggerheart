@@ -1,0 +1,771 @@
+/* systems/adm-daggerheart/styles/roll-style.css */
+
+/* =========================
+   ADM Daggerheart — Roll Dialog UI
+   ========================= */
+
+.adm-roll{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  padding:14px;
+  box-sizing:border-box;
+  color:#e9e9ee;
+}
+
+.adm-roll .adm-roll-row{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+
+.adm-roll .adm-roll-header{
+  display:grid;
+  grid-template-columns:1fr auto; /* без "Атрибут" */
+  align-items:center;
+  gap:10px;
+}
+
+.adm-roll .adm-roll-select,
+.adm-roll .adm-roll-input{
+  width:100%;
+  min-width:0;
+  height:32px;
+  border-radius:10px;
+  padding:6px 10px;
+  box-sizing:border-box;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.28);
+  color:#fff;
+  outline:none;
+}
+
+/* =========================
+   Roll — Attribute select (black dropdown)
+   ========================= */
+
+/* сам селект */
+.adm-roll .adm-roll-select{
+  background:#000 !important;
+  color:#fff !important;
+}
+
+/* пункты списка */
+.adm-roll .adm-roll-select option{
+  background:#000 !important;
+  color:#fff !important;
+}
+
+
+
+/* наведение (работает не во всех браузерах одинаково) */
+.adm-roll .adm-roll-select option:hover{
+  background:#f3c267de !important;
+  color:#000 !important;
+}
+
+
+.adm-roll .adm-roll-check{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  user-select:none;
+  white-space:nowrap;
+}
+
+.adm-roll .adm-roll-check input[type="checkbox"]{
+  transform:translateY(1px);
+}
+
+/* -------------------------
+   Dice row
+   ------------------------- */
+
+.adm-roll .adm-roll-dice{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.adm-roll .adm-roll-dice-col{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+  align-items:start;
+  position:relative;
+}
+
+.adm-roll .adm-roll-mod{
+  display:grid;
+  grid-template-columns:26px 1fr;
+  gap:8px;
+  align-items:center;
+  min-width:90px;
+  padding-top: 6px;
+}
+
+.adm-roll .adm-roll-mod-sign{
+  opacity:.9;
+  font-weight:900;
+  text-align:center;
+  font-size: 25px;
+}
+
+/* -------------------------
+   Sections
+   ------------------------- */
+
+.adm-roll .adm-roll-section{
+  border-top:1px solid rgba(255,255,255,.10);
+  padding-top:12px;
+}
+
+.adm-roll .adm-roll-exp-head{
+font-weight: 900;
+    font-size: 20px;
+    opacity: .95;
+    margin-bottom: 8px;
+    color: #f3c267;
+    padding-top: 10px;
+}
+
+.adm-roll .adm-roll-exp-list{
+  display:grid;
+  gap:8px;
+  max-height:240px;
+  overflow:auto;
+  padding-right:4px;
+}
+
+.adm-roll .adm-roll-exp-item{
+  display:grid;
+  grid-template-columns:18px 1fr auto; /* чек | контент | значение */
+  gap:10px;
+  align-items:start;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(0,0,0,.20);
+}
+
+.adm-roll .adm-roll-exp-name{
+  font-weight:900;
+  line-height:1.2;
+}
+
+.adm-roll .adm-roll-exp-text{
+  opacity:.88;
+  font-size:12px;
+  line-height:1.25;
+  margin-top:4px;
+}
+
+.adm-roll .adm-exp-val{
+  font-weight:900;
+  opacity:.9;
+  padding-left:8px;
+  white-space:nowrap;
+}
+
+/* -------------------------
+   Actions
+   ------------------------- */
+
+.adm-roll .adm-roll-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.10);
+}
+
+.adm-roll .adm-roll-btn{
+  height:34px;
+  padding:0 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.28);
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.adm-roll .adm-roll-btn:hover{
+  background:rgba(255,255,255,.08);
+}
+
+/* =========================================================
+   Dice buttons (exact HEX via SVG mask)
+   - size 45px
+   - no border
+   - no focus ring
+   - text: font-size 22px + shadow
+   ========================================================= */
+
+.adm-roll-dice-col--menu{ position:relative; }
+
+.adm-roll-diebtn{
+  width:45px;
+  height:45px;
+  padding:0;
+  margin:0;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  position:relative;
+}
+
+.adm-roll-diebtn:focus,
+.adm-roll-diebtn:focus-visible{
+  outline:none !important;
+  box-shadow:none !important;
+}
+
+.adm-roll-diebtn::-moz-focus-inner{
+  border:0;
+}
+
+.adm-roll-diebtn-inner{
+  position:relative;
+  width:45px;
+  height:45px;
+}
+
+/* SVG как маска, цвет 1:1 через background */
+.adm-roll-diesvg{
+  --adm-die-svg:none;
+  position:absolute;
+  inset:0;
+  display:block;
+  background: var(--adm-die-color, #fff);
+
+  -webkit-mask-image: var(--adm-die-svg);
+  -webkit-mask-repeat:no-repeat;
+  -webkit-mask-position:center;
+  -webkit-mask-size:contain;
+
+  mask-image: var(--adm-die-svg);
+  mask-repeat:no-repeat;
+  mask-position:center;
+  mask-size:contain;
+}
+
+.adm-roll-dieicon{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  font-weight:950;
+  letter-spacing:.2px;
+  font-size:22px;
+  line-height:1;
+  color:#fff;
+  text-shadow:2px 2px 2px black;
+  pointer-events:none;
+}
+
+/* ===== точные цвета ===== */
+.adm-roll-diebtn--hope{ --adm-die-color:#c59844; }
+.adm-roll-diebtn--fear{ --adm-die-color:#3d3a5c; }
+.adm-roll-diebtn--adv { --adm-die-color:#71ac2d; }
+.adm-roll-diebtn--dis { --adm-die-color:#ac2d30; }
+
+/* =========================================================
+   Menu (plain list)
+   - width 45px
+   ========================================================= */
+
+.adm-roll-diemenu{
+  position:absolute;
+  top:calc(100% + 8px);
+  left:0;
+  z-index:1000;
+
+  width:45px;
+  min-width:45px;
+  padding:6px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(10,10,14,.96);
+  box-shadow:0 16px 44px rgba(0,0,0,.45);
+
+  display:grid;
+  gap:6px;
+}
+
+.adm-roll-diemenu-item{
+  width:100%;
+  height:28px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.06);
+  cursor:pointer;
+  font-weight:900;
+  color:#fff;
+  text-align:center;
+  padding:0;
+  line-height:26px;
+}
+
+.adm-roll-diemenu-item:hover{
+  background:rgba(255,255,255,.10);
+}
+
+.adm-roll-diemenu-item.is-active{
+  outline:none;
+  box-shadow:0 0 0 2px rgba(255,255,255,.18) inset;
+}
+/* one-line experience row */
+.adm-roll-exp-item--one{
+  grid-template-columns: 18px 1fr auto;
+  align-items:center;
+}
+.adm-roll-exp-item--one .adm-roll-exp-name{
+  margin:0;
+  line-height:1.1;
+}
+/* =========================
+   Roll — Experience row align fix
+   ========================= */
+
+.adm-roll .adm-roll-exp-item{
+    display: grid;
+    grid-template-columns: 18px 1fr 28px;
+    gap: 10px;
+    border: none;
+    align-items: center;
+    border-radius: 12px;
+    background: rgb(0 0 0 / 0%);
+    min-height: auto;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+.adm-roll .adm-roll-exp-item input[type="checkbox"]{
+  margin: 0;                           /* ✅ убрать дефолтные отступы */
+  transform: translateY(0);
+}
+
+.adm-roll .adm-roll-exp-name{
+  margin: 0;                           /* ✅ убрать отступы */
+  padding: 3px 0 3px 0;
+  font-weight: 900;
+  line-height: 1;                      /* ✅ не тянет строку вверх/вниз */
+  white-space: nowrap;                 /* ✅ 1 строка */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-roll .adm-exp-val{
+  justify-self: end;
+  font-weight: 900;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+  opacity: .95;
+  padding-top: 5px;
+}
+
+.adm-rollmsg-effectline {
+    padding-top: 4px;
+}
+/* ТУТ стили для дуалити брсока*/
+/* =========================
+   Roll result (PC)
+   ========================= */
+
+
+.chat-message:has(.adm-rollmsg--pc) .message-header {
+	    border-radius: 8px;
+    background: rgba(0, 0, 0, .16);
+    border: 1px solid rgba(255, 255, 255, .14);
+    padding: 5px 10px;
+    margin-bottom: 10px;
+	margin-top: 3px;
+}
+.chat-message:has(.adm-rollmsg--pc) .message-metadata,
+.chat-message:has(.adm-rollmsg--pc) .message-content{
+  background: transparent !important;
+}
+
+.chat-message:has(.adm-rollmsg--pc) .message-content{
+  padding: 0 !important;
+}
+
+.adm-rollmsg.adm-rollmsg--pc{
+  width: 100%;
+  color: #fff;
+  background: transparent !important; /* важно: фон только на message-content */
+}
+
+.adm-rollmsg--pc .adm-rollmsg-inner{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adm-rollmsg--pc .adm-rollmsg-title{
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1.15;
+  text-shadow: 0 1px 2px rgba(0,0,0,.35);
+}
+
+.adm-rollmsg--pc .adm-rollmsg-itemlink{
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 900;
+}
+
+.adm-rollmsg--pc .adm-rollmsg-exps{
+  font-size: 12px;
+  line-height: 1.2;
+  opacity: .92;
+  padding-top: 4px;
+}
+
+/* ROW: dice слева (может переноситься), мод справа (всегда справа) */
+.adm-rollmsg--pc .adm-rollmsg-row{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 3px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, .16);
+  border: 1px solid rgba(255, 255, 255, .14);
+  padding: 10px 9px;
+
+  position: relative;          /* ✅ якорь для absolute */
+  padding-right: 110px;        /* ✅ место под ± и инпут справа */
+}
+
+
+.adm-rollmsg--pc .adm-rollmsg-dice{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;     /* кубы переносятся */
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* мод блок: всегда справа, не переносится */
+.adm-rollmsg--pc .adm-rollmsg-modwrap{
+  position: absolute;          /* ✅ больше не участвует в переносах */
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
+/* кубы 2x меньше */
+.adm-rollmsg--pc .adm-rollmsg-die{
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  flex: 0 0 auto;
+}
+
+.adm-rollmsg--pc .adm-rollmsg-diesvg{
+  position: absolute;
+  inset: 0;
+  transform: scale(var(--adm-die-scale, 1));
+  transform-origin: 50% 50%;
+}
+
+
+
+.adm-rollmsg--pc .adm-rollmsg-die-val{
+position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    text-shadow: -2px 2px 2px black;
+    font-weight: 950;
+    color: #fff;
+    pointer-events: none;
+	margin-top: -3px;
+    padding-left: 1px;
+}
+
+.adm-rollmsg--pc .adm-rollmsg-die--hope{ --adm-die-color: #d1ad4c; }
+.adm-rollmsg--pc .adm-rollmsg-die--fear{ --adm-die-color: #896dd3; }
+.adm-rollmsg--pc .adm-rollmsg-die--edge{ --adm-die-color: #71ac2d; }
+.adm-rollmsg--pc .adm-rollmsg-die--edge.is-adv{ --adm-die-color: #71ac2d; }
+
+/* d8 кнопка ± */
+.adm-rollmsg--pc .adm-rollmsg-modbtn{
+  position: relative;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.adm-rollmsg--pc .adm-rollmsg-modbtn-text{
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  margin-top: -4px;
+  font-weight: 950;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0,0,0,.55);
+  pointer-events: none;
+}
+
+/* input модификатора: ширина 45px */
+.adm-rollmsg--pc .adm-rollmsg-modinput{
+  width: 45px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(0,0,0,.14);
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
+  outline: none;
+  text-align: center;
+}
+
+.adm-rollmsg--pc .adm-rollmsg-modinput:focus{
+  border-color: rgba(255,255,255,.40);
+}
+
+/* Итог */
+.adm-rollmsg--pc .adm-rollmsg-total{
+  margin-top: 5px;
+  align-self: center;
+  text-align: center;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: rgba(0,0,0,.16);
+  border: 1px solid rgba(255,255,255,.14);
+  min-width: 120px;
+}
+
+.adm-rollmsg--pc .adm-rollmsg-total-num{
+  font-weight: 950;
+  font-size: 34px;
+  line-height: 1;
+  text-shadow: 0 2px 12px rgba(0,0,0,.45);
+}
+
+.adm-rollmsg--pc .adm-rollmsg-total-label{
+  margin-top: 6px;
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: .08em;
+  opacity: .92;
+}
+/* Кнопка урона (пока без действия) */
+.adm-rollmsg--pc .adm-rollmsg-dmgbtn{
+  background: #99000096;
+  border: 1px solid #693723;
+  padding: 8px 22px;
+  border-radius: 4px;
+
+  display: block;
+  width: fit-content;
+  height: auto;
+
+  margin: 5px auto 0;
+
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
+
+  cursor: pointer;
+  text-align: center;
+}
+
+.adm-rollmsg--pc .adm-rollmsg-dmgbtn:hover{
+  background: #772424eb;
+}
+
+
+/* ---------- extra dice (+/-) ---------- */
+.adm-rollmsg-die--mod{
+  --adm-die-color: #71ac2d; /* зелёный */
+}
+.adm-rollmsg-die--mod.is-neg{
+  --adm-die-color: #ac2d30; /* красный */
+}
+/* ---------- NPC roll (d20) ---------- */
+.adm-rollmsg--npc .adm-rollmsg-total-label{
+  text-transform: none;
+}
+
+.adm-rollmsg--npc .adm-rollmsg-die--npc-main{
+  --adm-die-color: rgba(255,255,255,.22); /* основной d20 нейтральный */
+}
+
+.adm-rollmsg--npc .adm-rollmsg-die--npc-mode.is-adv{
+  --adm-die-color: #71ac2d; /* второй d20 при преимуществе */
+}
+
+.adm-rollmsg--npc .adm-rollmsg-die--npc-mode.is-neg{
+  --adm-die-color: #ac2d30; /* второй d20 при помехе */
+}
+
+/* Цвет второго d20 (зел/красн) — как ты писал */
+.adm-rollmsg-die--mod{
+  --adm-die-color: #71ac2d;
+}
+.adm-rollmsg-die--mod.is-neg{
+  --adm-die-color: #ac2d30;
+}
+
+/* ---------- ± menu (not clipped) ---------- */
+.adm-rollmsg-modmenu{
+  position: fixed;
+  z-index: 100000; /* выше чата/сообщений */
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(15,15,20,.96);
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  pointer-events: auto;
+}
+
+.adm-rollmsg-modmenu-item{
+  appearance: none;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-weight: 800;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  text-align: left;
+}
+
+.adm-rollmsg-modmenu-item:hover{
+  background: rgba(255,255,255,.10);
+}
+/* =========================
+   Roll targets block
+   ========================= */
+/* =========================
+   Roll targets block (PC)
+   ========================= */
+
+.adm-rollmsg-targets{
+  width: 100%;
+  margin-top: 5px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(0,0,0,.18);
+  border: 1px solid rgba(255,255,255,.22); /* тонкий серый бордер 1px */
+}
+
+.adm-rollmsg-targets-list{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adm-rollmsg-target{
+  display: grid;
+  grid-template-columns: 18px 12px 14px 1fr; /* иконка | число | разделитель | имя */
+  align-items: center;
+  column-gap: 8px;
+  min-height: 20px;
+}
+
+.adm-rollmsg-target i{
+  font-size: 14px;
+  line-height: 1;
+  opacity: .95;
+}
+
+.adm-rollmsg-target-val{
+  font-weight: 900;
+  font-size: 14px;
+  line-height: 1;
+  text-align: right; /* выравнивание чисел как в примере */
+}
+
+.adm-rollmsg-target-sep{
+  opacity: .45;
+  text-align: center;
+}
+
+.adm-rollmsg-target-name{
+  color: #fff;              /* имя всегда белым */
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.1;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Цветим ТОЛЬКО щит и число */
+.adm-rollmsg-target.is-hit i,
+.adm-rollmsg-target.is-hit .adm-rollmsg-target-val{
+  color: #71ac2d;
+}
+
+.adm-rollmsg-target.is-miss i,
+.adm-rollmsg-target.is-miss .adm-rollmsg-target-val{
+  color: #ac2d30;
+}
+
+.adm-rollmsg-target.is-pass i,
+.adm-rollmsg-target.is-pass .adm-rollmsg-target-val{
+  color: #71ac2d;
+}
+
+/* крит всегда success */
+.adm-rollmsg-target.is-crit i,
+.adm-rollmsg-target.is-crit .adm-rollmsg-target-val{
+  color: #71ac2d;
+}
+.chat-message:has(.adm-rollmsg--pc){
+  background: var(--adm-rollmsg-bg, transparent) !important;
+  border-radius: 10px;
+  overflow: hidden;
+}
+/* =========================
+   Roll result (NPC) — fix total width/centering
+   ========================= */
+
+.adm-rollmsg.adm-rollmsg--npc .adm-rollmsg-inner{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adm-rollmsg.adm-rollmsg--npc .adm-rollmsg-total{
+  align-self: center;
+  width: fit-content;
+  min-width: 120px;
+}
+.adm-rollmsg.adm-rollmsg--npc .adm-rollmsg-total{
+  justify-self: center;
+  width: fit-content;
+  min-width: 120px;
+}

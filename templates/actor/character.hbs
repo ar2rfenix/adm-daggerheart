@@ -1,0 +1,374 @@
+<section class="adm-char-sheet">
+  <div class="adm-char-grid">
+    <aside class="adm-sheet-left">
+      <div class="adm-portrait">
+        <img class="adm-portrait-img" src="{{actor.img}}" />
+        <div class="adm-nameplate">
+          {{#if isEditMode}}
+            <input class="adm-name-input" name="name" type="text" value="{{actor.name}}" />
+          {{else}}
+            <div class="adm-name-text">{{actor.name}}</div>
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="adm-left-content">
+        <div class="adm-left-block">
+
+          <!-- LEVEL -->
+          <div class="adm-level-line">
+            <span class="adm-stat-label">
+              <span class="adm-ico">
+                <i class="fa-regular fa-circle-up" style="font-size: 13px;"></i>
+              </span>
+              <span class="adm-label-text">{{localize "DAGGERHEART.LEVEL"}}</span>
+            </span>
+
+            {{#if isEditMode}}
+              <input name="system.level" type="number" min="1" value="{{system.level}}" />
+            {{else}}
+              <span class="adm-stat-value">{{system.level}}</span>
+            {{/if}}
+          </div>
+
+          <!-- MASTERY -->
+          <div class="adm-mastery-line">
+            <span class="adm-stat-label">
+              <span class="adm-ico">
+                <i class="fa-solid fa-swords" style="font-size:13px;"></i>
+              </span>
+              <span class="adm-label-text">{{localize "DAGGERHEART.MASTERY"}}</span>
+            </span>
+
+            {{#if isEditMode}}
+              <input name="system.mastery" type="number" min="1" value="{{system.mastery}}" />
+            {{else}}
+              <span class="adm-stat-value">{{system.mastery}}</span>
+            {{/if}}
+          </div>
+
+        </div>
+      </div>
+
+      <div class="adm-left-content">
+        <div class="adm-left-block">
+
+          <!-- HP -->
+          <div class="adm-stat">
+            <span class="adm-stat-label">
+              <span class="adm-ico">
+                <i class="fa-solid fa-droplet" style="font-size: 13px; color: #9d2b2b; opacity: 0.85;"></i>
+              </span>
+              <span class="adm-label-text">{{localize "DAGGERHEART.RES.HP"}}</span>
+            </span>
+
+            {{#if isEditMode}}
+              <span class="adm-stat-value">
+                <input name="system.resources.hp.value" type="number" min="0" value="{{system.resources.hp.value}}" />
+                <span class="adm-sep">/</span>
+                <input name="system.resources.hp.max" type="number" min="0" value="{{system.resources.hp.max}}" />
+              </span>
+            {{else}}
+              <span class="adm-stat-value">
+                <span class="adm-stepper adm-has-tooltip"
+                      data-path="system.resources.hp.value"
+                      data-max-path="system.resources.hp.max"
+                      data-adm-tooltip="{{localize "DAGGERHEART.TOOLTIP.STEPPER"}}">
+                  {{system.resources.hp.value}}/{{system.resources.hp.max}}
+                </span>
+              </span>
+            {{/if}}
+          </div>
+
+          <!-- STRESS -->
+          <div class="adm-stat">
+            <span class="adm-stat-label">
+              <span class="adm-ico">
+                <i class="fa-solid fa-droplet" style="font-size: 13px; color: #2b869d; opacity: 0.85;"></i>
+              </span>
+              <span class="adm-label-text">{{localize "DAGGERHEART.RES.STRESS"}}</span>
+            </span>
+
+            {{#if isEditMode}}
+              <span class="adm-stat-value">
+                <input name="system.resources.stress.value" type="number" min="0" value="{{system.resources.stress.value}}" />
+                <span class="adm-sep">/</span>
+                <input name="system.resources.stress.max" type="number" min="0" value="{{system.resources.stress.max}}" />
+              </span>
+            {{else}}
+              <span class="adm-stat-value">
+                <span class="adm-stepper adm-has-tooltip"
+                      data-path="system.resources.stress.value"
+                      data-max-path="system.resources.stress.max"
+                      data-adm-tooltip="{{localize "DAGGERHEART.TOOLTIP.STEPPER"}}">
+                  {{system.resources.stress.value}}/{{system.resources.stress.max}}
+                </span>
+              </span>
+            {{/if}}
+          </div>
+
+          <!-- HOPE -->
+          <div class="adm-stat">
+            <span class="adm-stat-label">
+              <span class="adm-ico">
+                <i class="fa-solid fa-khanda" style="color: #f3c267; font-size: 13px;"></i>
+              </span>
+              <span class="adm-label-text">{{localize "DAGGERHEART.RES.HOPE"}}</span>
+            </span>
+
+            {{#if isEditMode}}
+              <span class="adm-stat-value">
+                <input name="system.resources.hope.value" type="number" min="0" value="{{system.resources.hope.value}}" />
+                <span class="adm-sep">/</span>
+                <input name="system.resources.hope.max" type="number" min="0" value="{{system.resources.hope.max}}" />
+              </span>
+            {{else}}
+              <span class="adm-stat-value">
+                <span class="adm-stepper adm-has-tooltip"
+                      data-path="system.resources.hope.value"
+                      data-max-path="system.resources.hope.max"
+                      data-adm-tooltip="{{localize "DAGGERHEART.TOOLTIP.STEPPER"}}">
+                  {{system.resources.hope.value}}/{{system.resources.hope.max}}
+                </span>
+              </span>
+            {{/if}}
+          </div>
+
+          <div class="hr-gold"></div>
+
+          <!-- DODGE -->
+          <div class="adm-stat">
+            <span class="adm-stat-label">
+              <span class="adm-ico">
+                <i class="fa-duotone fa-solid fa-person-running-fast" style="font-size: 13px;"></i>
+              </span>
+              <span class="adm-label-text">{{localize "DAGGERHEART.RES.DODGE"}}</span>
+            </span>
+
+            {{#if isEditMode}}
+              <span class="adm-stat-value">
+                <input name="system.resources.dodge.value" type="number" min="0" value="{{system.resources.dodge.value}}" />
+              </span>
+            {{else}}
+              <span class="adm-stat-value">{{system.resources.dodge.value}}</span>
+            {{/if}}
+          </div>
+
+          <!-- ARMOR -->
+          <div class="adm-stat">
+            <span class="adm-stat-label">
+              <span class="adm-ico">
+                <i class="fa-duotone fa-solid fa-shield-halved" style="font-size: 13px;"></i>
+              </span>
+              <span class="adm-label-text">{{localize "DAGGERHEART.RES.ARMOR"}}</span>
+            </span>
+
+            {{#if isEditMode}}
+              <span class="adm-stat-value">
+                <input name="system.resources.armor.value" type="number" min="0" value="{{system.resources.armor.value}}" />
+                <span class="adm-sep">/</span>
+                <input name="system.resources.armor.max" type="number" min="0" value="{{system.resources.armor.max}}" />
+              </span>
+            {{else}}
+              <span class="adm-stat-value">
+                <span class="adm-stepper adm-has-tooltip"
+                      data-path="system.resources.armor.value"
+                      data-max-path="system.resources.armor.max"
+                      data-adm-tooltip="{{localize "DAGGERHEART.TOOLTIP.STEPPER"}}">
+                  {{system.resources.armor.value}}/{{system.resources.armor.max}}
+                </span>
+              </span>
+            {{/if}}
+          </div>
+
+          <!-- WOUNDS / THRESHOLDS (ARROWS) -->
+          <div class="adm-wounds-th">
+
+            <div class="adm-wounds-side">
+              <div class="adm-wounds-skulls">
+                1 <i class="fa-solid fa-droplet"></i>
+              </div>
+            </div>
+
+            <div class="adm-wounds-mid">
+              <div class="adm-wounds-arrow">
+                {{#if isEditMode}}
+                  <input class="adm-wounds-input"
+                         name="system.damageThresholds.noticeable"
+                         type="number" min="1"
+                         value="{{system.damageThresholds.noticeable}}" />
+                {{else}}
+                  <div class="adm-wounds-value">{{system.damageThresholds.noticeable}}</div>
+                {{/if}}
+              </div>
+            </div>
+
+            <div class="adm-wounds-side">
+              <div class="adm-wounds-skulls">
+                2 <i class="fa-solid fa-droplet"></i>
+              </div>
+            </div>
+
+            <div class="adm-wounds-mid">
+              <div class="adm-wounds-arrow">
+                {{#if isEditMode}}
+                  <input class="adm-wounds-input"
+                         name="system.damageThresholds.heavy"
+                         type="number" min="1"
+                         value="{{system.damageThresholds.heavy}}" />
+                {{else}}
+                  <div class="adm-wounds-value">{{system.damageThresholds.heavy}}</div>
+                {{/if}}
+              </div>
+            </div>
+
+            <div class="adm-wounds-side">
+              <div class="adm-wounds-skulls">
+                3 <i class="fa-solid fa-droplet"></i>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <div class="adm-left-content">
+        <div class="adm-left-block">
+
+          <!-- EXPERIENCE -->
+          <div class="adm-exp">
+            <div class="adm-exp-head">
+              <span class="adm-exp-title">Опыты</span>
+              {{#if isEditMode}}
+                <button type="button" class="adm-exp-add" data-action="add-exp">+</button>
+              {{/if}}
+            </div>
+
+            <div class="adm-exp-list">
+              {{#each system.experiences as |exp idx|}}
+                <div class="adm-exp-row">
+                  {{#if ../isEditMode}}
+                    <input class="adm-exp-name" type="text" value="{{exp.name}}" data-exp-index="{{idx}}" data-exp-field="name" />
+                    <input class="adm-exp-val" type="number" min="0" value="{{exp.value}}" data-exp-index="{{idx}}" data-exp-field="value" />
+                    <button type="button" class="adm-exp-del" data-action="del-exp" data-index="{{idx}}">×</button>
+                    <textarea class="adm-exp-desc" rows="2" data-exp-index="{{idx}}" data-exp-field="gainText">{{exp.gainText}}</textarea>
+                  {{else}}
+                    <span class="adm-exp-name-view adm-has-tooltip"
+                          data-adm-tooltip="{{exp.name}}
+{{exp.gainText}}"
+                          tabindex="0">
+                      {{exp.name}}
+                    </span>
+                    <span class="adm-exp-val-view">{{exp.value}}</span>
+                  {{/if}}
+                </div>
+              {{/each}}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </aside>
+
+    <main class="adm-sheet-right">
+
+      <div class="adm-traits-grid adm-traits-grid--v2">
+        {{#each config.traits as |labelKey traitKey|}}
+          <div class="adm-trait-card adm-trait-card--v2" data-trait="{{traitKey}}">
+
+<div class="adm-trait-chip {{#if (lookup ../magicTraits traitKey)}}adm-trait-chip--magic{{/if}}"
+     role="button"
+     tabindex="0"
+     {{#unless ../isEditMode}}data-action="adm-roll-trait" data-trait="{{traitKey}}"{{/unless}}
+     aria-label="Бросок атрибута: {{localize labelKey}}">
+
+  <i class="fas fa-dice-d12 adm-trait-d12" aria-hidden="true"></i>
+  <span class="adm-trait-chip-text">{{localize labelKey}}</span>
+</div>
+
+
+            <div class="adm-trait-badge" aria-label="{{localize labelKey}}">
+              {{#if ../isEditMode}}
+
+                <label class="adm-trait-magic adm-trait-magic--inbadge adm-has-tooltip"
+                       data-adm-tooltip="Атрибут магии"
+                       title="Атрибут магии">
+                  <input
+                    class="adm-trait-magic-checkbox"
+                    name="flags.adm-daggerheart.magicTraits.{{traitKey}}"
+                    type="checkbox"
+                    {{checked (lookup ../magicTraits traitKey)}}
+                  />
+                  <span class="adm-trait-magic-ui" aria-hidden="true"></span>
+                </label>
+
+                <input
+                  class="adm-trait-input"
+                  name="system.traits.{{traitKey}}.value"
+                  type="number"
+                  value="{{lookup (lookup ../system.traits traitKey) "value"}}"
+                />
+              {{else}}
+                <div class="adm-trait-value-display">
+                  {{lookup (lookup ../system.traits traitKey) "value"}}
+                </div>
+              {{/if}}
+            </div>
+
+            <label class="adm-trait-dot" title="Отметка">
+              <input
+                class="adm-trait-checkbox"
+                name="system.traits.{{traitKey}}.marked"
+                type="checkbox"
+                {{checked (lookup (lookup ../system.traits traitKey) "marked")}}
+              />
+              <span class="adm-trait-dot-ui" aria-hidden="true"></span>
+            </label>
+
+          </div>
+        {{/each}}
+      </div>
+
+      <!-- TABS -->
+<div class="adm-right-tabs" data-adm-tabs>
+  <button type="button" class="adm-right-tab is-active" data-adm-tab="equip">Экипировка</button>
+
+  <button type="button" class="adm-right-tab" data-adm-tab="cardsMain">Личность</button>
+  <button type="button" class="adm-right-tab" data-adm-tab="cardsDomains">Карты доменов</button>
+
+  <div class="adm-right-tabwrap" data-adm-tabwrap="statuses">
+    <button type="button" class="adm-right-tab" data-adm-tab="statuses">Статусы ({{statusTabCount}})</button>
+    <div class="adm-add-st">
+      <button type="button"
+              class="adm-actor-status-add"
+              data-action="adm-actor-status-add"
+              title="Добавить">+</button>
+    </div>
+  </div>
+</div>
+
+
+      <!-- PANELS -->
+<div class="adm-tab-panel is-active" data-adm-panel="equip">
+  {{> "systems/adm-daggerheart/templates/actor/parts/inventory.hbs"}}
+</div>
+
+<div class="adm-tab-panel" data-adm-panel="cardsMain" hidden>
+  {{> "systems/adm-daggerheart/templates/actor/parts/card-inventory.hbs" mode="main"}}
+</div>
+
+<div class="adm-tab-panel" data-adm-panel="cardsDomains" hidden>
+  {{> "systems/adm-daggerheart/templates/actor/parts/card-inventory.hbs" mode="domains"}}
+</div>
+
+<div class="adm-tab-panel" data-adm-panel="statuses" hidden>
+  {{> "systems/adm-daggerheart/templates/actor/parts/status-list.hbs"}}
+</div>
+
+
+
+    </main>
+  </div>
+</section>

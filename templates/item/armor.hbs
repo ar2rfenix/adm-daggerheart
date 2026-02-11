@@ -1,0 +1,110 @@
+<section class="adm-weapon-sheet adm-armor-sheet">
+  {{#if isEditMode}}
+    <div class="adm-weapon-edit sheet-body">
+      <div class="adm-weapon-edit-head">
+        <div class="adm-weapon-thumb" data-action="pick-img" data-tooltip="{{item.name}}">
+          <img src="{{item.img}}" alt="{{item.name}}" />
+        </div>
+
+        <div class="adm-weapon-edit-title">
+          <div class="adm-weapon-name-row">
+            <input class="adm-weapon-name" name="name" type="text" value="{{item.name}}" />
+
+            <input
+              class="adm-weapon-tier-input"
+              name="system.tier"
+              type="number"
+              value="{{#if system.tier}}{{system.tier}}{{else}}1{{/if}}"
+              placeholder="тир"
+              data-tooltip="тир"
+              min="1"
+              step="1"
+            />
+          </div>
+
+          <div class="adm-weapon-subline">
+            <div class="adm-weapon-sub">Броня</div>
+
+            <label class="adm-weapon-price">
+              <span class="adm-weapon-price-label">Стоимость в горстях</span>
+              <input class="adm-weapon-price-input" name="system.price" type="number" value="{{#if system.price}}{{system.price}}{{else}}0{{/if}}" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="adm-weapon-grid">
+        <label>
+          <span>Базовая защита</span>
+          <input name="system.baseDefense" type="number" value="{{#if system.baseDefense}}{{system.baseDefense}}{{else}}0{{/if}}" />
+        </label>
+
+        <label>
+          <span>Ощутимый порог</span>
+          <input name="system.damageThresholds.noticeable" type="number" value="{{#if system.damageThresholds.noticeable}}{{system.damageThresholds.noticeable}}{{else}}0{{/if}}" />
+        </label>
+
+        <label>
+          <span>Тяжелый порог</span>
+          <input name="system.damageThresholds.heavy" type="number" value="{{#if system.damageThresholds.heavy}}{{system.damageThresholds.heavy}}{{else}}0{{/if}}" />
+        </label>
+      </div>
+
+      {{> "systems/adm-daggerheart/templates/partials/statuses.hbs"}}
+
+      <div class="adm-weapon-notes">
+        <textarea class="adm-tinymce" name="system.description">{{system.description}}</textarea>
+      </div>
+    </div>
+
+  {{else}}
+    <div class="adm-weapon-card sheet-body">
+      <div class="adm-weapon-card-overlay">
+
+        <div class="adm-weapon-view">
+          <div class="adm-weapon-view-left">
+            <img class="adm-weapon-view-img" src="{{item.img}}" alt="{{item.name}}">
+          </div>
+
+          <div class="adm-weapon-view-right">
+            <div class="adm-weapon-line adm-weapon-titleline">
+              <div class="adm-weapon-title">
+                {{item.name}}
+              </div>
+
+              <div class="adm-weapon-price" data-tooltip="Стоимость в горстях">
+                <i class="fa-solid fa-coins"></i>
+                <span>{{#if system.price}}{{system.price}}{{else}}0{{/if}}</span>
+              </div>
+            </div>
+
+            <div class="adm-weapon-line adm-weapon-summaryline">
+              Броня
+              {{#if system.tier}}{{system.tier}}{{else}}1{{/if}}
+              тира
+            </div>
+
+            <div class="adm-weapon-line adm-weapon-statsline">
+              <span class="k">Защита:</span>
+              <span class="v">{{#if system.baseDefense}}{{system.baseDefense}}{{else}}0{{/if}}</span>
+              <span class="sep">|</span>
+
+              <span class="k">Пороги:</span>
+              <span class="v">
+                {{#if system.damageThresholds.noticeable}}{{system.damageThresholds.noticeable}}{{else}}0{{/if}}
+                /
+                {{#if system.damageThresholds.heavy}}{{system.damageThresholds.heavy}}{{else}}0{{/if}}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="adm-weapon-card-notes">
+          <div class="adm-weapon-notes-title">Описание:</div>
+          <div class="adm-richtext">{{{descriptionHTML}}}</div>
+        </div>
+
+      </div>
+    </div>
+  {{/if}}
+</section>

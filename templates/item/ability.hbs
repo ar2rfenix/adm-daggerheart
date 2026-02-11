@@ -1,0 +1,17 @@
+<section class="adm-sheet">
+  <header class="sheet-header">
+    <img class="profile" src="{{item.img}}" data-edit="img" data-tooltip="{{item.name}}" />
+    <div class="header-fields">
+      <input class="name" name="name" type="text" value="{{item.name}}" />
+      <div class="subline">Item Type: ability</div>
+    </div>
+  </header>
+
+  <div class="sheet-body">
+    <h2>{{localize "DAGGERHEART.ABILITY.DESCRIPTION"}}</h2>
+    <textarea class="notes" name="system.description" rows="10">{{system.description}}</textarea>
+
+    <h2>{{localize "DAGGERHEART.SECTIONS.NOTES"}}</h2>
+    <textarea class="notes" name="system.notes" rows="6">{{system.notes}}</textarea>
+  </div>
+</section>

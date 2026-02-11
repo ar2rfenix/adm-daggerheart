@@ -1,0 +1,668 @@
+@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap");
+@import url("character-style.css");
+@import url("npc-style.css");
+body { font-family: oswald !important; }
+a.inline-roll.roll {
+display: inline-block;
+    height: 20px;
+    border-radius: 4px;
+    padding: 0 5px;
+    font-size: 12px;
+    line-height: 18px;
+}
+
+
+.chat-message {
+    margin: 7px 4px;
+    padding: 0.75em 1em;
+    font-size: var(--font-size-12);
+    color: var(--dh-color-off-white);
+    background: rgba(11, 10, 19, 0.8392156863);
+    border: 1px solid #6d6795;
+    backdrop-filter: blur(5px);
+    border-radius: 10px;
+}
+
+
+
+header.message-header.flexrow {
+    font-size: 16px;
+    color: white;
+}
+
+
+.adm-btn-pop:hover {
+  transform: scale(1.1);
+  transform-origin: center;
+}
+
+button.adm-right-tab {
+    font-family: "Oswald", var(--font-primary), sans-serif !important;;
+}
+.adm-daggerheart.sheet {
+  font-family: "Oswald", var(--font-primary), sans-serif;
+}
+
+button.adm-fear-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 7px;
+    line-height: 1;
+    min-height: 18px;
+    height: 18px;
+    font-size: 12px;
+	    background: #242238;
+    opacity: 1;
+}
+
+button.adm-st-btn {
+    background: #242238;
+    opacity: 1;
+}
+
+.adm-daggerheart.sheet .window-content {
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+hr {
+    margin: 0;
+}
+/* Tooltip (global) */
+.adm-tooltip {
+  position: fixed;
+  z-index: 10000;
+  display: none;
+  max-width: 320px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #000;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.25;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  pointer-events: none;
+  white-space: pre-wrap;
+}
+
+#adm-dh-tooltip.adm-tooltip {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+.adm-card-row3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  align-items: end;
+}
+
+.adm-card-row3 > label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+
+/* =========================
+   Weapon Sheet
+   ========================= */
+
+.adm-weapon-sheet {
+  height: 100%;
+  min-height: 0;
+}
+
+.adm-weapon-sheet .sheet-body {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  overflow-x: hidden;
+  padding: 14px;
+  scrollbar-width: none;
+}
+.adm-weapon-sheet .sheet-body::-webkit-scrollbar { width: 0; height: 0; }
+
+/* Weapon card background: single image full size (no repeat) */
+.adm-weapon-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-light-primary);
+  color: #fff;
+
+  /* фон берётся из inline style: background-image: url(...) */
+  background-position: center center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: scroll !important;
+}
+
+.adm-weapon-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.45), rgba(0,0,0,0.85));
+  z-index: 0;
+}
+
+.adm-weapon-card-overlay {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.adm-weapon-edit-head {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.adm-weapon-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-light-primary);
+  cursor: pointer;
+}
+.adm-weapon-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.adm-weapon-name {
+  width: 100%;
+  height: 28px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.adm-weapon-sub { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+
+.adm-weapon-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.adm-weapon-grid label { display: grid; gap: 4px; }
+
+.adm-weapon-grid label > span { font-size: 12px; opacity: 0.85; }
+
+.adm-weapon-grid input,
+.adm-weapon-grid select { height: 28px; }
+
+.adm-weapon-notes .editor {
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.15);
+}
+
+.adm-weapon-notes-fallback {
+  width: 100%;
+  min-height: 140px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-light-primary);
+  background: rgba(0,0,0,0.35);
+  color: #fff;
+  font-family: "Oswald", sans-serif;
+  font-size: 14px;
+  resize: vertical;
+}
+.adm-has-prosemirror .adm-weapon-notes-fallback { display: none; }
+
+.tox-promotion { display: none; }
+
+button.adm-st-btn {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 0 7px;
+
+  line-height: 1;     /* ключевое */
+  min-height: 18px;   /* подберите */
+  height: 18px;       /* будет работать в inline-flex */
+
+  font-size: 12px;    /* опционально */
+}
+/* Price (edit header) */
+.adm-weapon-subline{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:2px;
+}
+
+.adm-weapon-price{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-left:auto;
+}
+
+.adm-weapon-price-label{
+  font-size:12px;
+  opacity:0.7;
+  white-space:nowrap;
+}
+
+.adm-weapon-price-input{
+  width:76px;
+  height:24px;
+  padding:0 6px;
+  text-align:right;
+}
+
+/* Price (view header) */
+.adm-weapon-card-price{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size: 22px;
+  margin-right: 10px;
+  font-weight:600;
+  opacity:0.95;
+  white-space:nowrap;
+}
+
+/* Name row: name + tier input */
+.adm-weapon-name-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.adm-weapon-tier-input{
+  width:56px;
+  height:28px;
+  padding:0 6px;
+  text-align:center;
+  font-size:14px;
+  border-radius:8px;
+}
+
+.adm-weapon-summary{ font-size: 14px; opacity: 0.9; }
+
+.adm-weapon-2col{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.25);
+}
+
+.adm-weapon-kv{
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.adm-weapon-kv .k{ opacity: 0.9; }
+.adm-weapon-kv .v{ font-weight: 600; }
+
+.adm-weapon-view{
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.adm-weapon-view-left{ width: 92px; }
+
+.adm-weapon-view-img{
+  width: 92px;
+  height: 92px;
+  object-fit: cover;
+  display: block;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-light-primary);
+}
+
+.adm-weapon-line{
+  background: rgba(0,0,0,0.25);
+  border-radius: 12px;
+}
+
+.adm-weapon-view-right{
+  display: grid;
+  gap: 10px;
+}
+
+.adm-weapon-titleline{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.adm-weapon-title{
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+/* =========================
+   Statuses (Item Sheet)
+   ========================= */
+
+.adm-statuses-head { position: relative; z-index: 50; }
+.adm-statuses-head button { position: relative; z-index: 51; pointer-events: auto; }
+
+.adm-statuses{ margin-top: 10px; }
+
+.adm-status-add{
+  width: 100%;
+  height: 30px;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 10px;
+  background: rgba(0,0,0,0.18);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.adm-status-list{
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.adm-status-card{
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(0,0,0,0.12);
+}
+
+.adm-status-topline{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.adm-status-left{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.adm-status-name,
+.adm-status-desc{
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.adm-status-name{
+  display: inline;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+}
+
+.adm-status-name::after{
+  content: ".";
+  margin-right: 6px;
+}
+
+.adm-status-desc{
+  display: inline;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.adm-status-desc p,
+.adm-status-desc div{
+  display: inline;
+  margin: 0;
+}
+.adm-status-desc br{ display: none; }
+
+.adm-status-actions{
+  display: inline-flex;
+  gap: 6px;
+  flex: 0 0 auto;
+  align-items: flex-start;
+}
+
+.adm-status-btn{
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.18);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.adm-status-mods{
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.adm-status-mod{
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 4px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-light-primary);
+  background: rgba(0,0,0,0.18);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.adm-status-mod .k{ opacity: 0.9; }
+.adm-status-mod .v{ font-weight: 700; }
+
+/* Status editor dialog */
+.adm-status-form--stacked .form-group{
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  gap:6px !important;
+}
+
+.adm-status-mod-title{
+  font-weight:600;
+  font-size:12px;
+  opacity:0.9;
+}
+
+.adm-status-mod-row{
+  display:grid;
+  grid-template-columns: 1fr 220px 26px;
+  gap:10px;
+  align-items:end;
+  margin-top:8px;
+}
+
+.adm-status-mod-col select,
+.adm-status-mod-col input{
+  width:100%;
+}
+
+.adm-status-mod-del{
+  width:26px;
+  height:26px;
+  border:1px solid var(--color-border-light-primary);
+  border-radius:8px;
+  background:rgba(0,0,0,0.18);
+  cursor:pointer;
+  line-height:1;
+  padding:0;
+}
+/* =========================
+   CARD (template: class)
+   ========================= */
+
+.adm-card-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 10px 0 12px;
+}
+
+.adm-card-row2 > label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adm-card-row2 > label > span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* Drop blocks */
+.adm-card-dropblock {
+  margin: 10px 0 12px;
+}
+
+.adm-card-drophead {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  margin: 0 0 6px;
+  opacity: 0.95;
+}
+
+.adm-card-dropzone {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.18);
+  min-height: 46px;
+}
+
+.adm-card-drophint {
+  font-size: 12px;
+  opacity: 0.75;
+  padding: 4px 2px;
+}
+
+.adm-card-droplist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adm-card-dropitem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.adm-card-dropitem-name {
+  display: inline-block;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+}
+
+.adm-card-dropitem-name:hover {
+  text-decoration: underline;
+}
+
+.adm-card-dropitem-del {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adm-card-dropitem-del:hover {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.adm-card-dropitem-del i {
+  font-size: 14px;
+}
+/* Spoiler: "Стартовое снаряжение" */
+.adm-card-spoiler {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.14);
+  padding: 6px 8px;
+}
+
+.adm-card-spoiler-summary {
+  cursor: pointer;
+  user-select: none;
+  font-weight: 800;
+  padding: 6px 6px;
+  border-radius: 10px;
+    display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+}
+.adm-card-unlock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  opacity: 0.95;
+}
+
+.adm-card-unlock-input {
+  margin: 0;
+}
+
+.adm-card-spoiler[open] .adm-card-spoiler-summary {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.adm-card-spoiler > summary::marker {
+  opacity: 0.7;
+}
+
+.adm-card-spoiler > summary::-webkit-details-marker {
+  opacity: 0.7;
+}
+
+.adm-card-spoiler > .adm-card-dropblock {
+  margin-left: 2px;
+  margin-right: 2px;
+}
+/* Statuses: scroll inside spoiler */
+.adm-card-spoiler .adm-status-list {
+  max-height: 240px;
+  overflow: auto;
+  padding-right: 6px;
+}
+.adm-card-spoiler .adm-status-list {
+  scrollbar-gutter: stable;
+}

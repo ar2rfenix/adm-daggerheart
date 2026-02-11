@@ -1,0 +1,144 @@
+{
+  "DAGGERHEART": {
+"SECTIONS": {
+  "RESOURCES": "Ресурсы",
+  "TRAITS": "Атрибуты",
+  "WEAPON": "Оружие",
+  "CARD": "Карта",
+  "NOTES": "Заметки",
+  "EXPERIENCE": "Опыт",
+  "BACKPACK": "Рюкзак"
+},
+"CARD": {
+  "TEMPLATE": {
+    "DOMAIN": "Карта домена",
+    "SOCIETY": "Общество",
+    "ORIGIN": "Происхождение",
+    "CLASS": "Класс",
+    "SUBCLASS": "Подкласс"
+  },
+  "DOMAIN": {
+    "ARCANA": "Аркана",
+    "MAJESTY": "Величие",
+    "VALOR": "Доблесть",
+    "FINESSE": "Изящество",
+    "BLADE": "Клинок",
+    "CODEX": "Кодекс",
+    "BONE": "Кость",
+    "BLOOD": "Кровь",
+    "WISDOM": "Мудрость",
+    "MIDNIGHT": "Полночь",
+    "DREAD": "Ужас"
+  },
+  "TYPE": {
+    "ABILITY": "Способность",
+    "SPELL": "Заклинание"
+  }
+},
+
+    "RES": {
+      "HP": "Раны",
+      "STRESS": "Стресс",
+      "ARMOR": "Броня",
+      "HOPE": "Надежда",
+      "FEAR": "Страх",
+      "DODGE": "Уклонение"
+    },
+    "TRAITS": {
+      "AGILITY": "Проворность",
+      "STRENGTH": "Сила",
+      "FINESSE": "Искусность",
+      "INSTINCT": "Чутьё",
+      "PRESENCE": "Влияние",
+      "KNOWLEDGE": "Знание"
+    },
+"RANGE": {
+  "NONE": "Нет",
+  "MELEE": "Вплотную",
+  "VERY_CLOSE": "Близко",
+  "CLOSE": "Средняя",
+  "FAR": "Далеко",
+  "VERY_FAR": "Оч. далеко",
+  "OUT_OF_RANGE": "Вне досиг."
+},
+    "NPC": {
+      "TYPE_LABEL": "Тип противника",
+      "TYPE": {
+        "BRUISER": "Громила",
+        "HORDE": "Орда",
+        "LEADER": "Лидер",
+        "MINION": "Приспешник",
+        "RANGED": "Стрелок",
+        "SNEAKY": "Скрытный",
+        "SOCIAL": "Социальный",
+        "SOLO": "Одиночка",
+        "NORMAL": "Рядовой",
+        "SUPPORT": "Поддержка",
+        "BOSS": "Босс"
+      }
+    },
+    "ENEMY_ABILITY": {
+      "TITLE": "Умение противника",
+      "TYPE_LABEL": "Тип умения",
+      "TYPE": {
+        "ACTION": "Действие",
+        "PASSIVE": "Пассивное",
+        "REACTION": "Реакция"
+      },
+      "RANGE_LABEL": "Дистанция",
+      "FEAR": "Страх",
+      "STRESS": "Стресс",
+      "COUNTER_VALUE": "Счётчик (текущее)",
+      "COUNTER_MAX": "Счётчик (макс)",
+      "DESCRIPTION": "Описание"
+    },
+
+    "GEAR": {
+      "TITLE": "Предмет",
+      "KIND_LABEL": "Тип",
+      "KIND": {
+        "ITEM": "Предмет",
+        "CONSUMABLE": "Расходник"
+      },
+      "COST_LABEL": "Стоимость"
+    },
+
+    "WEAPON": {
+      "GRIP_LABEL": "Хват",
+      "GRIP": {
+        "ONE_HANDED": "Одноручное",
+        "TWO_HANDED": "Двуручное"
+      },
+      "TYPE_LABEL": "Тип",
+      "TYPE": {
+        "PRIMARY": "Основное",
+        "SECONDARY": "Дополнительное"
+      },
+      "ATTRIBUTE": "Атрибут",
+      "ATTACK_MOD": "Модификатор атаки",
+      "DAMAGE": "Урон",
+      "DAMAGE_TYPE": "Тип урона"
+    },
+    "DAMAGE": {
+      "PHYSICAL": "физ.",
+      "MAGICAL": "маг.",
+      "DIRECT": "прям."
+    },
+    "ABILITY": {
+      "DESCRIPTION": "Св-ва"
+    },
+    "UI": {
+      "EDIT_TOGGLE": "Режим редактора",
+      "CHANGE_IMAGE": "Изменить изображение"
+    },
+    "THRESHOLDS": {
+      "NOTICEABLE": "Ощутимый",
+      "HEAVY": "Тяжелый"
+    },
+    "MASTERY": "Мастерство",
+    "TOOLTIP": {
+      "STEPPER": "ЛКМ: +1 | ПКМ: -1"
+    },
+    "LEVEL": "Уровень"
+  }
+}

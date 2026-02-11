@@ -1,0 +1,626 @@
+<div class="adm-inv">
+
+  <div class="adm-inv-section adm-inv-section--equipped">
+    <div class="adm-inv-title"></div>
+
+    {{!-- ========================= --}}
+    {{!-- Equipped Weapons          --}}
+    {{!-- ========================= --}}
+    {{#if equippedWeapons.length}}
+      {{#each equippedWeapons as |it|}}
+
+        <div class="adm-frame">
+          <div class="adm-inv-card adm-inv-row--equipped" data-item-id="{{it.id}}">
+
+            <div class="adm-inv-col-icon">
+              <img
+                class="adm-inv-icon"
+                src="{{it.img}}"
+                data-item-id="{{it.id}}"
+                title="{{it.name}}"
+              />
+            </div>
+
+            <div class="adm-inv-col-main">
+              <div class="adm-inv-topline">
+                <div class="adm-inv-name">
+                  {{#if it.tier}}[{{it.tier}}] {{/if}}
+                  {{it.name}}
+                </div>
+                <div class="adm-inv-attack">{{it.attackTextFull}}</div>
+              </div>
+
+              <div class="adm-inv-subline">
+                <div class="adm-inv-meta">
+                 {{it.weaponTypeLabel}} {{it.gripLabel}} оружие
+{{#if it.rangeLabel}}
+  (
+  <span
+    class="adm-inv-range adm-btn-pop adm-has-tooltip"
+    data-action="adm-toggle-range-ring"
+    data-range-key="{{it.rangeKey}}"
+    data-adm-tooltip="Показать/скрыть кольцо дистанции"
+    style="cursor:pointer;"
+  >
+    {{it.rangeLabel}}
+  </span>
+  )
+{{/if}}
+
+                </div>
+                <div class="adm-inv-damage">
+                  <span class="adm-inv-dmg">{{it.damageText}}</span>
+                  <span class="adm-inv-dmgtype">{{it.damageTypeText}}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="adm-inv-col-action">
+              <button
+                type="button"
+                class="adm-inv-equipbtn adm-has-tooltip"
+                data-action="unequip-item"
+                data-item-id="{{it.id}}"
+                aria-label="Убрать в инвентарь"
+                data-adm-tooltip="Убрать в инвентарь"
+              >
+                <i class="fas fa-arrow-down"></i>
+              </button>
+            </div>
+
+            {{#if it.featureText}}
+              <div class="adm-inv-col-feature">
+                <div class="adm-inv-feature">
+                  <div class="adm-inv-feature-bg">
+                    {{{it.featureHTML}}}
+                  </div>
+                </div>
+              </div>
+            {{/if}}
+
+          </div>
+        </div>
+
+      {{/each}}
+    {{/if}}
+
+    {{!-- ========================= --}}
+    {{!-- Equipped Relic             --}}
+    {{!-- ========================= --}}
+    {{#if equippedRelic}}
+      <div class="adm-frame">
+        <div class="adm-inv-card adm-inv-row--equipped" data-item-id="{{equippedRelic.id}}">
+
+          <div class="adm-inv-col-icon">
+            <img
+              class="adm-inv-icon"
+              src="{{equippedRelic.img}}"
+              data-item-id="{{equippedRelic.id}}"
+              title="{{equippedRelic.name}}"
+            />
+          </div>
+
+          <div class="adm-inv-col-main">
+            <div class="adm-inv-topline">
+              <div class="adm-inv-name">
+                {{#if equippedRelic.tier}}[{{equippedRelic.tier}}] {{/if}}
+                {{equippedRelic.name}}
+              </div>
+            </div>
+
+            <div class="adm-inv-subline">
+              <div class="adm-inv-meta">Реликвия</div>
+            </div>
+          </div>
+
+          <div class="adm-inv-col-action">
+            <button
+              type="button"
+              class="adm-inv-equipbtn adm-has-tooltip"
+              data-action="unequip-item"
+              data-item-id="{{equippedRelic.id}}"
+              aria-label="Снять"
+              data-adm-tooltip="Снять"
+            >
+              <i class="fas fa-arrow-down"></i>
+            </button>
+          </div>
+
+          {{#if equippedRelic.descriptionHTML}}
+            <div class="adm-inv-col-feature">
+              <div class="adm-inv-feature">
+                <div class="adm-inv-feature-bg">
+                  {{{equippedRelic.descriptionHTML}}}
+                </div>
+              </div>
+            </div>
+          {{/if}}
+
+        </div>
+      </div>
+    {{/if}}
+
+    {{!-- ========================= --}}
+    {{!-- Equipped Armor            --}}
+    {{!-- ========================= --}}
+    {{#if equippedArmor}}
+      <div class="adm-frame">
+        <div class="adm-inv-card adm-inv-row--equipped" data-item-id="{{equippedArmor.id}}">
+
+          <div class="adm-inv-col-icon">
+            <img
+              class="adm-inv-icon"
+              src="{{equippedArmor.img}}"
+              data-item-id="{{equippedArmor.id}}"
+              title="{{equippedArmor.name}}"
+            />
+          </div>
+
+          <div class="adm-inv-col-main">
+            <div class="adm-inv-topline">
+              <div class="adm-inv-name">
+                {{#if equippedArmor.tier}}[{{equippedArmor.tier}}] {{/if}}
+                {{equippedArmor.name}}
+              </div>
+            </div>
+
+            <div class="adm-inv-subline">
+              <div class="adm-inv-meta">
+                Броня: {{equippedArmor.baseDefense}} | Пороги [ {{equippedArmor.noticeable}} | {{equippedArmor.heavy}} ]
+              </div>
+            </div>
+          </div>
+
+          <div class="adm-inv-col-action">
+            <button
+              type="button"
+              class="adm-inv-equipbtn adm-has-tooltip"
+              data-action="unequip-item"
+              data-item-id="{{equippedArmor.id}}"
+              aria-label="Снять"
+              data-adm-tooltip="Снять"
+            >
+              <i class="fas fa-arrow-down"></i>
+            </button>
+          </div>
+
+          {{#if equippedArmor.descriptionHTML}}
+            <div class="adm-inv-col-feature">
+              <div class="adm-inv-feature">
+                <div class="adm-inv-feature-bg">
+                  {{{equippedArmor.descriptionHTML}}}
+                </div>
+              </div>
+            </div>
+          {{/if}}
+
+        </div>
+      </div>
+    {{/if}}
+
+  </div>
+
+{{!-- ========================= --}}
+{{!-- Currency (4 columns, full width) --}}
+{{!-- ========================= --}}
+<div class="adm-currency-row">
+  <div class="adm-currency-cell adm-has-tooltip" data-currency="coin" data-adm-tooltip="Монеты | ЛКМ: +1 | ПКМ: -1"
+       style="background:#f3c26754;border-radius:8px 0 0 8px;">
+    <div class="adm-currency-icon">
+      <i class="fa-solid fa-coin" style="opacity:0.3;"></i>
+    </div>
+    <div class="adm-currency-value">
+      <span class="adm-currency-num" data-currency-num="coin" style="opacity:0.3;">
+        {{#with system.currency.coin}}{{value}}{{else}}0{{/with}}
+      </span>
+      <span class="adm-currency-delta" data-currency-delta="coin" hidden></span>
+    </div>
+  </div>
+
+  <div class="adm-currency-cell adm-has-tooltip" data-currency="handful" data-adm-tooltip="Горсти | ЛКМ: +1 | ПКМ: -1"
+       style="background:#f3c2678f;">
+    <div class="adm-currency-icon">
+      <i class="fa-solid fa-coins"></i>
+    </div>
+    <div class="adm-currency-value">
+      <span class="adm-currency-num" data-currency-num="handful">
+        {{#with system.currency.handful}}{{value}}{{else}}0{{/with}}
+      </span>
+      <span class="adm-currency-delta" data-currency-delta="handful" hidden></span>
+    </div>
+  </div>
+
+  <div class="adm-currency-cell adm-has-tooltip" data-currency="bag" data-adm-tooltip="Мешки | ЛКМ: +1 | ПКМ: -1"
+       style="background:#f3c267cf;">
+    <div class="adm-currency-icon">
+      <i class="fa-solid fa-sack"></i>
+    </div>
+    <div class="adm-currency-value">
+      <span class="adm-currency-num" data-currency-num="bag">
+        {{#with system.currency.bag}}{{value}}{{else}}0{{/with}}
+      </span>
+      <span class="adm-currency-delta" data-currency-delta="bag" hidden></span>
+    </div>
+  </div>
+
+  <div class="adm-currency-cell adm-has-tooltip" data-currency="chest" data-adm-tooltip="Сундук | ЛКМ: +1 | ПКМ: -1"
+       style="background:#f3c267de;border-radius:0 8px 8px 0;">
+    <div class="adm-currency-icon">
+      <i class="fa-sharp fa-solid fa-treasure-chest"></i>
+    </div>
+    <div class="adm-currency-value">
+      <span class="adm-currency-num" data-currency-num="chest">
+        {{#with system.currency.chest}}{{value}}{{else}}0{{/with}}
+      </span>
+      <span class="adm-currency-delta" data-currency-delta="chest" hidden></span>
+    </div>
+  </div>
+</div>
+
+
+  <div class="adm-inv-section adm-inv-section--backpack">
+    <div class="adm-inv-title adm-inv-title--backpack">
+      <span class="adm-inv-title-chip adm-inv-title-chip--backpack">Рюкзак</span>
+
+      <div class="adm-backpack-tabs" data-adm-tabs="backpack" data-adm-default="{{backpackDefaultTab}}">
+        {{#if hasBackpackWeapons}}
+          <button
+            type="button"
+            class="adm-backpack-tab adm-has-tooltip"
+            data-adm-tab="weapons"
+            aria-label="Оружие"
+            title="Оружие"
+            data-adm-tooltip="Оружие"
+          >
+            <i class="fa-solid fa-swords"></i>
+          </button>
+        {{/if}}
+
+        {{#if hasBackpackArmor}}
+          <button
+            type="button"
+            class="adm-backpack-tab adm-has-tooltip"
+            data-adm-tab="armor"
+            aria-label="Броня"
+            title="Броня"
+            data-adm-tooltip="Броня"
+          >
+            <i class="fa-solid fa-shield-halved"></i>
+          </button>
+        {{/if}}
+
+        {{#if hasBackpackRelics}}
+          <button
+            type="button"
+            class="adm-backpack-tab adm-has-tooltip"
+            data-adm-tab="relics"
+            aria-label="Реликвия"
+            title="Реликвия"
+            data-adm-tooltip="Реликвия"
+          >
+            <i class="fa-solid fa-hamsa"></i>
+          </button>
+        {{/if}}
+
+        {{#if hasBackpackItems}}
+          <button
+            type="button"
+            class="adm-backpack-tab adm-has-tooltip"
+            data-adm-tab="items"
+            aria-label="Предметы"
+            title="Предметы"
+            data-adm-tooltip="Предметы"
+          >
+            <i class="fa-solid fa-sack"></i>
+          </button>
+        {{/if}}
+
+        {{#if hasBackpackConsumables}}
+          <button
+            type="button"
+            class="adm-backpack-tab adm-has-tooltip"
+            data-adm-tab="consumables"
+            aria-label="Расходники"
+            title="Расходники"
+            data-adm-tooltip="Расходники"
+          >
+            <i class="fa-solid fa-flask-round-potion"></i>
+          </button>
+        {{/if}}
+      </div>
+    </div>
+
+    <div class="adm-backpack-panels">
+
+      {{!-- ========================= --}}
+      {{!-- Backpack Weapons          --}}
+      {{!-- ========================= --}}
+      {{#if hasBackpackWeapons}}
+        <div data-adm-panel="backpack:weapons" hidden>
+          {{#each backpackWeapons as |it|}}
+
+            <div class="adm-frame">
+              <div class="adm-inv-card adm-inv-row--backpack" data-item-id="{{it.id}}">
+
+                <div class="adm-inv-col-icon">
+                  <img
+                    class="adm-inv-icon"
+                    src="{{it.img}}"
+                    data-item-id="{{it.id}}"
+                    title="{{it.name}}"
+                  />
+                </div>
+
+                <div class="adm-inv-col-main">
+                  <div class="adm-inv-topline">
+                    <div class="adm-inv-name">
+                      {{#if it.tier}}[{{it.tier}}] {{/if}}
+                      {{it.name}}
+                    </div>
+                    <div class="adm-inv-attack">{{it.attackTextFull}}</div>
+                  </div>
+
+                  <div class="adm-inv-subline">
+                    <div class="adm-inv-meta">
+                      {{it.weaponTypeLabel}} {{it.gripLabel}} оружие   (
+  <span
+    class="adm-inv-range adm-btn-pop adm-has-tooltip"
+    data-action="adm-toggle-range-ring"
+    data-range-key="{{it.rangeKey}}"
+    data-adm-tooltip="Показать/скрыть кольцо дистанции"
+    style="cursor:pointer;"
+  >
+    {{it.rangeLabel}}
+  </span>
+  )
+                    </div>
+                    <div class="adm-inv-damage">
+                      <span class="adm-inv-dmg">{{it.damageText}}</span>
+                      <span class="adm-inv-dmgtype">{{it.damageTypeText}}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="adm-inv-col-action">
+                  <button
+                    type="button"
+                    class="adm-inv-equipbtn adm-has-tooltip"
+                    data-action="equip-item"
+                    data-item-id="{{it.id}}"
+                    aria-label="Экипировать"
+                    data-adm-tooltip="Экипировать"
+                  >
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </div>
+
+                {{#if it.featureText}}
+                  <div class="adm-inv-col-feature">
+                    <div class="adm-inv-feature">
+                      <div class="adm-inv-feature-bg">
+                        {{{it.featureHTML}}}
+                      </div>
+                    </div>
+                  </div>
+                {{/if}}
+
+              </div>
+            </div>
+
+          {{/each}}
+        </div>
+      {{/if}}
+
+      {{!-- ========================= --}}
+      {{!-- Backpack Armor            --}}
+      {{!-- ========================= --}}
+      {{#if hasBackpackArmor}}
+        <div data-adm-panel="backpack:armor" hidden>
+          {{#each backpackArmor as |it|}}
+
+            <div class="adm-frame">
+              <div class="adm-inv-card adm-inv-row--backpack" data-item-id="{{it.id}}">
+
+                <div class="adm-inv-col-icon">
+                  <img
+                    class="adm-inv-icon"
+                    src="{{it.img}}"
+                    data-item-id="{{it.id}}"
+                    title="{{it.name}}"
+                  />
+                </div>
+
+                <div class="adm-inv-col-main">
+                  <div class="adm-inv-topline">
+                    <div class="adm-inv-name">
+                      {{#if it.tier}}[{{it.tier}}] {{/if}}
+                      {{it.name}}
+                    </div>
+                  </div>
+
+                  <div class="adm-inv-subline">
+                    <div class="adm-inv-meta">
+                      Броня: {{it.baseDefense}} | Пороги [ {{it.noticeable}} | {{it.heavy}} ]
+                    </div>
+                  </div>
+                </div>
+
+                <div class="adm-inv-col-action">
+                  <button
+                    type="button"
+                    class="adm-inv-equipbtn adm-has-tooltip"
+                    data-action="equip-item"
+                    data-item-id="{{it.id}}"
+                    aria-label="Одеть"
+                    data-adm-tooltip="Одеть"
+                  >
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </div>
+
+                {{#if it.descriptionHTML}}
+                  <div class="adm-inv-col-feature">
+                    <div class="adm-inv-feature">
+                      <div class="adm-inv-feature-bg">
+                        {{{it.descriptionHTML}}}
+                      </div>
+                    </div>
+                  </div>
+                {{/if}}
+
+              </div>
+            </div>
+
+          {{/each}}
+        </div>
+      {{/if}}
+
+      {{!-- ========================= --}}
+      {{!-- Backpack Relics            --}}
+      {{!-- ========================= --}}
+      {{#if hasBackpackRelics}}
+        <div data-adm-panel="backpack:relics" hidden>
+          {{#each backpackRelics as |it|}}
+
+            <div class="adm-frame">
+              <div class="adm-inv-card adm-inv-row--backpack" data-item-id="{{it.id}}">
+
+                <div class="adm-inv-col-icon">
+                  <img
+                    class="adm-inv-icon"
+                    src="{{it.img}}"
+                    data-item-id="{{it.id}}"
+                    title="{{it.name}}"
+                  />
+                </div>
+
+                <div class="adm-inv-col-main">
+                  <div class="adm-inv-topline">
+                    <div class="adm-inv-name">
+                      {{#if it.tier}}[{{it.tier}}] {{/if}}
+                      {{it.name}}
+                    </div>
+                  </div>
+
+                  <div class="adm-inv-subline">
+                    <div class="adm-inv-meta">Реликвия</div>
+                  </div>
+                </div>
+
+                <div class="adm-inv-col-action">
+                  <button
+                    type="button"
+                    class="adm-inv-equipbtn adm-has-tooltip"
+                    data-action="equip-item"
+                    data-item-id="{{it.id}}"
+                    aria-label="Одеть"
+                    data-adm-tooltip="Одеть"
+                  >
+                    <i class="fas fa-arrow-up"></i>
+                  </button>
+                </div>
+
+                {{#if it.descriptionHTML}}
+                  <div class="adm-inv-col-feature">
+                    <div class="adm-inv-feature">
+                      <div class="adm-inv-feature-bg">
+                        {{{it.descriptionHTML}}}
+                      </div>
+                    </div>
+                  </div>
+                {{/if}}
+
+              </div>
+            </div>
+
+          {{/each}}
+        </div>
+      {{/if}}
+
+      {{!-- ========================= --}}
+      {{!-- Backpack Items (gear.kind=item) --}}
+      {{!-- ========================= --}}
+      {{#if hasBackpackItems}}
+        <div data-adm-panel="backpack:items" hidden>
+          {{#each backpackItems as |it|}}
+
+            <div class="adm-frame">
+              <div class="adm-inv-card adm-inv-row--backpack" data-item-id="{{it.id}}">
+
+                <div class="adm-inv-col-icon">
+                  <img
+                    class="adm-inv-icon"
+                    src="{{it.img}}"
+                    data-item-id="{{it.id}}"
+                    data-action="open-item"
+                    title="{{it.name}}"
+                  />
+                </div>
+
+                <div class="adm-inv-col-main">
+                  <div class="adm-inv-topline">
+                    <div class="adm-inv-name">{{it.name}}</div>
+                  </div>
+
+                  {{#if it.descriptionHTML}}
+                    <div class="adm-inv-meta" style="margin-bottom: -11px; margin-top: -6px;">
+                      {{{it.descriptionHTML}}}
+                    </div>
+                  {{/if}}
+                </div>
+
+                <div class="adm-inv-col-action"></div>
+
+              </div>
+            </div>
+
+          {{/each}}
+        </div>
+      {{/if}}
+
+      {{!-- ========================= --}}
+      {{!-- Backpack Consumables (gear.kind=consumable) --}}
+      {{!-- ========================= --}}
+      {{#if hasBackpackConsumables}}
+        <div data-adm-panel="backpack:consumables" hidden>
+          {{#each backpackConsumables as |it|}}
+
+            <div class="adm-frame">
+              <div class="adm-inv-card adm-inv-row--backpack" data-item-id="{{it.id}}">
+
+                <div class="adm-inv-col-icon">
+                  <img
+                    class="adm-inv-icon"
+                    src="{{it.img}}"
+                    data-item-id="{{it.id}}"
+                    data-action="open-item"
+                    title="{{it.name}}"
+                  />
+                </div>
+
+                <div class="adm-inv-col-main">
+                  <div class="adm-inv-topline">
+                    <div class="adm-inv-name">{{it.name}}</div>
+                  </div>
+
+                  {{#if it.descriptionHTML}}
+                    <div class="adm-inv-meta" style="margin-bottom: -11px; margin-top: -6px;">
+                      {{{it.descriptionHTML}}}
+                    </div>
+                  {{/if}}
+                </div>
+
+                <div class="adm-inv-col-action"></div>
+
+              </div>
+            </div>
+
+          {{/each}}
+        </div>
+      {{/if}}
+
+    </div>
+
+  </div>
+
+</div>
