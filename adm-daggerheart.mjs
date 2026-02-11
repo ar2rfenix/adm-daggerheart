@@ -24,6 +24,7 @@ import { admNpcInitEnemyAbilitiesRerender, admNpcInitEnemyAbilityClicks} from ".
 import { admStatusInit } from "./module/status/status-ui.mjs";
 import { admStatusModsInit } from "./module/status/status-modifiers.mjs";
 import { admDamageInit } from "./scripts/damage-helper.mjs";
+import { initAdmHotkeys, ADMSpotlightTracker, ADMCombat } from "./scripts/adm-combat.mjs";
 
 function clampNonNegativeNumber(n, fallback = 0) {
   const x = Number.isFinite(Number(n)) ? Number(n) : fallback;
@@ -31,6 +32,8 @@ function clampNonNegativeNumber(n, fallback = 0) {
 }
 
 Hooks.once("init", async () => {
+  CONFIG.Combat.documentClass = ADMCombat;
+
 	admInitDistance();
 	admFlyInit();
   admPatchSheetTitles();
@@ -240,6 +243,12 @@ ItemsCollection.registerSheet("adm-daggerheart", ADMCardSheet, { types: ["card"]
 
 });
 
+
+Hooks.once("ready", () => {
+  ADMSpotlightTracker.initialize();
+  initAdmHotkeys();
+  console.log("[ADM] Combat spotlight + hotkeys ready");
+});
 
 Hooks.on("preUpdateActor", (actor, changes) => {
   // Если у актёра нет system — нечего клампить
