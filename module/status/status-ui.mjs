@@ -518,6 +518,8 @@ async function _openStatusDialog({ doc, app, mode, def, flagKey = FLAG_KEY_ITEM,
   let curWhen = isEdit ? String(def?.when ?? defaultWhen) : defaultWhen;
   if (isActor) curWhen = "backpack";
 
+  const curImportant = isEdit ? !!def?.important : false;
+
   const curModsRaw = isEdit ? (Array.isArray(def?.mods) ? def.mods : []) : [];
   const curMods = curModsRaw.length ? curModsRaw.map(_normalizeMod) : [];
 
@@ -614,6 +616,11 @@ async function _openStatusDialog({ doc, app, mode, def, flagKey = FLAG_KEY_ITEM,
       <div class="adm-status-line" style="display:flex; align-items:center; gap:10px;">
         <label style=" margin:0;">Активация</label>
         <select name="when" style="flex:1;">${whenOptions}</select>
+
+        <label style="margin:0; display:flex; align-items:center; gap:4px; white-space:nowrap;">
+          <input type="checkbox" name="important" ${curImportant ? "checked" : ""} />
+          Важный
+        </label>
       </div>
     </div>
   </div>
@@ -663,6 +670,8 @@ async function _openStatusDialog({ doc, app, mode, def, flagKey = FLAG_KEY_ITEM,
       const when = isActor
         ? "backpack"
         : (String(form.querySelector('[name="when"]')?.value ?? defaultWhen).trim() || defaultWhen);
+
+      const important = !!form.querySelector('[name="important"]')?.checked;
 
       let text = "";
       const ed = globalThis.tinymce?.get?.(editorId);
@@ -714,9 +723,9 @@ async function _openStatusDialog({ doc, app, mode, def, flagKey = FLAG_KEY_ITEM,
 
       if (isEdit) {
         const idx = defs.findIndex((d) => d.id === def.id);
-        if (idx !== -1) defs[idx] = { ...defs[idx], img, name, when, text, mods };
+        if (idx !== -1) defs[idx] = { ...defs[idx], img, name, when, text, mods, important };
       } else {
-        defs.push({ id: foundry.utils.randomID(), img, name, when, text, mods });
+        defs.push({ id: foundry.utils.randomID(), img, name, when, text, mods, important });
       }
 
       await _writeStatusDefs(item, defs, flagKey);
