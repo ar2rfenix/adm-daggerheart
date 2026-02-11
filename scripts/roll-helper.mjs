@@ -114,6 +114,49 @@ async function _rollDie(sides) {
   return Number(r.total) || 0;
 }
 
+// -------------------------
+// Dice So Nice integration
+// -------------------------
+const _DSN_HOPE_APPEARANCE = {
+  colorset: "custom",
+  foreground: "#ffffff",
+  background: "#ffa200",
+  outline: "#000000",
+  edge: "#ff8000",
+  texture: "ice",
+  material: "glass",
+  font: "Arial",
+  system: "standard",
+};
+
+const _DSN_FEAR_APPEARANCE = {
+  colorset: "custom",
+  foreground: "#b5d5ff",
+  background: "#021280",
+  outline: "#000000",
+  edge: "#210e6b",
+  texture: "ice",
+  material: "metal",
+  font: "Arial",
+  system: "standard",
+};
+
+async function _rollDieWithDsn(sides, appearance) {
+  const n = Math.max(2, Math.trunc(Number(sides) || 12));
+  const roll = new Roll(`1d${n}`);
+  await roll.evaluate();
+  const value = Number(roll.total) || 0;
+
+  if (game.dice3d) {
+    try {
+      if (appearance) roll.dice[0].options.appearance = appearance;
+      await game.dice3d.showForRoll(roll, game.user, true);
+    } catch (_e) {}
+  }
+
+  return value;
+}
+
 function _bgForDuality(hopeVal, fearVal, isReaction = false) {
   if (isReaction) {
     return "linear-gradient(135deg, rgb(40 37 32 / 80%) 0%, rgb(207 207 207) 100%)";
@@ -356,6 +399,19 @@ async function _rollEdgePool(netCount) {
     const v = await _rollDie(6);
     rolls.push(v);
     if (v > best) best = v;
+  }
+  return { rolls, best };
+}
+
+async function _rollEdgePoolWithDsn(netCount) {
+  const n = Math.max(0, Math.trunc(Number(netCount) || 0));
+  if (n <= 0) return { rolls: [], best: 0 };
+  const roll = new Roll(`${n}d6`);
+  await roll.evaluate();
+  const rolls = roll.dice[0].results.map(r => r.result);
+  const best = Math.max(...rolls);
+  if (game.dice3d) {
+    try { await game.dice3d.showForRoll(roll, game.user, true); } catch (_e) {}
   }
   return { rolls, best };
 }
@@ -1059,13 +1115,13 @@ document.addEventListener("click", async (ev) => {
 
   if (isNpc) {
     if (dieId === "d20-main") {
-      st.resolved.mainVal = await _rollDie(20);
+      st.resolved.mainVal = await _rollDieWithDsn(20, null);
       await _rerenderNpcMessage(message, st);
       return;
     }
 
     if (dieId === "d20-mode") {
-      st.resolved.modeVal = await _rollDie(20);
+      st.resolved.modeVal = await _rollDieWithDsn(20, null);
       await _rerenderNpcMessage(message, st);
       return;
     }
@@ -1074,7 +1130,7 @@ document.addEventListener("click", async (ev) => {
     if (idx >= 0) {
       const d = st.extraDice[idx];
       const sides = Math.max(2, Math.trunc(Number(d.sides) || 6));
-      d.value = await _rollDie(sides);
+      d.value = await _rollDieWithDsn(sides, null);
       st.extraDice[idx] = d;
       await _rerenderNpcMessage(message, st);
       return;
@@ -1086,14 +1142,14 @@ document.addEventListener("click", async (ev) => {
   // PC
   if (dieId === "hope") {
     const sides = Math.trunc(Number(st.resolved.hopeSides ?? st.hopeDie ?? 12) || 12);
-    st.resolved.hopeVal = await _rollDie(sides);
+    st.resolved.hopeVal = await _rollDieWithDsn(sides, _DSN_HOPE_APPEARANCE);
     await _rerenderPcMessage(message, st);
     return;
   }
 
   if (dieId === "fear") {
     const sides = Math.trunc(Number(st.resolved.fearSides ?? st.fearDie ?? 12) || 12);
-    st.resolved.fearVal = await _rollDie(sides);
+    st.resolved.fearVal = await _rollDieWithDsn(sides, _DSN_FEAR_APPEARANCE);
     await _rerenderPcMessage(message, st);
     return;
   }
@@ -1101,7 +1157,7 @@ document.addEventListener("click", async (ev) => {
   if (dieId === "edge") {
     const edge = st.resolved.edge || { used: false, isAdv: false, net: 0, rolls: [], best: 0, value: 0 };
     if (edge?.used && (edge.net || 0) > 0) {
-      const pool = await _rollEdgePool(edge.net);
+      const pool = await _rollEdgePoolWithDsn(edge.net);
       edge.rolls = pool.rolls;
       edge.best = pool.best;
       edge.value = edge.isAdv ? pool.best : -pool.best;
@@ -1115,7 +1171,7 @@ document.addEventListener("click", async (ev) => {
   if (idx >= 0) {
     const d = st.extraDice[idx];
     const sides = Math.max(2, Math.trunc(Number(d.sides) || 6));
-    d.value = await _rollDie(sides);
+    d.value = await _rollDieWithDsn(sides, null);
     st.extraDice[idx] = d;
     await _rerenderPcMessage(message, st);
     return;
@@ -1280,7 +1336,7 @@ document.addEventListener("click", async (ev) => {
     st.extraDice ??= [];
 
     const id = `mod-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
-    const value = await _rollDie(sides);
+    const value = await _rollDieWithDsn(sides, null);
 
     st.extraDice.push({ id, sides, value, isNeg: !!isNeg });
 
@@ -1311,7 +1367,7 @@ document.addEventListener("contextmenu", async (ev) => {
     st.extraDice ??= [];
 
     const id = `mod-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
-    const value = await _rollDie(sides);
+    const value = await _rollDieWithDsn(sides, null);
 
     st.extraDice.push({ id, sides, value, isNeg: !!isNeg });
 
@@ -1409,9 +1465,6 @@ if (stFormula) {
   const hopeSides = Math.trunc(Number(state.hopeDie) || 12);
   const fearSides = Math.trunc(Number(state.fearDie) || 12);
 
-  const hopeVal = await _rollDie(hopeSides);
-  const fearVal = await _rollDie(fearSides);
-
   const isReaction = !!state.isReaction;
   if (isReaction) weaponDamageText = "";
 
@@ -1431,7 +1484,7 @@ if (stFormula) {
     // 1. Пробуем имя оружия (Лук, Меч и т.д.)
     if (state?.weaponName) {
       weaponAnimText = String(state.weaponName).trim();
-    } 
+    }
     // 2. Если нет оружия, пробуем имя атаки (для спец. атак)
     else {
       weaponAnimText = String(
@@ -1450,7 +1503,36 @@ if (stFormula) {
   // реакция — не показываем
   if (isReaction) weaponAnimText = "";
 
-  const edge = await _rollEdge(state.adv, state.dis);
+  // --- Combined roll: hope + fear + edge (all dice shown at once via DSN) ---
+  const _advCount = Math.max(0, Math.trunc(Number(state.adv) || 0));
+  const _disCount = Math.max(0, Math.trunc(Number(state.dis) || 0));
+  const _edgeNet = Math.abs(_advCount - _disCount);
+  const _edgeIsAdv = _advCount > _disCount;
+
+  const _rollParts = [`1d${hopeSides}`, `1d${fearSides}`];
+  if (_edgeNet > 0) _rollParts.push(`${_edgeNet}d6`);
+
+  const _combinedRoll = new Roll(_rollParts.join(" + "));
+  await _combinedRoll.evaluate();
+
+  const hopeVal = Number(_combinedRoll.dice[0]?.results?.[0]?.result) || 0;
+  const fearVal = Number(_combinedRoll.dice[1]?.results?.[0]?.result) || 0;
+
+  let edge = { used: false, isAdv: false, net: 0, rolls: [], best: 0, value: 0 };
+  if (_edgeNet > 0 && _combinedRoll.dice[2]) {
+    const _edgeRolls = _combinedRoll.dice[2].results.map(r => Number(r.result) || 0);
+    const _edgeBest = Math.max(0, ..._edgeRolls);
+    edge = { used: true, isAdv: _edgeIsAdv, net: _edgeNet, rolls: _edgeRolls, best: _edgeBest, value: _edgeIsAdv ? _edgeBest : -_edgeBest };
+  }
+
+  // Dice So Nice: apply Hope/Fear appearance, then show all dice together
+  if (game.dice3d) {
+    try {
+      _combinedRoll.dice[0].options.appearance = _DSN_HOPE_APPEARANCE;
+      _combinedRoll.dice[1].options.appearance = _DSN_FEAR_APPEARANCE;
+      await game.dice3d.showForRoll(_combinedRoll, game.user, true);
+    } catch (_e) {}
+  }
 
   const dialogMod = Math.trunc(Number(state.mod) || 0);
   const expSum = _sumActiveExp(state.experiences);
@@ -1553,9 +1635,16 @@ export async function admNpcRollToChat(actor, state, rollMode = "normal") {
   const mode = String(rollMode || "normal").trim().toLowerCase();
   const isReaction = !!state.isReaction;
 
-  // d20 rolls
-  const mainVal = await _rollDie(20);
-  const modeVal = (mode === "advantage" || mode === "disadvantage") ? await _rollDie(20) : 0;
+  // d20 rolls (via combined Roll for Dice So Nice)
+  const _npcIsDouble = mode === "advantage" || mode === "disadvantage";
+  const _npcRoll = new Roll(_npcIsDouble ? "1d20 + 1d20" : "1d20");
+  await _npcRoll.evaluate();
+  const mainVal = Number(_npcRoll.dice[0]?.results?.[0]?.result) || 0;
+  const modeVal = _npcIsDouble ? (Number(_npcRoll.dice[1]?.results?.[0]?.result) || 0) : 0;
+
+  if (game.dice3d) {
+    try { await game.dice3d.showForRoll(_npcRoll, game.user, true); } catch (_e) {}
+  }
 
   // мод = мод атаки монстра (из окна) + опыт
   const attackMod =
