@@ -1,0 +1,863 @@
+// systems/adm-daggerheart/scripts/damage-helper.mjs
+// Логика урона: бросок, переброс, добавление/удаление кубов, таргеты, устойчивость
+
+// -------------------------
+// Utils
+// -------------------------
+function _route(p) {
+  try { return foundry.utils.getRoute(p); }
+  catch (_e) { return `/${String(p).replace(/^\/+/, "")}`; }
+}
+
+function _dieSvgSrcGrey(sides) {
+  const n = Math.max(2, Math.trunc(Number(sides) || 12));
+  return _route(`icons/svg/d${n}-grey.svg`);
+}
+
+function _damageTypeShort(key) {
+  const k = String(key || "").trim().toLowerCase();
+  if (k === "physical") return "физ.";
+  if (k === "magical")  return "маг.";
+  if (k === "direct")   return "прям.";
+  return String(k || "");
+}
+
+function _damageTypeFull(key) {
+  const k = String(key || "").trim().toLowerCase();
+  if (k === "physical") return "Физический";
+  if (k === "magical")  return "Магический";
+  if (k === "direct")   return "Прямой";
+  return k;
+}
+
+async function _confirm(title, content) {
+  return Dialog.confirm({ title, content });
+}
+
+// -------------------------
+// DSN (Dice So Nice) helpers
+// -------------------------
+async function _rollDieWithDsn(sides) {
+  const n = Math.max(2, Math.trunc(Number(sides) || 6));
+  const roll = new Roll(`1d${n}`);
+  await roll.evaluate();
+  const value = Number(roll.total) || 0;
+  if (game.dice3d) {
+    try { await game.dice3d.showForRoll(roll, game.user, true); } catch (_e) {}
+  }
+  return value;
+}
+
+// -------------------------
+// Parse damage formula: "3d6+3" => { parts: [{count:3, sides:6}], mod: 3 }
+// -------------------------
+function _parseDamageFormula(formula) {
+  const raw = String(formula || "").trim();
+  if (!raw) return { parts: [], mod: 0 };
+
+  const parts = [];
+  let mod = 0;
+
+  // Находим все NdS
+  const diceRe = /(\d*)d(\d+)/gi;
+  let m;
+  while ((m = diceRe.exec(raw)) !== null) {
+    const count = Math.max(1, parseInt(m[1], 10) || 1);
+    const sides = parseInt(m[2], 10) || 6;
+    parts.push({ count, sides });
+  }
+
+  // Ищем модификатор в конце: +3, -2
+  const modMatch = raw.match(/([+-]\s*\d+)\s*$/);
+  if (modMatch) {
+    mod = parseInt(modMatch[1].replace(/\s+/g, ""), 10) || 0;
+  }
+
+  return { parts, mod };
+}
+
+// -------------------------
+// Resilience: проверяем устойчивость токена к типу урона
+// Возвращает: { multiplier: 1|2|0.5|0, label: string }
+// -------------------------
+function _getTokenResilience(token, damageType) {
+  const type = String(damageType || "").trim().toLowerCase();
+  if (!type || type === "direct") return { multiplier: 1, label: "" };
+
+  const actor = token?.actor;
+  if (!actor) return { multiplier: 1, label: "" };
+
+  const FLAG_SCOPE = "adm-daggerheart";
+  const FLAG_STATUS_DEFS = "statusDefs";
+  const FLAG_ACTOR_STATUS_DEFS = "actorStatusDefs";
+  const FLAG_APPLIED_STATUS_DEFS = "appliedStatusDefs";
+
+  const allMods = [];
+
+  // Собираем модификаторы из всех активных статусов
+  const _collectDefs = (defs, activeWhen) => {
+    if (!Array.isArray(defs)) return;
+    for (const def of defs) {
+      const when = String(def?.when || "equip").trim();
+      if (when !== activeWhen) continue;
+      for (const m of (def.mods ?? [])) {
+        if (String(m?.type || "").trim() === "resilience") {
+          allMods.push(String(m.value || "").trim());
+        }
+      }
+    }
+  };
+
+  // Статусы из предметов (при экипировке)
+  for (const item of (actor.items ?? [])) {
+    const equipped = !!item.system?.equipped;
+    if (!equipped && item.type !== "status") continue;
+    const defs = item.getFlag?.(FLAG_SCOPE, FLAG_STATUS_DEFS);
+    if (Array.isArray(defs)) {
+      _collectDefs(defs, "equip");
+      // status items activate on "backpack"
+      if (item.type === "status") _collectDefs(defs, "backpack");
+    }
+  }
+
+  // Локальные статусы актёра
+  const actorDefs = actor.getFlag?.(FLAG_SCOPE, FLAG_ACTOR_STATUS_DEFS);
+  if (Array.isArray(actorDefs)) _collectDefs(actorDefs, "backpack");
+
+  // Applied статусы (от /st и т.д.)
+  const appliedDefs = actor.getFlag?.(FLAG_SCOPE, FLAG_APPLIED_STATUS_DEFS);
+  if (Array.isArray(appliedDefs)) _collectDefs(appliedDefs, "backpack");
+
+  // Ищем совпадение по типу урона
+  const suffix = type === "physical" ? "phy" : type === "magical" ? "mag" : "";
+  if (!suffix) return { multiplier: 1, label: "" };
+
+  // Приоритет: иммунитет > сопротивление > уязвимость
+  if (allMods.includes(`immune_${suffix}`)) {
+    return { multiplier: 0, label: "Иммунитет" };
+  }
+  if (allMods.includes(`resist_${suffix}`)) {
+    return { multiplier: 0.5, label: "Сопротивление" };
+  }
+  if (allMods.includes(`vuln_${suffix}`)) {
+    return { multiplier: 2, label: "Уязвимость" };
+  }
+
+  return { multiplier: 1, label: "" };
+}
+
+// -------------------------
+// Resolve token from target data
+// -------------------------
+function _resolveToken(tokenId, sceneId) {
+  try {
+    const scene = sceneId ? game.scenes?.get(sceneId) : canvas?.scene;
+    if (!scene) return null;
+    const doc = scene.tokens?.get(tokenId);
+    return doc ?? null;
+  } catch (_e) {
+    return null;
+  }
+}
+
+// -------------------------
+// Build dice row for damage (same look as roll message)
+// -------------------------
+function _buildDamageDiceRow(rolledDice, extraDice) {
+  const out = [];
+
+  for (const d of rolledDice) {
+    out.push({
+      id: d.id,
+      kind: "dmg",
+      svg: _dieSvgSrcGrey(d.sides),
+      scale: 1,
+      text: String(d.value),
+      isNeg: false,
+    });
+  }
+
+  for (const d of extraDice) {
+    out.push({
+      id: d.id,
+      kind: "mod",
+      svg: _dieSvgSrcGrey(d.sides),
+      scale: 1,
+      text: String(Math.abs(d.value)),
+      isNeg: !!d.isNeg,
+    });
+  }
+
+  return out;
+}
+
+// -------------------------
+// Compute target damage values
+// -------------------------
+function _computeTargetDmg(baseDmg, token, damageType, override) {
+  if (override === "zero") return 0;
+
+  const res = _getTokenResilience(token, damageType);
+  let dmg = Math.floor(baseDmg * res.multiplier);
+
+  if (override === "x2") dmg = baseDmg * 2;
+  if (override === "half") dmg = Math.floor(baseDmg / 2);
+
+  return Math.max(0, dmg);
+}
+
+function _getResLabel(token, damageType) {
+  const res = _getTokenResilience(token, damageType);
+  return res.label;
+}
+
+// -------------------------
+// Sum extra dice
+// -------------------------
+function _sumExtraDice(arr) {
+  if (!Array.isArray(arr)) return 0;
+  let s = 0;
+  for (const d of arr) {
+    const v = Math.trunc(Number(d?.value) || 0);
+    s += d.isNeg ? -v : v;
+  }
+  return s;
+}
+
+// -------------------------
+// MAIN: create damage chat message
+// -------------------------
+export async function admDamageRollToChat(damageFormula, damageType, targets, isCrit) {
+  const parsed = _parseDamageFormula(damageFormula);
+  if (!parsed.parts.length) return;
+
+  // Build combined roll formula
+  const rollParts = parsed.parts.map(p => `${p.count}d${p.sides}`);
+  const combinedRoll = new Roll(rollParts.join(" + "));
+  await combinedRoll.evaluate();
+
+  // DSN
+  if (game.dice3d) {
+    try { await game.dice3d.showForRoll(combinedRoll, game.user, true); } catch (_e) {}
+  }
+
+  // Собираем результаты отдельных костей
+  const rolledDice = [];
+  let dieIdx = 0;
+  for (const term of combinedRoll.dice) {
+    for (const r of (term.results ?? [])) {
+      rolledDice.push({
+        id: `dmg-${dieIdx++}`,
+        sides: term.faces,
+        value: Number(r.result) || 0,
+      });
+    }
+  }
+
+  const diceSum = rolledDice.reduce((s, d) => s + d.value, 0);
+  const modTotal = parsed.mod;
+  const extraDice = [];
+  const extraSum = 0;
+  const damageTotal = diceSum + modTotal + extraSum;
+
+  // Targets
+  const type = String(damageType || "physical").trim().toLowerCase();
+
+  const hitTargets = [];
+  const missTargets = [];
+
+  for (const t of (targets ?? [])) {
+    const token = _resolveToken(t.tokenId, t.sceneId);
+    const resLabel = token ? _getResLabel(token, type) : "";
+    const res = token ? _getTokenResilience(token, type) : { multiplier: 1, label: "" };
+
+    const entry = {
+      tokenId: t.tokenId,
+      sceneId: t.sceneId,
+      name: t.name,
+      ok: t.ok,
+      override: t.ok ? null : "zero",
+      resMultiplier: res.multiplier,
+      resLabel,
+    };
+
+    if (t.ok) {
+      entry.dmg = Math.max(0, Math.floor(damageTotal * res.multiplier));
+      hitTargets.push(entry);
+    } else {
+      entry.dmg = 0;
+      missTargets.push(entry);
+    }
+  }
+
+  const bg = "linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%)";
+
+  const dice = _buildDamageDiceRow(rolledDice, extraDice);
+
+  const data = {
+    bg,
+    damageTotal,
+    damageType: type,
+    damageTypeLabel: _damageTypeShort(type),
+    dice,
+    d8Svg: _dieSvgSrcGrey(8),
+    modTotal,
+    hasTargets: hitTargets.length > 0 || missTargets.length > 0,
+    hitTargets,
+    missTargets,
+    halfToMissed: false,
+  };
+
+  const html = await renderTemplate(
+    "systems/adm-daggerheart/templates/partials/result-damage.hbs",
+    data
+  );
+
+  const flagsState = {
+    damageFormula,
+    damageType: type,
+    isCrit: !!isCrit,
+    modTotal,
+    rolledDice,
+    extraDice,
+    hitTargets,
+    missTargets,
+    halfToMissed: false,
+  };
+
+  const msg = await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker(),
+    content: html,
+    flags: { "adm-daggerheart": { kind: "damageRoll", state: flagsState, bg } },
+  });
+
+  try { globalThis.__admLastDmgMsgIdV1 = msg?.id || null; } catch (_e) {}
+  return msg;
+}
+
+// -------------------------
+// Flags accessors
+// -------------------------
+function _getDmgFlagsState(message) {
+  const f = message?.flags?.["adm-daggerheart"];
+  if (f?.kind !== "damageRoll") return null;
+  return f?.state || null;
+}
+
+function _findMessageFromEvent(ev) {
+  const li = ev.target?.closest?.(".chat-message[data-message-id]");
+  if (!li) return null;
+  const id = li.dataset.messageId;
+  return id ? game.messages?.get(id) : null;
+}
+
+// -------------------------
+// Rerender damage message
+// -------------------------
+async function _rerenderDmgMessage(message, flagsState) {
+  const s = flagsState ?? {};
+  s.rolledDice ??= [];
+  s.extraDice ??= [];
+  s.hitTargets ??= [];
+  s.missTargets ??= [];
+
+  const type = String(s.damageType || "physical").trim().toLowerCase();
+
+  const diceSum = s.rolledDice.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+  const modTotal = Math.trunc(Number(s.modTotal) || 0);
+  const extraSum = _sumExtraDice(s.extraDice);
+  const damageTotal = diceSum + modTotal + extraSum;
+
+  // Пересчитываем урон по таргетам
+  for (const t of s.hitTargets) {
+    const token = _resolveToken(t.tokenId, t.sceneId);
+    const res = token ? _getTokenResilience(token, type) : { multiplier: t.resMultiplier ?? 1, label: "" };
+    t.resMultiplier = res.multiplier;
+    t.resLabel = res.label;
+
+    if (t.override === "x2") t.dmg = damageTotal * 2;
+    else if (t.override === "half") t.dmg = Math.floor(damageTotal / 2);
+    else if (t.override === "zero") t.dmg = 0;
+    else t.dmg = Math.max(0, Math.floor(damageTotal * res.multiplier));
+  }
+
+  for (const t of s.missTargets) {
+    const token = _resolveToken(t.tokenId, t.sceneId);
+    const res = token ? _getTokenResilience(token, type) : { multiplier: t.resMultiplier ?? 1, label: "" };
+    t.resMultiplier = res.multiplier;
+    t.resLabel = res.label;
+
+    if (s.halfToMissed) {
+      // ½ от базового урона с учётом устойчивости
+      const base = Math.floor(damageTotal / 2);
+      if (t.override === "x2") t.dmg = base * 2;
+      else if (t.override === "half") t.dmg = Math.floor(base / 2);
+      else if (t.override === "zero") t.dmg = 0;
+      else t.dmg = Math.max(0, Math.floor(base * res.multiplier));
+    } else {
+      if (t.override === "zero") t.dmg = 0;
+      else if (t.override === "x2") t.dmg = damageTotal * 2;
+      else if (t.override === "half") t.dmg = Math.floor(damageTotal / 2);
+      else t.dmg = 0;
+    }
+  }
+
+  const bg = "linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%)";
+
+  const dice = _buildDamageDiceRow(s.rolledDice, s.extraDice);
+
+  const data = {
+    bg,
+    damageTotal,
+    damageType: type,
+    damageTypeLabel: _damageTypeShort(type),
+    dice,
+    d8Svg: _dieSvgSrcGrey(8),
+    modTotal,
+    hasTargets: s.hitTargets.length > 0 || s.missTargets.length > 0,
+    hitTargets: s.hitTargets,
+    missTargets: s.missTargets,
+    halfToMissed: !!s.halfToMissed,
+  };
+
+  const html = await renderTemplate(
+    "systems/adm-daggerheart/templates/partials/result-damage.hbs",
+    data
+  );
+
+  const nextState = { ...s, modTotal, damageType: type };
+
+  await message.update({
+    content: html,
+    flags: {
+      ...(message.flags || {}),
+      "adm-daggerheart": {
+        ...(message.flags?.["adm-daggerheart"] || {}),
+        kind: "damageRoll",
+        state: nextState,
+        bg,
+      },
+    },
+  });
+}
+
+// -------------------------
+// Context menu helper (small floating menu)
+// -------------------------
+function _openSmallMenu(anchor, items) {
+  // Убираем предыдущее меню
+  document.querySelectorAll(".adm-dmg-ctxmenu").forEach(el => el.remove());
+
+  const menu = document.createElement("div");
+  menu.className = "adm-dmg-ctxmenu";
+
+  for (const item of items) {
+    const row = document.createElement("div");
+    row.className = "adm-dmg-ctxmenu-item";
+    row.textContent = item.label;
+    row.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      menu.remove();
+      item.callback();
+    });
+    menu.appendChild(row);
+  }
+
+  document.body.appendChild(menu);
+
+  // Позиционируем рядом с anchor
+  const rect = anchor.getBoundingClientRect();
+  menu.style.position = "fixed";
+  menu.style.left = `${rect.right + 4}px`;
+  menu.style.top = `${rect.top}px`;
+  menu.style.zIndex = "10000";
+
+  // Закрытие по клику вовне
+  const _close = (ev) => {
+    if (!menu.contains(ev.target)) {
+      menu.remove();
+      document.removeEventListener("mousedown", _close, true);
+    }
+  };
+  setTimeout(() => document.addEventListener("mousedown", _close, true), 0);
+}
+
+// -------------------------
+// Mod menu (reuse same style as roll messages)
+// -------------------------
+function _openModMenu(anchor, isNeg, callback) {
+  const items = [4, 6, 8, 10, 12, 20].map(sides => ({
+    label: `d${sides}`,
+    callback: () => callback(sides, isNeg),
+  }));
+  _openSmallMenu(anchor, items);
+}
+
+// -------------------------
+// Init: register all event handlers
+// -------------------------
+export function admDamageInit() {
+
+  // --- LMB on die => reroll ---
+  document.addEventListener("click", async (ev) => {
+    const dieEl = ev.target?.closest?.(".adm-rollmsg--dmg .adm-rollmsg-die[data-die-id]");
+    if (!dieEl) return;
+
+    const message = _findMessageFromEvent(ev);
+    if (!message) return;
+
+    const state = _getDmgFlagsState(message);
+    if (!state) return;
+
+    const dieId = String(dieEl.dataset.dieId || "");
+    if (!dieId) return;
+
+    const ok = await _confirm("Перебросить", "<p>Перебросить кубик?</p>");
+    if (!ok) return;
+
+    const st = foundry.utils.duplicate(state);
+
+    // Ищем в rolledDice
+    const rIdx = st.rolledDice.findIndex(d => String(d.id) === dieId);
+    if (rIdx >= 0) {
+      const d = st.rolledDice[rIdx];
+      d.value = await _rollDieWithDsn(d.sides);
+      st.rolledDice[rIdx] = d;
+      await _rerenderDmgMessage(message, st);
+      return;
+    }
+
+    // Ищем в extraDice
+    const eIdx = (st.extraDice ?? []).findIndex(d => String(d.id) === dieId);
+    if (eIdx >= 0) {
+      const d = st.extraDice[eIdx];
+      d.value = await _rollDieWithDsn(d.sides);
+      st.extraDice[eIdx] = d;
+      await _rerenderDmgMessage(message, st);
+      return;
+    }
+  }, true);
+
+  // --- RMB on die => delete ---
+  document.addEventListener("contextmenu", async (ev) => {
+    const dieEl = ev.target?.closest?.(".adm-rollmsg--dmg .adm-rollmsg-die[data-die-id]");
+    if (!dieEl) return;
+
+    const message = _findMessageFromEvent(ev);
+    if (!message) return;
+
+    const state = _getDmgFlagsState(message);
+    if (!state) return;
+
+    const dieId = String(dieEl.dataset.dieId || "");
+    if (!dieId) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    const ok = await _confirm("Удалить", "<p>Удалить кубик?</p>");
+    if (!ok) return;
+
+    const st = foundry.utils.duplicate(state);
+
+    // Ищем в rolledDice
+    const rIdx = st.rolledDice.findIndex(d => String(d.id) === dieId);
+    if (rIdx >= 0) {
+      st.rolledDice.splice(rIdx, 1);
+      await _rerenderDmgMessage(message, st);
+      return;
+    }
+
+    // Ищем в extraDice
+    const eIdx = (st.extraDice ?? []).findIndex(d => String(d.id) === dieId);
+    if (eIdx >= 0) {
+      st.extraDice.splice(eIdx, 1);
+      await _rerenderDmgMessage(message, st);
+      return;
+    }
+  }, true);
+
+  // --- Mod input: Enter => eval ---
+  document.addEventListener("keydown", async (ev) => {
+    if (ev.key !== "Enter") return;
+    const inp = ev.target?.closest?.(".adm-rollmsg--dmg input.adm-rollmsg-modinput[data-adm-modinput]");
+    if (!inp) return;
+
+    ev.preventDefault();
+
+    const message = _findMessageFromEvent(ev);
+    if (!message) return;
+
+    const state = _getDmgFlagsState(message);
+    if (!state) return;
+
+    const current = Math.trunc(Number(state.modTotal) || 0);
+    const next = _evalMathExpr(inp.value, current);
+
+    const st = foundry.utils.duplicate(state);
+    st.modTotal = next;
+    inp.value = String(next);
+
+    await _rerenderDmgMessage(message, st);
+  }, true);
+
+  // --- Mod input: blur => eval ---
+  document.addEventListener("blur", async (ev) => {
+    const inp = ev.target?.closest?.(".adm-rollmsg--dmg input.adm-rollmsg-modinput[data-adm-modinput]");
+    if (!inp) return;
+
+    const message = _findMessageFromEvent(ev);
+    if (!message) return;
+
+    const state = _getDmgFlagsState(message);
+    if (!state) return;
+
+    const current = Math.trunc(Number(state.modTotal) || 0);
+    const next = _evalMathExpr(inp.value, current);
+
+    const st = foundry.utils.duplicate(state);
+    st.modTotal = next;
+    inp.value = String(next);
+
+    await _rerenderDmgMessage(message, st);
+  }, true);
+
+  // --- LMB on ± button => +dice menu ---
+  document.addEventListener("click", async (ev) => {
+    const btn = ev.target?.closest?.(".adm-rollmsg--dmg .adm-rollmsg-modbtn[data-adm-modbtn]");
+    if (!btn) return;
+
+    const message = _findMessageFromEvent(ev);
+    if (!message) return;
+
+    const state = _getDmgFlagsState(message);
+    if (!state) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    _openModMenu(btn, false, async (sides, isNeg) => {
+      const st = foundry.utils.duplicate(state);
+      st.extraDice ??= [];
+
+      const id = `mod-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+      const value = await _rollDieWithDsn(sides);
+
+      st.extraDice.push({ id, sides, value, isNeg: !!isNeg });
+      await _rerenderDmgMessage(message, st);
+    });
+  }, true);
+
+  // --- RMB on ± button => -dice menu ---
+  document.addEventListener("contextmenu", async (ev) => {
+    const btn = ev.target?.closest?.(".adm-rollmsg--dmg .adm-rollmsg-modbtn[data-adm-modbtn]");
+    if (!btn) return;
+
+    const message = _findMessageFromEvent(ev);
+    if (!message) return;
+
+    const state = _getDmgFlagsState(message);
+    if (!state) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    _openModMenu(btn, true, async (sides, isNeg) => {
+      const st = foundry.utils.duplicate(state);
+      st.extraDice ??= [];
+
+      const id = `mod-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+      const value = await _rollDieWithDsn(sides);
+
+      st.extraDice.push({ id, sides, value, isNeg: !!isNeg });
+      await _rerenderDmgMessage(message, st);
+    });
+  }, true);
+
+  // --- RMB on damage type label => change type menu ---
+  document.addEventListener("contextmenu", async (ev) => {
+    const el = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-header[data-adm-dmg-header]");
+    if (!el) return;
+
+    const message = _findMessageFromEvent(ev);
+    if (!message) return;
+
+    const state = _getDmgFlagsState(message);
+    if (!state) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    _openSmallMenu(el, [
+      { label: "Физический", callback: async () => {
+        const st = foundry.utils.duplicate(state);
+        st.damageType = "physical";
+        // Сбрасываем overrides при смене типа — устойчивости пересчитаются
+        for (const t of (st.hitTargets ?? [])) { t.override = null; }
+        for (const t of (st.missTargets ?? [])) { if (t.override !== "zero" || !t.ok) t.override = t.ok ? null : "zero"; }
+        await _rerenderDmgMessage(message, st);
+      }},
+      { label: "Магический", callback: async () => {
+        const st = foundry.utils.duplicate(state);
+        st.damageType = "magical";
+        for (const t of (st.hitTargets ?? [])) { t.override = null; }
+        for (const t of (st.missTargets ?? [])) { if (t.override !== "zero" || !t.ok) t.override = t.ok ? null : "zero"; }
+        await _rerenderDmgMessage(message, st);
+      }},
+      { label: "Прямой", callback: async () => {
+        const st = foundry.utils.duplicate(state);
+        st.damageType = "direct";
+        for (const t of (st.hitTargets ?? [])) { t.override = null; }
+        for (const t of (st.missTargets ?? [])) { if (t.override !== "zero" || !t.ok) t.override = t.ok ? null : "zero"; }
+        await _rerenderDmgMessage(message, st);
+      }},
+    ]);
+  }, true);
+
+  // --- RMB on target damage => x2 / /2 / 0 menu ---
+  document.addEventListener("contextmenu", async (ev) => {
+    const el = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-target-dmg[data-adm-target-dmg]");
+    if (!el) return;
+
+    const message = _findMessageFromEvent(ev);
+    if (!message) return;
+
+    const state = _getDmgFlagsState(message);
+    if (!state) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    const targetEl = el.closest(".adm-dmg-target[data-token-id]");
+    if (!targetEl) return;
+
+    const tokenId = targetEl.dataset.tokenId;
+
+    _openSmallMenu(el, [
+      { label: "×2", callback: async () => {
+        const st = foundry.utils.duplicate(state);
+        const t = [...(st.hitTargets ?? []), ...(st.missTargets ?? [])].find(x => x.tokenId === tokenId);
+        if (t) t.override = "x2";
+        await _rerenderDmgMessage(message, st);
+      }},
+      { label: "÷2", callback: async () => {
+        const st = foundry.utils.duplicate(state);
+        const t = [...(st.hitTargets ?? []), ...(st.missTargets ?? [])].find(x => x.tokenId === tokenId);
+        if (t) t.override = "half";
+        await _rerenderDmgMessage(message, st);
+      }},
+      { label: "0", callback: async () => {
+        const st = foundry.utils.duplicate(state);
+        const t = [...(st.hitTargets ?? []), ...(st.missTargets ?? [])].find(x => x.tokenId === tokenId);
+        if (t) t.override = "zero";
+        await _rerenderDmgMessage(message, st);
+      }},
+      { label: "Сброс", callback: async () => {
+        const st = foundry.utils.duplicate(state);
+        const t = [...(st.hitTargets ?? []), ...(st.missTargets ?? [])].find(x => x.tokenId === tokenId);
+        if (t) t.override = null;
+        await _rerenderDmgMessage(message, st);
+      }},
+    ]);
+  }, true);
+
+  // --- ½ урона переключатель ---
+  document.addEventListener("change", async (ev) => {
+    const label = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-half-toggle[data-adm-dmg-half]");
+    if (!label) return;
+
+    const message = _findMessageFromEvent(ev);
+    if (!message) return;
+
+    const state = _getDmgFlagsState(message);
+    if (!state) return;
+
+    const checked = !!label.querySelector("input[type=checkbox]")?.checked;
+
+    const st = foundry.utils.duplicate(state);
+    st.halfToMissed = checked;
+    await _rerenderDmgMessage(message, st);
+  }, true);
+
+  // --- Добавление новых таргетов (hook) ---
+  Hooks.on?.("targetToken", (_user, _token, _targeted) => {
+    try {
+      if (!_user || _user.id !== game.user.id) return;
+      _refreshLastDmgTargets();
+    } catch (_e) {}
+  });
+}
+
+// -------------------------
+// Refresh targets in latest damage message
+// -------------------------
+async function _refreshLastDmgTargets() {
+  const msgId = globalThis.__admLastDmgMsgIdV1;
+  if (!msgId) return;
+
+  const msg = game.messages?.get(msgId);
+  if (!msg) return;
+
+  const state = _getDmgFlagsState(msg);
+  if (!state) return;
+
+  const set = game?.user?.targets;
+  if (!set) return;
+
+  const st = foundry.utils.duplicate(state);
+  const type = String(st.damageType || "physical").trim().toLowerCase();
+
+  // Собираем текущие tokenId из обоих списков
+  const existingIds = new Set([
+    ...(st.hitTargets ?? []).map(t => t.tokenId),
+    ...(st.missTargets ?? []).map(t => t.tokenId),
+  ]);
+
+  // Добавляем новые таргеты в hit-список
+  for (const t of set) {
+    const token = t?.object ?? t;
+    const id = token?.id;
+    if (!id || existingIds.has(String(id))) continue;
+
+    const sceneId = token?.scene?.id ?? canvas?.scene?.id ?? "";
+    const name = token?.name ?? token?.document?.name ?? "—";
+    const res = _getTokenResilience(token, type);
+
+    const diceSum = (st.rolledDice ?? []).reduce((s, d) => s + (Number(d.value) || 0), 0);
+    const modTotal = Math.trunc(Number(st.modTotal) || 0);
+    const extraSum = _sumExtraDice(st.extraDice ?? []);
+    const damageTotal = diceSum + modTotal + extraSum;
+
+    st.hitTargets.push({
+      tokenId: String(id),
+      sceneId: String(sceneId),
+      name: String(name),
+      ok: true,
+      override: null,
+      resMultiplier: res.multiplier,
+      resLabel: res.label,
+      dmg: Math.max(0, Math.floor(damageTotal * res.multiplier)),
+    });
+  }
+
+  await _rerenderDmgMessage(msg, st);
+}
+
+// -------------------------
+// Safe math evaluator (same as roll-helper)
+// -------------------------
+function _evalMathExpr(expr, fallback = 0) {
+  const raw = String(expr ?? "").trim();
+  if (!raw) return fallback;
+
+  const s = raw.replace(/\s+/g, "");
+  if (!/^[0-9+\-*/().]+$/.test(s)) return fallback;
+
+  try {
+    const n = Function(`"use strict"; return (${s});`)();
+    if (!Number.isFinite(n)) return fallback;
+    return Math.trunc(n);
+  } catch (_e) {
+    return fallback;
+  }
+}

@@ -23,6 +23,7 @@ import { admNpcInitEnemyAbilitiesRerender, admNpcInitEnemyAbilityClicks} from ".
 
 import { admStatusInit } from "./module/status/status-ui.mjs";
 import { admStatusModsInit } from "./module/status/status-modifiers.mjs";
+import { admDamageInit } from "./scripts/damage-helper.mjs";
 
 function clampNonNegativeNumber(n, fallback = 0) {
   const x = Number.isFinite(Number(n)) ? Number(n) : fallback;
@@ -41,6 +42,7 @@ Hooks.once("init", async () => {
   admTextHooksInit();
   admNpcInitEnemyAbilitiesRerender();
   admNpcInitEnemyAbilityClicks();
+  admDamageInit();
   globalThis.admOpenPcRollDialog = admOpenPcRollDialog;
   globalThis.admOpenNpcRollDialog = admOpenNpcRollDialog;
  admRingsInit();
@@ -57,6 +59,7 @@ Hooks.once("init", async () => {
     "systems/adm-daggerheart/templates/partials/roll-npc.hbs",
 	"systems/adm-daggerheart/templates/partials/result-pc.hbs",
   "systems/adm-daggerheart/templates/partials/result-npc.hbs",
+  "systems/adm-daggerheart/templates/partials/result-damage.hbs",
 
 
   ]);

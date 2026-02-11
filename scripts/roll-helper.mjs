@@ -2,6 +2,8 @@
 // Логика броска + подготовка данных для чат-шаблонов result-*.hbs
 // Интерактив: переброс/удаление кубов, модификатор с математикой, меню ± костей, блок целей (targets)
 
+import { admDamageRollToChat } from "./damage-helper.mjs";
+
 function _route(p) {
   try { return foundry.utils.getRoute(p); }
   catch (_e) { return `/${String(p).replace(/^\/+/, "")}`; }
@@ -1422,6 +1424,73 @@ document.addEventListener("contextmenu", async (ev) => {
     if (npcState) await _rerenderNpcMessage(message, st);
     else await _rerenderPcMessage(message, st);
   });
+}, true);
+
+
+// --- LMB on damage button => roll damage ---
+document.addEventListener("click", async (ev) => {
+  const btn = ev.target?.closest?.(".adm-rollmsg-dmgbtn[data-adm-dmgbtn]");
+  if (!btn) return;
+
+  const message = _findMessageFromEvent(ev);
+  if (!message) return;
+
+  const pcState = _getPcFlagsState(message);
+  const npcState = _getNpcFlagsState(message);
+  const flagsState = pcState || npcState;
+  if (!flagsState) return;
+
+  ev.preventDefault();
+  ev.stopPropagation();
+
+  // Извлекаем формулу урона из weaponDamageText: "Урон: 3d6+3 физ." или "Урон: 3d6+21 маг."
+  const rawText = String(flagsState.weaponDamageText || "").trim();
+  if (!rawText) return;
+
+  // Парсим: "Урон: FORMULA TYPE"
+  const match = rawText.match(/^Урон:\s*(.+?)(?:\s+(физ\.|маг\.|прям\.))?$/i);
+  if (!match) return;
+
+  const formula = String(match[1] || "").trim();
+  if (!formula) return;
+
+  const typeShort = String(match[2] || "").trim().toLowerCase();
+  let damageType = "physical";
+  if (typeShort === "маг.") damageType = "magical";
+  else if (typeShort === "прям.") damageType = "direct";
+
+  // isCrit
+  const isReaction = !!flagsState.isReaction;
+  let isCrit = false;
+  if (pcState) {
+    const hopeVal = Number(pcState.resolved?.hopeVal ?? 0) || 0;
+    const fearVal = Number(pcState.resolved?.fearVal ?? 0) || 0;
+    isCrit = !isReaction && hopeVal === fearVal;
+  } else if (npcState) {
+    const mainVal = Number(npcState.resolved?.mainVal ?? 0) || 0;
+    const modeVal = Number(npcState.resolved?.modeVal ?? 0) || 0;
+    const mode = String(npcState.rollMode || "normal").trim().toLowerCase();
+    let chosen = mainVal;
+    if (mode === "advantage") chosen = Math.max(mainVal, modeVal);
+    else if (mode === "disadvantage") chosen = Math.min(mainVal, modeVal);
+    isCrit = !isReaction && chosen === 20;
+  }
+
+  // Targets из сообщения атаки
+  const targets = [];
+  const msgEl = btn.closest(".adm-rollmsg[data-adm-rollmsg]");
+  if (msgEl) {
+    msgEl.querySelectorAll(".adm-rollmsg-target[data-token-id]").forEach(el => {
+      targets.push({
+        tokenId: String(el.dataset.tokenId || ""),
+        sceneId: String(el.dataset.sceneId || ""),
+        name: String(el.querySelector(".adm-rollmsg-target-name")?.textContent || "").trim(),
+        ok: el.classList.contains("is-hit") || el.classList.contains("is-crit") || el.classList.contains("is-pass"),
+      });
+    });
+  }
+
+  await admDamageRollToChat(formula, damageType, targets, isCrit);
 }, true);
 
 }

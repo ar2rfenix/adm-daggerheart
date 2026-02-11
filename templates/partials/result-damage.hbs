@@ -1,0 +1,93 @@
+<section class="adm-rollmsg adm-rollmsg--pc adm-rollmsg--dmg" data-adm-rollmsg data-adm-bg="{{bg}}">
+  <div class="adm-rollmsg-inner">
+
+    {{!-- Блок 1: Итог урона + тип --}}
+    <div class="adm-dmg-header" data-adm-dmg-header>
+      <span class="adm-dmg-label">Урон:</span>
+      <span class="adm-dmg-total">{{damageTotal}}</span>
+      <span class="adm-dmg-type" data-adm-dmg-type data-type="{{damageType}}">{{damageTypeLabel}}</span>
+    </div>
+
+    {{!-- Блок 2: кубики + модификатор --}}
+    <div class="adm-rollmsg-row">
+      <div class="adm-rollmsg-dice">
+        {{#each dice as |d|}}
+          <div class="adm-rollmsg-die adm-rollmsg-die--{{d.kind}} {{#if d.isNeg}}is-neg{{/if}}"
+               data-die-id="{{d.id}}">
+            <span class="adm-roll-diesvg adm-rollmsg-diesvg"
+                  style="--adm-die-svg: url('{{d.svg}}'); --adm-die-scale: {{d.scale}};"></span>
+            <div class="adm-rollmsg-die-val">{{d.text}}</div>
+          </div>
+        {{/each}}
+
+        <div class="adm-rollmsg-modwrap">
+          <div class="adm-rollmsg-modbtn adm-has-tooltip"
+               data-adm-modbtn
+               data-tooltip="ЛКМ +Кость | ПКМ -Кость">
+            <span class="adm-roll-diesvg adm-rollmsg-diesvg"
+                  style="--adm-die-svg: url('{{d8Svg}}'); --adm-die-color: rgba(255,255,255,.22);"></span>
+            <div class="adm-rollmsg-modbtn-text">±</div>
+          </div>
+
+          <input class="adm-rollmsg-modinput"
+                 type="text"
+                 value="{{modTotal}}"
+                 data-adm-modinput
+                 inputmode="text"
+                 autocomplete="off"
+                 spellcheck="false" />
+        </div>
+      </div>
+    </div>
+
+    {{!-- Блок 3: таргеты --}}
+    {{#if hasTargets}}
+      <div class="adm-dmg-targets">
+
+        {{!-- Попавшие --}}
+        {{#if hitTargets.length}}
+          <div class="adm-dmg-targets-list adm-dmg-targets--hit">
+            {{#each hitTargets as |t|}}
+              <div class="adm-dmg-target adm-dmg-target--hit"
+                   data-token-id="{{t.tokenId}}"
+                   data-scene-id="{{t.sceneId}}">
+                <span class="adm-dmg-target-name">{{t.name}}</span>
+                <span class="adm-dmg-target-dmg" data-adm-target-dmg>{{t.dmg}}</span>
+                {{#if t.resLabel}}<span class="adm-dmg-target-res">({{t.resLabel}})</span>{{/if}}
+              </div>
+            {{/each}}
+          </div>
+        {{/if}}
+
+        {{!-- Разделитель --}}
+        {{#if missTargets.length}}
+          <hr class="adm-dmg-sep" />
+        {{/if}}
+
+        {{!-- Промахнувшиеся --}}
+        {{#if missTargets.length}}
+          <div class="adm-dmg-targets-list adm-dmg-targets--miss">
+            {{#each missTargets as |t|}}
+              <div class="adm-dmg-target adm-dmg-target--miss"
+                   data-token-id="{{t.tokenId}}"
+                   data-scene-id="{{t.sceneId}}">
+                <span class="adm-dmg-target-name">{{t.name}}</span>
+                <span class="adm-dmg-target-dmg" data-adm-target-dmg>{{t.dmg}}</span>
+                {{#if t.resLabel}}<span class="adm-dmg-target-res">({{t.resLabel}})</span>{{/if}}
+              </div>
+            {{/each}}
+          </div>
+
+          <label class="adm-dmg-half-toggle" data-adm-dmg-half>
+            <input type="checkbox" {{#if halfToMissed}}checked{{/if}} />
+            <span>½ урона преуспевшим</span>
+          </label>
+        {{/if}}
+      </div>
+    {{/if}}
+
+    {{!-- Кнопка "Нанести урон" --}}
+    <button type="button" class="adm-dmg-apply-btn" data-adm-dmg-apply disabled>Нанести урон</button>
+
+  </div>
+</section>
