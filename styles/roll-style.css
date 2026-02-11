@@ -895,7 +895,8 @@ position: absolute;
 
 .adm-dmg-target{
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto auto auto;
+  cursor: context-menu;
   align-items: center;
   column-gap: 8px;
   min-height: 22px;
@@ -926,7 +927,6 @@ position: absolute;
 .adm-dmg-target-dmg{
   font-weight: 900;
   font-size: 14px;
-  cursor: context-menu;
   min-width: 24px;
   text-align: right;
   color: #fff;
@@ -939,6 +939,21 @@ position: absolute;
 /* Цвет урона по устойчивости */
 .adm-dmg-val--resist{ color: #ff5555 !important; }
 .adm-dmg-val--vuln{ color: #55dd55 !important; }
+
+/* Стресс */
+.adm-dmg-target-stress{
+  font-weight: 700;
+  font-size: 13px;
+  color: #2b869d;
+  min-width: 16px;
+  text-align: right;
+}
+.adm-dmg-target-stress .fa-droplet{
+  color: #2b869d;
+  opacity: .85;
+  font-size: 11px;
+  margin-left: 1px;
+}
 
 /* Крестик исключения */
 .adm-dmg-target-x{

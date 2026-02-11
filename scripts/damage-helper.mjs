@@ -22,6 +22,13 @@ function _damageTypeShort(key) {
   return String(k || "");
 }
 
+function _bgForType(type) {
+  const k = String(type || "").trim().toLowerCase();
+  if (k === "magical") return "linear-gradient(135deg, rgb(56 156 188) 0%, rgb(127 29 29 / 60%) 100%)";
+  if (k === "direct")  return "linear-gradient(135deg, rgb(167 137 61) 0%, rgb(127 29 29 / 60%) 100%)";
+  return "linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%)";
+}
+
 async function _confirm(title, content) {
   return Dialog.confirm({ title, content });
 }
@@ -335,6 +342,7 @@ export async function admDamageRollToChat(damageFormula, damageType, targets, is
       override: null,
       excluded: false,
       flatMod: 0,
+      stress: 0,
       resMultiplier: res.multiplier,
       resKind: res.kind,
       dmg: 0,
@@ -351,7 +359,7 @@ export async function admDamageRollToChat(damageFormula, damageType, targets, is
     }
   }
 
-  const bg = "linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%)";
+  const bg = _bgForType(type);
   const dice = _buildDamageDiceRow(rolledDice, extraDice);
 
   const verticalMod = (rolledDice.length + extraDice.length) > 5;
@@ -485,7 +493,7 @@ async function _rerenderDmgMessage(message, flagsState) {
   for (const t of s.hitTargets) _computeTargetView(t, damageTotal, type, false, false);
   for (const t of s.missTargets) _computeTargetView(t, damageTotal, type, !!s.halfToMissed, true);
 
-  const bg = "linear-gradient(135deg, rgb(156 2 2 / 92%) 0%, rgb(42 109 120 / 60%) 100%)";
+  const bg = _bgForType(type);
   const dice = _buildDamageDiceRow(s.rolledDice, s.extraDice);
 
   const verticalMod = (s.rolledDice.length + s.extraDice.length) > 5;
@@ -678,12 +686,16 @@ function _openTargetDmgMenu(anchorEl, message, state, targetTokenIds) {
   const refFlatMod = selectedTargets[0]?.flatMod || 0;
 
   const baseFlatMods = {};
-  for (const t of selectedTargets) baseFlatMods[t.tokenId] = t.flatMod || 0;
+  const baseStress = {};
+  for (const t of selectedTargets) {
+    baseFlatMods[t.tokenId] = t.flatMod || 0;
+    baseStress[t.tokenId] = t.stress || 0;
+  }
+  const refStress = selectedTargets[0]?.stress || 0;
 
   const overrideItems = [
     { label: "×2", action: "x2" },
     { label: "÷2", action: "half" },
-    { label: "0", action: "zero" },
   ];
 
   for (const item of overrideItems) {
@@ -736,6 +748,40 @@ function _openTargetDmgMenu(anchorEl, message, state, targetTokenIds) {
 
   menu.appendChild(btnFlat);
 
+  // Stress scroll item
+  const _stressIcon = `<i class="fa-solid fa-droplet" style="color:#2b869d;opacity:.85"></i>`;
+  const fmtStress = (v) => `${v === 0 ? "±" : (v > 0 ? "+" : "")}${v}${_stressIcon}`;
+  const btnStress = document.createElement("button");
+  btnStress.type = "button";
+  btnStress.className = "adm-rollmsg-modmenu-item adm-dmgmenu-flat";
+  btnStress.innerHTML = fmtStress(refStress);
+
+  let localStress = refStress;
+  let stressTimer = null;
+
+  btnStress.addEventListener("wheel", (ev) => {
+    ev.preventDefault(); ev.stopPropagation();
+    const d = ev.deltaY < 0 ? 1 : -1;
+    localStress += d;
+    btnStress.innerHTML = fmtStress(localStress);
+
+    if (stressTimer) clearTimeout(stressTimer);
+    stressTimer = setTimeout(async () => {
+      const freshState = _getDmgFlagsState(message);
+      if (!freshState) return;
+      const st = foundry.utils.duplicate(freshState);
+      const gd = localStress - refStress;
+      for (const t of [...(st.hitTargets ?? []), ...(st.missTargets ?? [])]) {
+        if (targetTokenIds.includes(t.tokenId)) {
+          t.stress = (baseStress[t.tokenId] ?? 0) + gd;
+        }
+      }
+      await _rerenderDmgMessage(message, st);
+    }, 80);
+  }, { passive: false });
+
+  menu.appendChild(btnStress);
+
   // Сброс
   const btnReset = document.createElement("button");
   btnReset.type = "button";
@@ -749,6 +795,7 @@ function _openTargetDmgMenu(anchorEl, message, state, targetTokenIds) {
       if (targetTokenIds.includes(t.tokenId)) {
         t.override = null;
         t.flatMod = 0;
+        t.stress = 0;
       }
     }
     await _rerenderDmgMessage(message, st);
@@ -1003,8 +1050,8 @@ export function admDamageInit() {
     });
   }, true);
 
-  // --- RMB on damage header => change type menu ---
-  document.addEventListener("contextmenu", async (ev) => {
+  // --- LMB / RMB on damage header => change type menu ---
+  const _openDmgTypeMenu = async (ev) => {
     const el = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-header[data-adm-dmg-header]");
     if (!el) return;
 
@@ -1040,11 +1087,16 @@ export function admDamageInit() {
         await _rerenderDmgMessage(message, st);
       }},
     ]);
-  }, true);
+  };
+  document.addEventListener("click", _openDmgTypeMenu, true);
+  document.addEventListener("contextmenu", _openDmgTypeMenu, true);
 
   // --- RMB on target damage => override menu (supports multi-select) ---
   document.addEventListener("contextmenu", async (ev) => {
-    const el = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-target-dmg[data-adm-target-dmg]");
+    // Skip X button and name
+    if (ev.target?.closest?.("[data-adm-target-x]")) return;
+
+    const el = ev.target?.closest?.(".adm-rollmsg--dmg .adm-dmg-target[data-token-id]");
     if (!el) return;
 
     const message = _findMessageFromEvent(ev);
@@ -1056,8 +1108,7 @@ export function admDamageInit() {
     ev.preventDefault();
     ev.stopPropagation();
 
-    const targetEl = el.closest(".adm-dmg-target[data-token-id]");
-    if (!targetEl) return;
+    const targetEl = el;
 
     const tokenId = targetEl.dataset.tokenId;
 
@@ -1187,6 +1238,7 @@ async function _refreshLastDmgTargets() {
       override: null,
       excluded: false,
       flatMod: 0,
+      stress: 0,
       resMultiplier: res.multiplier,
       resKind: res.kind,
       dmg: Math.max(0, Math.ceil(damageTotal * res.multiplier)),
