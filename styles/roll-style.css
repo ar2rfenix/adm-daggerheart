@@ -1033,11 +1033,21 @@ position: absolute;
   display: block;
   width: fit-content;
   margin: 4px auto 0;
-  color: rgba(255,255,255,.45);
+  color: rgba(255,255,255,.85);
   font-weight: 700;
   font-size: 13px;
-  cursor: not-allowed;
+  cursor: pointer;
   text-align: center;
+  transition: background .15s;
+}
+.adm-dmg-apply-btn:hover{
+  background: rgba(120,40,40,.6);
+}
+.adm-dmg-apply-btn.is-applied{
+  background: rgba(40,100,40,.5);
+  color: rgba(255,255,255,.5);
+  cursor: default;
+  pointer-events: none;
 }
 
 /* Damage message: mod wrap layout */
@@ -1075,4 +1085,121 @@ position: absolute;
 /* Dropped dice (dl1, dh1 etc.) — dimmed + strikethrough value */
 .adm-rollmsg--dmg .adm-rollmsg-die.is-dropped{
   opacity: .3;
+}
+
+/* ═══════════════════════════════════════════
+   Defense Dialog
+   ═══════════════════════════════════════════ */
+.adm-defense{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  color: #e9e9ee;
+}
+.adm-defense-header{
+  text-align: center;
+  font-size: 16px;
+  font-weight: 900;
+}
+.adm-defense-assess{
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.adm-defense-severity{
+  font-weight: 700;
+}
+.adm-defense-variants-btn{
+  background: none;
+  border: none;
+  color: rgba(255,255,255,.45);
+  cursor: pointer;
+  font-size: 11px;
+  text-decoration: underline;
+  padding: 2px 0;
+}
+.adm-defense-variants-btn:hover{
+  color: rgba(255,255,255,.7);
+}
+.adm-defense-variants{
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(255,255,255,.5);
+}
+.adm-defense-variant.is-active{
+  color: #fff;
+  font-weight: 700;
+}
+.adm-defense-stress{
+  text-align: center;
+  font-size: 13px;
+  color: #e06cd4;
+}
+.adm-defense-armor-row{
+  display: flex;
+  justify-content: center;
+}
+.adm-defense-armor-btn{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,0,0,.28);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 10px;
+  padding: 6px 16px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.adm-defense-armor-btn:hover:not(:disabled){
+  background: rgba(255,255,255,.08);
+}
+.adm-defense-armor-btn.is-active{
+  background: rgba(40,120,40,.45);
+  border-color: rgba(80,200,80,.5);
+}
+.adm-defense-armor-btn:disabled{
+  opacity: .35;
+  cursor: not-allowed;
+}
+.adm-defense-options{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.adm-defense-opt{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.adm-defense-opt input[type="checkbox"]{
+  accent-color: #5a5;
+}
+.adm-defense-statuses{
+  font-size: 12px;
+  color: rgba(255,255,255,.45);
+}
+.adm-defense-statuses-label{
+  display: block;
+  margin-bottom: 2px;
+}
+.adm-defense-submit{
+  background: rgba(140,30,30,.55);
+  border: 1px solid rgba(255,255,255,.18);
+  padding: 10px 22px;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: background .15s;
+}
+.adm-defense-submit:hover{
+  background: rgba(180,40,40,.65);
 }

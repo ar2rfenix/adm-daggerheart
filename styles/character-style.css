@@ -157,6 +157,12 @@
 span.adm-ico {
   width: 12px;
 }
+span.adm-ico.adm-ico--clickable {
+  cursor: pointer;
+}
+span.adm-ico.adm-ico--clickable:hover {
+  color: #5af;
+}
 
 .adm-sep {
   opacity: 0.7;

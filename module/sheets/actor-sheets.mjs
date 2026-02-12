@@ -3,6 +3,7 @@ import { admSyncItemStatusMods, admEvalStatusValue } from "../status/status-modi
 import { admApplyTextReplacements } from "../text/adm-text-hooks.mjs";
 import { admLabelForPath } from "../status/adm-terms.mjs";
 import { admBuildEnemyAbilitiesVM, admNpcHandleDrop } from "./npc-sheet.mjs";
+import { admOpenDefenseDialog } from "../../scripts/damage-apply.mjs";
 import { admPostCurrencyClicksSummary, admPostItemToChat } from "../../scripts/messages.mjs";
 import { admToggleTokenRing } from "../../scripts/rings.mjs";
 import { admOpenPcRollDialog, admOpenNpcRollDialog } from "../roll/roll.mjs";
@@ -3167,6 +3168,13 @@ queueSave(p, v);
       ev.preventDefault();
       applyDelta(-1);
     });
+  });
+
+  // Armor icon → open defense dialog
+  html.querySelector("[data-adm-open-defense]")?.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    admOpenDefenseDialog(this.actor, { dmg: 0, damageType: "physical", stress: 0 });
   });
 
   // Add experience

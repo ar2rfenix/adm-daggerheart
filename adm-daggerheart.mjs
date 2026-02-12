@@ -63,6 +63,7 @@ Hooks.once("init", async () => {
 	"systems/adm-daggerheart/templates/partials/result-pc.hbs",
   "systems/adm-daggerheart/templates/partials/result-npc.hbs",
   "systems/adm-daggerheart/templates/partials/result-damage.hbs",
+  "systems/adm-daggerheart/templates/partials/defense-dialog.hbs",
 
 
   ]);

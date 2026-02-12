@@ -1,6 +1,8 @@
 // systems/adm-daggerheart/scripts/damage-helper.mjs
 // Логика урона: бросок, переброс, добавление/удаление кубов, таргеты, устойчивость
 
+import { applyDamageFromMessage } from "./damage-apply.mjs";
+
 // -------------------------
 // Utils
 // -------------------------
@@ -1180,6 +1182,28 @@ export function admDamageInit() {
     const st = foundry.utils.duplicate(state);
     st.halfToMissed = !st.halfToMissed;
     await _rerenderDmgMessage(message, st);
+  }, true);
+
+  // --- Кнопка «Нанести урон» ---
+  document.addEventListener("click", async (ev) => {
+    const btn = ev.target?.closest?.(".adm-rollmsg--dmg [data-adm-dmg-apply]");
+    if (!btn) return;
+
+    if (btn.classList.contains("is-applied")) return;
+
+    const message = _findMessageFromEvent(ev);
+    if (!message) return;
+
+    const state = _getDmgFlagsState(message);
+    if (!state) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    btn.classList.add("is-applied");
+    btn.textContent = "Урон нанесён";
+
+    await applyDamageFromMessage(state);
   }, true);
 
   // --- Добавление новых таргетов (hook) ---
