@@ -72,7 +72,7 @@ function _resolveActor(tokenId, sceneId) {
 // -------------------------
 // NPC: apply wounds + stress
 // -------------------------
-async function applyDamageToNpc(actor, dmg, stress) {
+async function applyDamageToNpc(actor, dmg, stress, tokenId, sceneId) {
   const sys = actor?.system;
   if (!sys) return null;
 
@@ -101,7 +101,7 @@ async function applyDamageToNpc(actor, dmg, stress) {
   }
 
   console.log(`[ADM] NPC "${actor.name}": +${wounds} wounds, +${stress} stress (dmg=${dmg})`);
-  return { actorId: actor.id, hpDelta, stressDelta, armorDelta: 0 };
+  return { actorId: actor.id, tokenId: tokenId || null, sceneId: sceneId || null, hpDelta, stressDelta, armorDelta: 0 };
 }
 
 // ═══════════════════════════════════════════
@@ -135,12 +135,14 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
     return "systems/adm-daggerheart/templates/partials/defense-dialog.hbs";
   }
 
-  constructor(actor, { dmg, damageType, stress } = {}, opts = {}) {
+  constructor(actor, { dmg, damageType, stress, tokenId, sceneId } = {}, opts = {}) {
     super(opts);
     this.actor = actor;
     this._dmg = Math.max(0, Math.trunc(Number(dmg) || 0));
     this._damageType = String(damageType || "physical");
     this._stress = Math.max(0, Math.trunc(Number(stress) || 0));
+    this._tokenId = tokenId || null;
+    this._sceneId = sceneId || null;
 
     // State
     this._armorUsed = 0;        // сколько раз использовали броню
@@ -379,7 +381,7 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
     }
 
     // Record for undo
-    const entry = { actorId: actor.id, hpDelta, stressDelta, armorDelta };
+    const entry = { actorId: actor.id, tokenId: this._tokenId, sceneId: this._sceneId, hpDelta, stressDelta, armorDelta };
     if (this._undoBatchRef) {
       this._undoBatchRef.entries.push(entry);
     } else {
@@ -403,8 +405,8 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
 // ═══════════════════════════════════════════
 // Public: open defense dialog for a PC
 // ═══════════════════════════════════════════
-export function openDefenseDialog(actor, { dmg, damageType, stress } = {}, undoBatch = null) {
-  const app = new ADMDefenseDialog(actor, { dmg, damageType, stress });
+export function openDefenseDialog(actor, { dmg, damageType, stress, tokenId, sceneId } = {}, undoBatch = null) {
+  const app = new ADMDefenseDialog(actor, { dmg, damageType, stress, tokenId, sceneId });
   if (undoBatch) app._undoBatchRef = undoBatch;
   if (hasV2) app.render({ force: true });
   else app.render(true);
@@ -441,11 +443,11 @@ export async function applyDamageFromMessage(state, messageId) {
     }
 
     if (actor.type === "npc") {
-      const entry = await applyDamageToNpc(actor, dmg, stress);
+      const entry = await applyDamageToNpc(actor, dmg, stress, t.tokenId, t.sceneId);
       if (entry) batch.entries.push(entry);
     } else {
       // PC — диалог; передаём ссылку на batch, чтобы записать туда при коммите
-      openDefenseDialog(actor, { dmg, damageType, stress }, batch);
+      openDefenseDialog(actor, { dmg, damageType, stress, tokenId: t.tokenId, sceneId: t.sceneId }, batch);
     }
   }
 
@@ -464,7 +466,8 @@ export async function undoLastDamage() {
   const batch = _undoStack.pop();
 
   for (const entry of batch.entries) {
-    const actor = game.actors?.get(entry.actorId);
+    const actor = (entry.tokenId ? _resolveActor(entry.tokenId, entry.sceneId) : null)
+                  ?? game.actors?.get(entry.actorId);
     if (!actor) continue;
 
     const sys = actor.system;
