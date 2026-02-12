@@ -508,6 +508,7 @@ position: absolute;
 .adm-rollmsg--pc .adm-rollmsg-die--fear{ --adm-die-color: #896dd3; }
 .adm-rollmsg--pc .adm-rollmsg-die--edge{ --adm-die-color: #71ac2d; }
 .adm-rollmsg--pc .adm-rollmsg-die--edge.is-adv{ --adm-die-color: #71ac2d; }
+.adm-rollmsg--pc .adm-rollmsg-die--edge.is-neg{ --adm-die-color: #ac2d30; }
 
 /* d8 кнопка ± */
 .adm-rollmsg--pc .adm-rollmsg-modbtn{
