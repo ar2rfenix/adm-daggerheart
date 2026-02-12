@@ -367,6 +367,22 @@ class ADMStatusDialog extends Dialog {
       x.closest(".adm-status-mod-row")?.remove();
     });
 
+    // Mutual exclusivity for advantage modifier checkboxes (Реакция / Атака)
+    modsWrap?.addEventListener("change", (ev) => {
+      const cb = ev.target;
+      if (!cb || cb.type !== "checkbox") return;
+      const row = cb.closest?.('[data-mod-type="advantage"]');
+      if (!row) return;
+      const name = cb.name;
+      if (name === "modCtxReaction" && cb.checked) {
+        const other = row.querySelector('[name="modCtxAttack"]');
+        if (other) other.checked = false;
+      } else if (name === "modCtxAttack" && cb.checked) {
+        const other = row.querySelector('[name="modCtxReaction"]');
+        if (other) other.checked = false;
+      }
+    });
+
     addSelect?.addEventListener("change", (ev) => {
       ev.preventDefault();
       ev.stopPropagation();

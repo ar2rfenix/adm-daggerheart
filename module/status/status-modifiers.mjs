@@ -9,6 +9,7 @@ import { admOpenPcRollDialog, admOpenNpcRollDialog } from "../roll/roll.mjs";
 import "./modifiers/attribute_change.mjs";
 import "./modifiers/instant_attribute.mjs";
 import "./modifiers/resilience.mjs";
+import "./modifiers/advantage.mjs";
 
 const FLAG_SCOPE = "adm-daggerheart";
 

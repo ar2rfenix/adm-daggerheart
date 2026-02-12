@@ -23,8 +23,8 @@ export const resilienceModifier = {
   type: "resilience",
   label: "Устойчивость",
   kind: "persistent",
-  formatValue(value) {
-    const v = String(value ?? "").trim();
+  formatValue(mod) {
+    const v = String(mod?.value ?? mod ?? "").trim();
     const hit = OPTIONS.find(o => o.value === v);
     return hit ? hit.label : v;
   },

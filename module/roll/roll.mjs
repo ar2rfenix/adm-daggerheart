@@ -1,6 +1,7 @@
 // systems/adm-daggerheart/module/roll/roll.mjs
 // UI-окна бросков (только окно + выбор атрибута, без механики броска)
 import { admPcRollToChat, admNpcRollToChat } from "../../scripts/roll-helper.mjs";
+import { computeEdgeForRoll } from "../status/modifiers/advantage.mjs";
 
 // =========================
 // Utils
@@ -196,6 +197,20 @@ class ADMRollPCDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Base
 
     this._admGlobalHandlers = null;
     this._admBound = false;
+
+    // Edge from statuses (advantage/disadvantage)
+    this._admStatusEdge = { advDelta: 0, disDelta: 0, labels: [] };
+    this._recomputeStatusEdge();
+  }
+
+  _recomputeStatusEdge() {
+    const isAttack = !!(this._admState.weaponUuid || this._admState.weaponName);
+    this._admStatusEdge = computeEdgeForRoll(
+      this.actor,
+      this._admState.trait,
+      this._admState.isReaction,
+      isAttack,
+    );
   }
 
   async _prepareContext() {
@@ -219,6 +234,7 @@ class ADMRollPCDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Base
     out.disDieSrc = _dieSvgSrcDefault(6);
 
     out.experiences = this._admState.experiences;
+    out.statusEdgeLabels = this._admStatusEdge.labels;
     return out;
   }
 
@@ -243,6 +259,7 @@ class ADMRollPCDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Base
     out.disDieSrc = _dieSvgSrcDefault(6);
 
     out.experiences = this._admState.experiences;
+    out.statusEdgeLabels = this._admStatusEdge.labels;
     return out;
   }
 
@@ -563,6 +580,21 @@ class ADMRollPCDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Base
     this._admState.trait = String(trait).trim().toLowerCase();
     this._admState.isReaction = isReaction;
     this._admState.mod = mod;
+
+    // Recompute status edge on trait/reaction change
+    this._recomputeStatusEdge();
+    this._updateStatusEdgeUI();
+  }
+
+  _updateStatusEdgeUI() {
+    const root = this.element;
+    if (!root) return;
+    const wrap = root.querySelector("[data-adm-status-edge-list]");
+    if (!wrap) return;
+    const labels = this._admStatusEdge.labels;
+    wrap.innerHTML = labels.length
+      ? labels.map(l => `<div>${l}</div>`).join("")
+      : `<div style="opacity:.75;">—</div>`;
   }
 
   async _onAction(ev) {
@@ -579,10 +611,12 @@ const act = String(btn?.dataset?.admAction || "");
 if (act === "roll") {
   this._admCommit = true;
 
-  // NEW: бросок + чат
-  // В state уже есть: trait, hopeDie, fearDie, mod, adv, dis, experiences
-  // weaponName придёт через opts (см. правку ниже в constructor)
-  await admPcRollToChat(this.actor, this._admState);
+  // Inject status edge into adv/dis
+  const rollState = { ...this._admState };
+  rollState.adv = (rollState.adv || 0) + (this._admStatusEdge.advDelta || 0);
+  rollState.dis = (rollState.dis || 0) + (this._admStatusEdge.disDelta || 0);
+
+  await admPcRollToChat(this.actor, rollState);
 
   return void this.close();
 }
@@ -662,6 +696,21 @@ this._admState = {
     this._admFearSpent = 0;
 
     this._admBound = false;
+
+    // Edge from statuses
+    this._admStatusEdge = { advDelta: 0, disDelta: 0, labels: [] };
+    this._recomputeStatusEdge();
+  }
+
+  _recomputeStatusEdge() {
+    const isAttack = !!(this._admState.weaponDamageFormula || this._admState.weaponName);
+    // NPC: no trait filtering, pass "all"
+    this._admStatusEdge = computeEdgeForRoll(
+      this.actor,
+      "all",
+      this._admState.isReaction,
+      isAttack,
+    );
   }
 
   async _prepareContext() {
@@ -674,6 +723,10 @@ this._admState = {
 
     out.expMod = this._sumActiveExp();
     out.totalMod = (Number(this._admState.attackMod) || 0) + out.expMod;
+
+    out.statusEdgeLabels = this._admStatusEdge.labels;
+    // Net edge for NPC: determines default mode
+    out.npcNetEdge = (this._admStatusEdge.advDelta || 0) - (this._admStatusEdge.disDelta || 0);
 
     return out;
   }
@@ -688,6 +741,9 @@ this._admState = {
 
     out.expMod = this._sumActiveExp();
     out.totalMod = (Number(this._admState.attackMod) || 0) + out.expMod;
+
+    out.statusEdgeLabels = this._admStatusEdge.labels;
+    out.npcNetEdge = (this._admStatusEdge.advDelta || 0) - (this._admStatusEdge.disDelta || 0);
 
     return out;
   }
@@ -821,6 +877,14 @@ root.querySelectorAll('[data-adm-action="roll"]').forEach((btn) => {
 let mode = String(btn.dataset.admRollMode || "normal").toLowerCase();
 if (mode === "adv") mode = "advantage";
 if (mode === "dis") mode = "disadvantage";
+
+// Apply status edge to NPC roll mode
+const netEdge = (this._admStatusEdge.advDelta || 0) - (this._admStatusEdge.disDelta || 0);
+if (netEdge > 0 && mode === "normal") mode = "advantage";
+else if (netEdge > 0 && mode === "disadvantage") mode = "normal";
+else if (netEdge < 0 && mode === "normal") mode = "disadvantage";
+else if (netEdge < 0 && mode === "advantage") mode = "normal";
+
 await admNpcRollToChat(this.actor, this._admState, mode);
 
 
