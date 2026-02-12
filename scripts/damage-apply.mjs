@@ -1,5 +1,5 @@
 // scripts/damage-apply.mjs
-// Нанесение урона: расчёт ран по порогам, NPC авто-нанесение, диалог защиты PC
+// Нанесение урона: расчёт ран по порогам, NPC авто-нанесение, диалог защиты PC, undo
 
 // -------------------------
 // Compat
@@ -7,6 +7,12 @@
 const hasV2 = !!foundry?.applications?.api?.ApplicationV2;
 const HandlebarsMixin = foundry?.applications?.api?.HandlebarsApplicationMixin;
 const BaseApp = hasV2 ? foundry.applications.api.ApplicationV2 : Application;
+
+// -------------------------
+// Undo stack
+// Каждый элемент = { messageId, entries: [{ actorId, hpDelta, stressDelta, armorDelta }] }
+// -------------------------
+const _undoStack = [];
 
 // -------------------------
 // Damage type short label
@@ -68,7 +74,7 @@ function _resolveActor(tokenId, sceneId) {
 // -------------------------
 async function applyDamageToNpc(actor, dmg, stress) {
   const sys = actor?.system;
-  if (!sys) return;
+  if (!sys) return null;
 
   const noticeable = sys.damageThresholds?.noticeable ?? 1;
   const heavy = sys.damageThresholds?.heavy ?? 1;
@@ -76,13 +82,16 @@ async function applyDamageToNpc(actor, dmg, stress) {
   const { wounds } = calcWounds(dmg, noticeable, heavy);
 
   const updates = {};
+  let hpDelta = 0, stressDelta = 0;
 
   if (wounds > 0) {
+    hpDelta = wounds;
     const curHp = Number(sys.resources?.hp?.value ?? 0);
     updates["system.resources.hp.value"] = curHp + wounds;
   }
 
   if (stress > 0) {
+    stressDelta = stress;
     const curStress = Number(sys.resources?.stress?.value ?? 0);
     updates["system.resources.stress.value"] = curStress + stress;
   }
@@ -92,6 +101,7 @@ async function applyDamageToNpc(actor, dmg, stress) {
   }
 
   console.log(`[ADM] NPC "${actor.name}": +${wounds} wounds, +${stress} stress (dmg=${dmg})`);
+  return { actorId: actor.id, hpDelta, stressDelta, armorDelta: 0 };
 }
 
 // ═══════════════════════════════════════════
@@ -340,21 +350,25 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
 
     const wounds = this._currentWounds;
     const updates = {};
+    let hpDelta = 0, stressDelta = 0, armorDelta = 0;
 
     // Wounds (hp)
     if (wounds > 0) {
+      hpDelta = wounds;
       const curHp = Number(sys.resources?.hp?.value ?? 0);
       updates["system.resources.hp.value"] = curHp + wounds;
     }
 
     // Stress
     if (this._stress > 0) {
+      stressDelta = this._stress;
       const curStress = Number(sys.resources?.stress?.value ?? 0);
       updates["system.resources.stress.value"] = curStress + this._stress;
     }
 
     // Spend armor (increment value toward max)
     if (this._armorUsed > 0) {
+      armorDelta = this._armorUsed;
       const curArmor = Number(sys.resources?.armor?.value ?? 0);
       const maxArmor = Number(sys.resources?.armor?.max ?? 0);
       updates["system.resources.armor.value"] = Math.min(maxArmor, curArmor + this._armorUsed);
@@ -362,6 +376,14 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
 
     if (Object.keys(updates).length) {
       await actor.update(updates);
+    }
+
+    // Record for undo
+    const entry = { actorId: actor.id, hpDelta, stressDelta, armorDelta };
+    if (this._undoBatchRef) {
+      this._undoBatchRef.entries.push(entry);
+    } else {
+      _undoStack.push({ messageId: null, entries: [entry] });
     }
 
     console.log(`[ADM] PC "${actor.name}": +${wounds} wounds, +${this._stress} stress, +${this._armorUsed} armor used`);
@@ -381,8 +403,9 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
 // ═══════════════════════════════════════════
 // Public: open defense dialog for a PC
 // ═══════════════════════════════════════════
-export function openDefenseDialog(actor, { dmg, damageType, stress } = {}) {
+export function openDefenseDialog(actor, { dmg, damageType, stress } = {}, undoBatch = null) {
   const app = new ADMDefenseDialog(actor, { dmg, damageType, stress });
+  if (undoBatch) app._undoBatchRef = undoBatch;
   if (hasV2) app.render({ force: true });
   else app.render(true);
   return app;
@@ -391,7 +414,7 @@ export function openDefenseDialog(actor, { dmg, damageType, stress } = {}) {
 // ═══════════════════════════════════════════
 // Public: apply damage to all targets in a message
 // ═══════════════════════════════════════════
-export async function applyDamageFromMessage(state) {
+export async function applyDamageFromMessage(state, messageId) {
   if (!state) return;
 
   const allTargets = [
@@ -400,6 +423,9 @@ export async function applyDamageFromMessage(state) {
   ];
 
   const damageType = String(state.damageType || "physical");
+
+  // Create undo batch for this entire "Нанести урон" click
+  const batch = { messageId: messageId || null, entries: [] };
 
   for (const t of allTargets) {
     if (t.excluded) continue;
@@ -414,14 +440,58 @@ export async function applyDamageFromMessage(state) {
       continue;
     }
 
-    const isNpc = actor.type === "npc";
-
-    if (isNpc) {
-      await applyDamageToNpc(actor, dmg, stress);
+    if (actor.type === "npc") {
+      const entry = await applyDamageToNpc(actor, dmg, stress);
+      if (entry) batch.entries.push(entry);
     } else {
-      openDefenseDialog(actor, { dmg, damageType, stress });
+      // PC — диалог; передаём ссылку на batch, чтобы записать туда при коммите
+      openDefenseDialog(actor, { dmg, damageType, stress }, batch);
     }
   }
+
+  _undoStack.push(batch);
+}
+
+// ═══════════════════════════════════════════
+// Public: undo last damage application
+// ═══════════════════════════════════════════
+export async function undoLastDamage() {
+  if (!_undoStack.length) {
+    console.log("[ADM] Undo: nothing to undo");
+    return null;
+  }
+
+  const batch = _undoStack.pop();
+
+  for (const entry of batch.entries) {
+    const actor = game.actors?.get(entry.actorId);
+    if (!actor) continue;
+
+    const sys = actor.system;
+    const updates = {};
+
+    if (entry.hpDelta) {
+      const cur = Number(sys?.resources?.hp?.value ?? 0);
+      updates["system.resources.hp.value"] = Math.max(0, cur - entry.hpDelta);
+    }
+
+    if (entry.stressDelta) {
+      const cur = Number(sys?.resources?.stress?.value ?? 0);
+      updates["system.resources.stress.value"] = Math.max(0, cur - entry.stressDelta);
+    }
+
+    if (entry.armorDelta) {
+      const cur = Number(sys?.resources?.armor?.value ?? 0);
+      updates["system.resources.armor.value"] = Math.max(0, cur - entry.armorDelta);
+    }
+
+    if (Object.keys(updates).length) {
+      await actor.update(updates);
+      console.log(`[ADM] Undo: ${actor.name} hp-${entry.hpDelta} stress-${entry.stressDelta} armor-${entry.armorDelta}`);
+    }
+  }
+
+  return batch.messageId;
 }
 
 // ═══════════════════════════════════════════

@@ -1,7 +1,7 @@
 // systems/adm-daggerheart/scripts/damage-helper.mjs
 // Логика урона: бросок, переброс, добавление/удаление кубов, таргеты, устойчивость
 
-import { applyDamageFromMessage } from "./damage-apply.mjs";
+import { applyDamageFromMessage, undoLastDamage } from "./damage-apply.mjs";
 
 // -------------------------
 // Utils
@@ -1203,7 +1203,33 @@ export function admDamageInit() {
     btn.classList.add("is-applied");
     btn.textContent = "Урон нанесён";
 
-    await applyDamageFromMessage(state);
+    await applyDamageFromMessage(state, message.id);
+  }, true);
+
+  // --- Ctrl+Z — отмена последнего нанесённого урона ---
+  document.addEventListener("keydown", async (ev) => {
+    if (!(ev.ctrlKey || ev.metaKey) || ev.key !== "z") return;
+
+    // Не перехватываем в полях ввода
+    if (ev.target?.closest?.("input,textarea,select,[contenteditable='true']")) return;
+
+    const messageId = await undoLastDamage();
+    if (messageId == null) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    // Реактивируем кнопку «Нанести урон» в сообщении
+    if (messageId) {
+      const msgEl = document.querySelector(`.chat-message[data-message-id="${messageId}"]`);
+      const btn = msgEl?.querySelector("[data-adm-dmg-apply]");
+      if (btn) {
+        btn.classList.remove("is-applied");
+        btn.textContent = "Нанести урон";
+      }
+    }
+
+    console.log("[ADM] Damage undone for message:", messageId);
   }, true);
 
   // --- Добавление новых таргетов (hook) ---
