@@ -130,9 +130,29 @@ async function giveSpotlightToToken(combat, token) {
   const idx = combat.turns.indexOf(combatant);
   if (idx < 0) return;
 
+  // Снимаем таргет со всех целей у всех пользователей
+  clearAllTargets();
+
   await combat.update({ turn: idx });
   ui.combat?.render?.();
   console.log("[ADM] Spotlight ->", combatant.name);
+}
+
+function clearAllTargets() {
+  // Снимаем собственные таргеты
+  for (const t of game.user.targets) {
+    t.setTarget(false, { releaseOthers: false, groupSelection: false });
+  }
+
+  // Снимаем таргеты у всех токенов на канвасе (visual clear)
+  for (const t of canvas?.tokens?.placeables ?? []) {
+    if (t.targeted?.size) {
+      t.targeted.clear();
+      t.renderFlags?.set?.({ refreshTarget: true });
+    }
+  }
+
+  console.log("[ADM] All targets cleared");
 }
 
 async function clearMovementHistoriesSafe(combat) {
