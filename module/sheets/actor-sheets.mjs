@@ -7,6 +7,7 @@ import { admOpenDefenseDialog } from "../../scripts/damage-apply.mjs";
 import { admPostCurrencyClicksSummary, admPostItemToChat } from "../../scripts/messages.mjs";
 import { admToggleTokenRing } from "../../scripts/rings.mjs";
 import { admOpenPcRollDialog, admOpenNpcRollDialog } from "../roll/roll.mjs";
+import { admDamageRollToChat } from "../../scripts/damage-helper.mjs";
 import { getModifier } from "../status/modifiers/registry.mjs";
 
 globalThis.admApplyTextReplacements = admApplyTextReplacements;
@@ -391,6 +392,38 @@ function _admOpenWeaponAttackDialog(sheet, itemId, ev) {
     weaponDamageFormula,
     weaponDamageType,
   });
+}
+
+// -------------------------
+// Gather current user targets for damage roll
+// -------------------------
+function _gatherCurrentTargets() {
+  const targets = [];
+  const set = game?.user?.targets;
+  if (!set) return targets;
+  for (const token of set) {
+    targets.push({
+      tokenId: token.document?.id || token.id,
+      sceneId: token.document?.parent?.id || canvas?.scene?.id,
+      name: token.name || token.document?.name || "?",
+      ok: true,
+    });
+  }
+  return targets;
+}
+
+// -------------------------
+// Apply mastery to weapon damage formula (d6 → Nd6 where N = mastery)
+// -------------------------
+function _applyMastery(formula, actor) {
+  const raw = String(formula || "").trim();
+  if (!raw) return raw;
+  const mastery = Math.max(0, Math.trunc(Number(actor?.system?.mastery ?? 0) || 0));
+  if (mastery <= 0) return raw;
+  let s = raw;
+  s = s.replace(/^\s*d(\d+)/i, `${mastery}d$1`);
+  s = s.replace(/^\s*1d(\d+)/i, `${mastery}d$1`);
+  return s.trim();
 }
 
 
@@ -2521,6 +2554,48 @@ if (weaponClick) {
   ev.stopPropagation();
 
   _admOpenWeaponAttackDialog(this, itemId, ev);
+  return;
+}
+
+// 4) NPC: клик по урону → бросок урона
+const npcDmgEl = t?.closest?.("[data-adm-npc-dmg-roll]");
+if (npcDmgEl) {
+  if (this._admEditMode) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+
+  const formula = String(npcDmgEl.dataset.dmgFormula || "").trim();
+  const dmgType = String(npcDmgEl.dataset.dmgType || "physical").trim();
+  if (!formula) return;
+
+  const targets = _gatherCurrentTargets();
+  admDamageRollToChat(formula, dmgType, targets, false);
+  return;
+}
+
+// 5) PC weapon: клик по урону → бросок урона с мастерством
+const weaponDmgEl = t?.closest?.("[data-adm-weapon-dmg-roll]");
+if (weaponDmgEl) {
+  if (this._admEditMode) return;
+  ev.preventDefault();
+  ev.stopPropagation();
+
+  const card = weaponDmgEl.closest?.(".adm-inv-card");
+  const itemId = String(weaponDmgEl.dataset.itemId || card?.dataset?.itemId || "").trim();
+  if (!itemId) return;
+
+  const item = this.actor?.items?.get?.(itemId);
+  if (!item) return;
+
+  const sys = item.system ?? {};
+  const rawFormula = String(sys.damage ?? sys.damageFormula ?? "").trim();
+  if (!rawFormula) return;
+
+  const formula = _applyMastery(rawFormula, this.actor);
+  const dmgType = String(sys.damageType ?? sys.damageKind ?? "physical").trim();
+
+  const targets = _gatherCurrentTargets();
+  admDamageRollToChat(formula, dmgType, targets, false);
   return;
 }
 
