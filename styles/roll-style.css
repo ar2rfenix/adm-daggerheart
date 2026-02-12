@@ -1049,6 +1049,25 @@ position: absolute;
   cursor: default;
   pointer-events: none;
 }
+.adm-dmg-undo-btn{
+  background: rgba(80,80,80,.3);
+  border: 1px solid rgba(255,255,255,.12);
+  padding: 5px 16px;
+  border-radius: 4px;
+  display: block;
+  width: fit-content;
+  margin: 4px auto 0;
+  color: rgba(255,255,255,.5);
+  font-weight: 600;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: center;
+  transition: background .15s, color .15s;
+}
+.adm-dmg-undo-btn:hover{
+  background: rgba(120,60,30,.5);
+  color: rgba(255,255,255,.8);
+}
 
 /* Damage message: mod wrap layout */
 .adm-rollmsg--dmg .adm-rollmsg-row{

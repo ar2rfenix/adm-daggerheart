@@ -1203,31 +1203,30 @@ export function admDamageInit() {
     btn.classList.add("is-applied");
     btn.textContent = "Урон нанесён";
 
+    // Показываем кнопку отмены
+    const undoBtn = btn.parentElement?.querySelector("[data-adm-dmg-undo]");
+    if (undoBtn) undoBtn.style.display = "";
+
     await applyDamageFromMessage(state, message.id);
   }, true);
 
-  // --- Ctrl+Z — отмена последнего нанесённого урона ---
-  document.addEventListener("keydown", async (ev) => {
-    if (!(ev.ctrlKey || ev.metaKey) || ev.key !== "z") return;
-
-    // Не перехватываем в полях ввода
-    if (ev.target?.closest?.("input,textarea,select,[contenteditable='true']")) return;
-
-    const messageId = await undoLastDamage();
-    if (messageId == null) return;
+  // --- Кнопка «Отменить урон» ---
+  document.addEventListener("click", async (ev) => {
+    const btn = ev.target?.closest?.(".adm-rollmsg--dmg [data-adm-dmg-undo]");
+    if (!btn) return;
 
     ev.preventDefault();
     ev.stopPropagation();
 
-    // Реактивируем кнопку «Нанести урон» в сообщении
-    if (messageId) {
-      const msgEl = document.querySelector(`.chat-message[data-message-id="${messageId}"]`);
-      const btn = msgEl?.querySelector("[data-adm-dmg-apply]");
-      if (btn) {
-        btn.classList.remove("is-applied");
-        btn.textContent = "Нанести урон";
-      }
+    const messageId = await undoLastDamage();
+
+    // Реактивируем кнопку «Нанести урон» и скрываем отмену
+    const applyBtn = btn.parentElement?.querySelector("[data-adm-dmg-apply]");
+    if (applyBtn) {
+      applyBtn.classList.remove("is-applied");
+      applyBtn.textContent = "Нанести урон";
     }
+    btn.style.display = "none";
 
     console.log("[ADM] Damage undone for message:", messageId);
   }, true);
