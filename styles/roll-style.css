@@ -1096,39 +1096,40 @@ position: absolute;
   gap: 10px;
   padding: 14px;
   color: #e9e9ee;
+  min-width: 300px;
 }
 .adm-defense-header{
   text-align: center;
   font-size: 16px;
   font-weight: 900;
 }
+/* Editable damage: looks like text */
+.adm-defense-dmg-input{
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 900;
+  width: 3ch;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+  outline: none;
+}
+.adm-defense-dmg-input:hover{
+  border-bottom-color: rgba(255,255,255,.3);
+}
+.adm-defense-dmg-input:focus{
+  border-bottom-color: rgba(255,255,255,.6);
+}
 .adm-defense-assess{
   text-align: center;
   font-size: 13px;
   line-height: 1.4;
+  min-height: 1.4em;
 }
 .adm-defense-severity{
-  font-weight: 700;
-}
-.adm-defense-variants-btn{
-  background: none;
-  border: none;
-  color: rgba(255,255,255,.45);
-  cursor: pointer;
-  font-size: 11px;
-  text-decoration: underline;
-  padding: 2px 0;
-}
-.adm-defense-variants-btn:hover{
-  color: rgba(255,255,255,.7);
-}
-.adm-defense-variants{
-  margin-top: 4px;
-  font-size: 12px;
-  color: rgba(255,255,255,.5);
-}
-.adm-defense-variant.is-active{
-  color: #fff;
   font-weight: 700;
 }
 .adm-defense-stress{
@@ -1170,15 +1171,19 @@ position: absolute;
   flex-direction: column;
   gap: 6px;
 }
-.adm-defense-opt{
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.adm-defense-opt-btn{
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: rgba(255,255,255,.8);
   font-size: 13px;
   cursor: pointer;
+  text-align: left;
+  transition: background .15s;
 }
-.adm-defense-opt input[type="checkbox"]{
-  accent-color: #5a5;
+.adm-defense-opt-btn:hover{
+  background: rgba(255,255,255,.08);
 }
 .adm-defense-statuses{
   font-size: 12px;

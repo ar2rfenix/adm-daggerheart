@@ -35,10 +35,10 @@ function calcWounds(dmg, noticeable, heavy) {
 
 function severityRu(sev) {
   if (sev === "none")       return "Вы не получите ран";
-  if (sev === "minor")      return "Незначительный урон";
+  if (sev === "minor")      return "Низкий урон";
   if (sev === "noticeable") return "Ощутимый урон";
   if (sev === "heavy")      return "Тяжёлый урон";
-  if (sev === "critical")   return "Критический урон";
+  if (sev === "critical")   return "Колоссальный урон";
   return sev;
 }
 
@@ -47,21 +47,6 @@ function woundsRu(n) {
   if (n === 1) return "1 рану";
   if (n >= 2 && n <= 4) return `${n} раны`;
   return `${n} ран`;
-}
-
-function allSeverities(dmg, noticeable, heavy) {
-  const n = Math.max(1, Math.trunc(Number(noticeable) || 1));
-  const h = Math.max(1, Math.trunc(Number(heavy) || 1));
-  const current = calcWounds(dmg, n, h);
-  const list = [
-    { severity: "none",       wounds: 0, label: severityRu("none"),       woundsLabel: woundsRu(0) },
-    { severity: "minor",      wounds: 1, label: severityRu("minor"),      woundsLabel: woundsRu(1) },
-    { severity: "noticeable", wounds: 2, label: severityRu("noticeable"), woundsLabel: woundsRu(2) },
-    { severity: "heavy",      wounds: 3, label: severityRu("heavy"),      woundsLabel: woundsRu(3) },
-    { severity: "critical",   wounds: 4, label: severityRu("critical"),   woundsLabel: woundsRu(4) },
-  ];
-  for (const s of list) s.active = s.severity === current.severity;
-  return list;
 }
 
 // -------------------------
@@ -148,31 +133,43 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
     this._stress = Math.max(0, Math.trunc(Number(stress) || 0));
 
     // State
-    this._armorUsed = 0;       // сколько раз нажали кнопку брони (0, 1 или 2)
-    this._cancelWound = false;  // отменить 1 рану
-    this._extraArmor = false;   // позволить доп. трату брони
+    this._armorUsed = 0;        // сколько раз использовали броню
+    this._cancelWoundCount = 0; // сколько раз нажали «Отменить 1 рану»
+    this._extraArmorCount = 0;  // сколько раз нажали «Позволить трату доп. брони»
 
-    this._committed = false;    // true = нажали "получить"
+    this._committed = false;
     this._admBound = false;
   }
 
-  // --- Effective damage after armor ---
+  // --- Макс кликов брони: 1 базовый + extraArmorCount ---
+  get _maxArmorClicks() {
+    return 1 + this._extraArmorCount;
+  }
+
+  // --- Можно ли ещё нажать кнопку брони ---
+  get _canUseArmor() {
+    const sys = this.actor?.system;
+    const cur = Number(sys?.resources?.armor?.value ?? 0);
+    const max = Number(sys?.resources?.armor?.max ?? 0);
+    // Доступная броня = max - (cur + уже потрачено)
+    // cur — текущее значение, мы его увеличиваем при трате (cur → max)
+    const available = max - cur - this._armorUsed;
+    return available > 0 && this._armorUsed < this._maxArmorClicks;
+  }
+
+  // --- Effective damage after armor steps ---
   get _effectiveDmg() {
-    // Каждое нажатие брони снижает на 1 ступень (по сути на 1 порог вниз)
-    // Мы снижаем dmg до предыдущего порога
     const sys = this.actor?.system;
     const n = Math.max(1, sys?.damageThresholds?.noticeable ?? 1);
     const h = Math.max(1, sys?.damageThresholds?.heavy ?? 1);
 
     let dmg = this._dmg;
-    // Each armor use drops severity by 1 step
     for (let i = 0; i < this._armorUsed; i++) {
       const cur = calcWounds(dmg, n, h);
-      if (cur.severity === "critical")   dmg = h * 2 - 1;    // → heavy
-      else if (cur.severity === "heavy") dmg = h - 1;         // → noticeable
-      else if (cur.severity === "noticeable") dmg = n - 1;    // → minor
-      else if (cur.severity === "minor") dmg = 0;             // → none
-      // "none" stays none
+      if (cur.severity === "critical")   dmg = h * 2 - 1;
+      else if (cur.severity === "heavy") dmg = h - 1;
+      else if (cur.severity === "noticeable") dmg = n - 1;
+      else if (cur.severity === "minor") dmg = 0;
     }
     return dmg;
   }
@@ -182,22 +179,8 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
     const n = sys?.damageThresholds?.noticeable ?? 1;
     const h = sys?.damageThresholds?.heavy ?? 1;
     let { wounds } = calcWounds(this._effectiveDmg, n, h);
-    if (this._cancelWound) wounds = Math.max(0, wounds - 1);
+    wounds = Math.max(0, wounds - this._cancelWoundCount);
     return wounds;
-  }
-
-  get _canUseArmor() {
-    const sys = this.actor?.system;
-    const cur = Number(sys?.resources?.armor?.value ?? 0);
-    const max = Number(sys?.resources?.armor?.max ?? 0);
-    // Can use if current < max (armor has been spent, so max-cur = available uses? No:
-    // Actually armor.value IS current armor. We spend 1 armor per click.
-    // Can use if there's armor left after what we've already spent.
-    return (cur - this._armorUsed) > 0;
-  }
-
-  get _maxArmorClicks() {
-    return this._extraArmor ? 2 : 1;
   }
 
   // =========================
@@ -213,7 +196,7 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
 
     const armorVal = Number(sys?.resources?.armor?.value ?? 0);
     const armorMax = Number(sys?.resources?.armor?.max ?? 0);
-    const displayArmor = armorVal - this._armorUsed;
+    const displayArmor = armorVal + this._armorUsed;
 
     return {
       dmg: this._dmg,
@@ -221,11 +204,10 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
       severityLabel: severityRu(severity),
       woundsLabel: woundsRu(wounds),
       stress: this._stress,
-      armorValue: Math.max(0, displayArmor),
+      armorValue: Math.min(displayArmor, armorMax),
       armorMax,
       armorActive: this._armorUsed > 0,
-      canUseArmor: (displayArmor > 0) && (this._armorUsed < this._maxArmorClicks),
-      allSeverities: allSeverities(this._dmg, n, h),
+      canUseArmor: this._canUseArmor,
     };
   }
 
@@ -253,12 +235,16 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
 
     if (!root) return;
 
-    // --- Variants toggle ---
-    const variantsBtn = root.querySelector("[data-adm-defense-variants-btn]");
-    const variantsEl = root.querySelector("[data-adm-defense-variants]");
-    if (variantsBtn && variantsEl) {
-      variantsBtn.addEventListener("click", () => {
-        variantsEl.hidden = !variantsEl.hidden;
+    // --- Editable damage input ---
+    const dmgInput = root.querySelector("[data-adm-defense-dmg]");
+    if (dmgInput) {
+      dmgInput.addEventListener("input", () => {
+        const v = Math.max(0, Math.trunc(Number(dmgInput.value) || 0));
+        this._dmg = v;
+        this._refreshUI(root);
+      });
+      dmgInput.addEventListener("blur", () => {
+        dmgInput.value = this._dmg;
       });
     }
 
@@ -266,34 +252,29 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
     const armorBtn = root.querySelector("[data-adm-defense-armor]");
     if (armorBtn) {
       armorBtn.addEventListener("click", () => {
-        if (this._armorUsed < this._maxArmorClicks && this._canUseArmor) {
+        if (this._canUseArmor) {
           this._armorUsed++;
-        } else if (this._armorUsed > 0 && !this._extraArmor) {
-          // Toggle off
-          this._armorUsed = 0;
-        } else if (this._armorUsed > 0 && this._extraArmor) {
-          // If extra armor enabled and max reached, disable last one
+        } else if (this._armorUsed > 0) {
           this._armorUsed = Math.max(0, this._armorUsed - 1);
         }
         this._refreshUI(root);
       });
     }
 
-    // --- Cancel wound checkbox ---
-    const cancelCb = root.querySelector("[data-adm-defense-cancel-wound]");
-    if (cancelCb) {
-      cancelCb.addEventListener("change", () => {
-        this._cancelWound = cancelCb.checked;
+    // --- Cancel wound button (repeatable) ---
+    const cancelBtn = root.querySelector("[data-adm-defense-cancel-wound]");
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", () => {
+        this._cancelWoundCount++;
         this._refreshUI(root);
       });
     }
 
-    // --- Extra armor checkbox ---
-    const extraCb = root.querySelector("[data-adm-defense-extra-armor]");
-    if (extraCb) {
-      extraCb.addEventListener("change", () => {
-        this._extraArmor = extraCb.checked;
-        // Unlock armor button again if it was maxed out
+    // --- Extra armor button (repeatable) ---
+    const extraBtn = root.querySelector("[data-adm-defense-extra-armor]");
+    if (extraBtn) {
+      extraBtn.addEventListener("click", () => {
+        this._extraArmorCount++;
         this._refreshUI(root);
       });
     }
@@ -320,17 +301,12 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
     if (armorBtn) {
       armorBtn.classList.toggle("is-active", ctx.armorActive);
       armorBtn.disabled = !ctx.canUseArmor && this._armorUsed === 0;
-      // Re-enable if we can still toggle off
       if (this._armorUsed > 0) armorBtn.disabled = false;
     }
     const armorText = root.querySelector("[data-adm-defense-armor-text]");
     if (armorText) armorText.textContent = `${ctx.armorValue}/${ctx.armorMax}`;
 
     // Submit button
-    const submitText = root.querySelector("[data-adm-defense-submit-text]");
-    if (submitText) {
-      submitText.textContent = this._currentWounds > 0 ? woundsRu(this._currentWounds) : "";
-    }
     const submitBtn = root.querySelector("[data-adm-defense-submit]");
     if (submitBtn) {
       if (this._currentWounds <= 0) {
@@ -367,26 +343,26 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
       updates["system.resources.stress.value"] = curStress + this._stress;
     }
 
-    // Spend armor
+    // Spend armor (increment value toward max)
     if (this._armorUsed > 0) {
       const curArmor = Number(sys.resources?.armor?.value ?? 0);
-      updates["system.resources.armor.value"] = Math.max(0, curArmor - this._armorUsed);
+      const maxArmor = Number(sys.resources?.armor?.max ?? 0);
+      updates["system.resources.armor.value"] = Math.min(maxArmor, curArmor + this._armorUsed);
     }
 
     if (Object.keys(updates).length) {
       await actor.update(updates);
     }
 
-    console.log(`[ADM] PC "${actor.name}": +${wounds} wounds, +${this._stress} stress, -${this._armorUsed} armor`);
+    console.log(`[ADM] PC "${actor.name}": +${wounds} wounds, +${this._stress} stress, +${this._armorUsed} armor used`);
 
     await this.close();
   }
 
   // =========================
-  // Close: rollback armor if not committed
+  // Close
   // =========================
   async close(options = {}) {
-    // No rollback needed — armor is only spent on commit
     this._admBound = false;
     return super.close(options);
   }
@@ -433,7 +409,6 @@ export async function applyDamageFromMessage(state) {
     if (isNpc) {
       await applyDamageToNpc(actor, dmg, stress);
     } else {
-      // PC — открываем диалог защиты
       openDefenseDialog(actor, { dmg, damageType, stress });
     }
   }

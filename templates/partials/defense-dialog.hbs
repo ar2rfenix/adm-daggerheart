@@ -2,20 +2,14 @@
 
 <section class="adm-roll adm-defense" data-adm-defense>
 
-  {{!-- Заголовок: урон + тип --}}
+  {{!-- Заголовок: урон + тип (редактируемое число) --}}
   <div class="adm-defense-header">
-    <span class="adm-defense-total">{{dmg}} {{damageTypeLabel}} урона</span>
+    <span class="adm-defense-total"><input type="text" class="adm-defense-dmg-input" data-adm-defense-dmg value="{{dmg}}" inputmode="numeric" autocomplete="off" spellcheck="false"> {{damageTypeLabel}} урона</span>
   </div>
 
   {{!-- Оценка --}}
   <div class="adm-defense-assess" data-adm-defense-assess>
     <span class="adm-defense-severity" data-adm-defense-severity>{{severityLabel}}, вы получите {{woundsLabel}}.</span>
-    <button type="button" class="adm-defense-variants-btn" data-adm-defense-variants-btn>Прочие варианты</button>
-    <div class="adm-defense-variants" data-adm-defense-variants hidden>
-      {{#each allSeverities as |s|}}
-        <div class="adm-defense-variant {{#if s.active}}is-active{{/if}}">{{s.label}}, вы получите {{s.woundsLabel}}.</div>
-      {{/each}}
-    </div>
   </div>
 
   {{!-- Стресс --}}
@@ -33,16 +27,10 @@
     </button>
   </div>
 
-  {{!-- Опции --}}
+  {{!-- Опции (кнопки, могут нажиматься многократно) --}}
   <div class="adm-defense-options">
-    <label class="adm-defense-opt">
-      <input type="checkbox" data-adm-defense-cancel-wound>
-      <span>Отменить 1 рану</span>
-    </label>
-    <label class="adm-defense-opt">
-      <input type="checkbox" data-adm-defense-extra-armor>
-      <span>Позволить трату доп. брони</span>
-    </label>
+    <button type="button" class="adm-defense-opt-btn" data-adm-defense-cancel-wound>Отменить 1 рану</button>
+    <button type="button" class="adm-defense-opt-btn" data-adm-defense-extra-armor>Позволить трату доп. брони</button>
   </div>
 
   {{!-- Статусы (заглушка) --}}
