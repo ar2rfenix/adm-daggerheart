@@ -1282,7 +1282,7 @@ context.backpackDefaultTab =
           if (!modDef) continue;
           const rawValue = String(m.value ?? "").trim();
 const formatted = typeof modDef.formatValue === "function"
-  ? String(modDef.formatValue(m, { actor: this.actor }))
+  ? String(modDef.formatValue(m, { actor: this.actor, html: true }))
   : rawValue;
 if (formatted) otherMods.push({ label: formatted, value: "" });
         }
@@ -1347,7 +1347,7 @@ if (formatted) otherMods.push({ label: formatted, value: "" });
           if (!modDef) continue;
           const rawValue = String(m.value ?? "").trim();
 const formatted = typeof modDef.formatValue === "function"
-  ? String(modDef.formatValue(m, { actor: this.actor }))
+  ? String(modDef.formatValue(m, { actor: this.actor, html: true }))
   : rawValue;
 if (formatted) otherMods.push({ label: formatted, value: "" });
         }
@@ -1401,7 +1401,7 @@ if (formatted) otherMods.push({ label: formatted, value: "" });
         if (!modDef) continue;
         const rawValue = String(m.value ?? "").trim();
 const formatted = typeof modDef.formatValue === "function"
-  ? String(modDef.formatValue(m, { actor: this.actor }))
+  ? String(modDef.formatValue(m, { actor: this.actor, html: true }))
   : rawValue;
 if (formatted) otherMods.push({ label: formatted, value: "" });
       }

@@ -18,6 +18,12 @@ const TRAIT_OPTIONS = [
   { value: "knowledge", label: "Знание" },
 ];
 
+const CONTEXT_OPTIONS = [
+  { value: "",         label: "—" },
+  { value: "reaction", label: "Реакция" },
+  { value: "attack",   label: "Атака" },
+];
+
 // Русские метки для атрибутов (короткие)
 const TRAIT_LABEL_RU = {
   all: "Все",
@@ -69,15 +75,16 @@ export const advantageModifier = {
    * NPC: "Помеха (Атака)" / "Преимущество (Реакция)"
    * We pass the full mod object as JSON string via value; formatValue receives it.
    */
-  formatValue(rawValue, { actor } = {}) {
+  formatValue(rawValue, { actor, html } = {}) {
     let parsed;
     try { parsed = typeof rawValue === "object" ? rawValue : JSON.parse(rawValue); }
     catch (_e) { parsed = {}; }
 
     const nm = this.normalize(parsed);
     const edgeWord = nm.value === "disadvantage" ? "Помеха" : "Преимущество";
-    const edgeColor = nm.value === "disadvantage" ? "#b33" : "#28673b";
-    const edgeLabel = `<span style="color:${edgeColor}">${edgeWord}</span>`;
+    const edgeLabel = html
+      ? `<span style="color:${nm.value === "disadvantage" ? "#b33" : "#33a655"}">${edgeWord}</span>`
+      : edgeWord;
     const traitLabel = TRAIT_LABEL_RU[nm.trait] || "";
     const ctxLabel = nm.context === "reaction" ? "Реакция"
                    : nm.context === "attack" ? "Атака" : "";
@@ -99,9 +106,6 @@ export const advantageModifier = {
     const { escapeHTML } = helpers;
     const nm = this.normalize(mod);
 
-    const isReaction = nm.context === "reaction";
-    const isAttack = nm.context === "attack";
-
     return `
 <div class="adm-status-mod-row" data-mod-type="advantage">
   <div class="adm-status-mod-col">
@@ -119,15 +123,10 @@ export const advantageModifier = {
   </div>
 
   <div class="adm-status-mod-col">
-    <div class="adm-status-mod-title">&nbsp;</div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <label style="white-space:nowrap;cursor:pointer;">
-        <input type="checkbox" name="modCtxReaction" ${isReaction ? "checked" : ""} /> Реакция
-      </label>
-      <label style="white-space:nowrap;cursor:pointer;">
-        <input type="checkbox" name="modCtxAttack" ${isAttack ? "checked" : ""} /> Атака
-      </label>
-    </div>
+    <div class="adm-status-mod-title">Контекст</div>
+    <select name="modContext">
+      ${_buildSelectHTML(CONTEXT_OPTIONS, nm.context)}
+    </select>
   </div>
 
   <button type="button" class="adm-status-mod-del" data-action="adm-status-mod-del" title="Удалить">×</button>
@@ -138,13 +137,7 @@ export const advantageModifier = {
   readEditorRow({ row }) {
     const value = String(row?.querySelector?.('[name="modValue"]')?.value ?? "advantage").trim();
     const trait = String(row?.querySelector?.('[name="modTrait"]')?.value ?? "all").trim();
-    const isReaction = !!row?.querySelector?.('[name="modCtxReaction"]')?.checked;
-    const isAttack = !!row?.querySelector?.('[name="modCtxAttack"]')?.checked;
-
-    // Only one context can be active
-    let context = "";
-    if (isReaction) context = "reaction";
-    else if (isAttack) context = "attack";
+    const context = String(row?.querySelector?.('[name="modContext"]')?.value ?? "").trim();
 
     return { type: "advantage", value, trait, context };
   },
@@ -248,7 +241,7 @@ export function computeEdgeForRoll(actor, traitKey, isReaction, isAttack) {
 
     // Build label for roll dialog status section
     const edgeWord = m.edge === "disadvantage" ? "Помеха" : "Преимущество";
-    const edgeColor = m.edge === "disadvantage" ? "#b33" : "#28673b";
+    const edgeColor = m.edge === "disadvantage" ? "#b33" : "#33a655";
     const edgeLabel = `<span style="color:${edgeColor}">${edgeWord}</span>`;
     const traitLabel = TRAIT_LABEL_RU[m.trait] || "";
     const ctxLabel = m.context === "reaction" ? "(Реакция)"
