@@ -1,4 +1,20 @@
 {
+  "TYPES": {
+    "Actor": {
+      "character": "Character",
+      "npc": "NPC"
+    },
+    "Item": {
+      "weapon": "Weapon",
+      "armor": "Armor",
+      "gear": "Gear",
+      "relic": "Relic",
+      "ability": "Ability",
+      "enemyAbility": "Enemy Ability",
+      "card": "Card",
+      "status": "Status"
+    }
+  },
   "DAGGERHEART": {
     "SECTIONS": {
       "RESOURCES": "Resources",

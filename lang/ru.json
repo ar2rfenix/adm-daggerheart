@@ -1,4 +1,20 @@
 {
+  "TYPES": {
+    "Actor": {
+      "character": "Персонаж",
+      "npc": "НПС"
+    },
+    "Item": {
+      "weapon": "Оружие",
+      "armor": "Броня",
+      "gear": "Предмет",
+      "relic": "Реликвия",
+      "ability": "Способность",
+      "enemyAbility": "Умение противника",
+      "card": "Карта",
+      "status": "Статус"
+    }
+  },
   "DAGGERHEART": {
 "SECTIONS": {
   "RESOURCES": "Ресурсы",
