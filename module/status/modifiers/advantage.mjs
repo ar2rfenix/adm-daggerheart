@@ -167,43 +167,45 @@ export function collectEdgeMods(actor) {
   const FLAG_SCOPE = "adm-daggerheart";
   const results = [];
 
-  const _processDefs = (defs, statusName, activeWhen) => {
-    if (!Array.isArray(defs)) return;
-    for (const def of defs) {
-      const when = String(def?.when || "equip").trim();
-      if (when !== activeWhen) continue;
-      const defName = String(def?.name || statusName || "Статус");
-      for (const m of (def.mods ?? [])) {
-        if (String(m?.type || "").trim() !== "advantage") continue;
-        const nm = advantageModifier.normalize(m);
-        results.push({
-          edge: nm.value,        // "advantage" | "disadvantage"
-          trait: nm.trait,        // "all" | specific trait key
-          context: nm.context,   // "" | "reaction" | "attack"
-          statusName: defName,
-        });
-      }
+  const _pushMods = (mods, statusName) => {
+    for (const m of (mods ?? [])) {
+      if (String(m?.type || "").trim() !== "advantage") continue;
+      const nm = advantageModifier.normalize(m);
+      results.push({
+        edge: nm.value,        // "advantage" | "disadvantage"
+        trait: nm.trait,        // "all" | specific trait key
+        context: nm.context,   // "" | "reaction" | "attack"
+        statusName,
+      });
     }
   };
 
-  // 1. Item statuses (equipped items)
-  for (const item of (actor.items ?? [])) {
-    const equipped = !!item.system?.equipped;
-    if (!equipped && item.type !== "status") continue;
-    const defs = item.getFlag?.(FLAG_SCOPE, "statusDefs");
-    if (Array.isArray(defs)) {
-      _processDefs(defs, item.name, "equip");
-      if (item.type === "status") _processDefs(defs, item.name, "backpack");
+  const _processActiveDefs = (defs, fallbackName, isEquipped) => {
+    if (!Array.isArray(defs)) return;
+    for (const def of defs) {
+      const when = String(def?.when || "equip").trim();
+      if (when === "button") continue;
+      const isActive = when === "backpack" ? true : isEquipped;
+      if (!isActive) continue;
+      _pushMods(def.mods, String(def?.name || fallbackName || "Статус"));
     }
+  };
+
+  // 1. Item statuses
+  for (const item of (actor.items ?? [])) {
+    const container = String(item.getFlag?.(FLAG_SCOPE, "container") || "backpack");
+    const isEquipped = container === "equipped";
+    const defs = item.getFlag?.(FLAG_SCOPE, "statusDefs");
+    if (Array.isArray(defs)) _processActiveDefs(defs, item.name, isEquipped);
   }
 
-  // 2. Actor local statuses
+  // 2. Actor local statuses (always active)
   const actorDefs = actor.getFlag?.(FLAG_SCOPE, "actorStatusDefs");
-  if (Array.isArray(actorDefs)) _processDefs(actorDefs, "", "backpack");
+  if (Array.isArray(actorDefs)) _processActiveDefs(actorDefs, "", true);
 
-  // 3. Applied statuses
+  // 3. Applied statuses (always active)
   const appliedDefs = actor.getFlag?.(FLAG_SCOPE, "appliedStatusDefs");
-  if (Array.isArray(appliedDefs)) _processDefs(appliedDefs, "", "backpack");
+  if (Array.isArray(appliedDefs)) _processActiveDefs(appliedDefs, "", true);
 
   return results;
 }

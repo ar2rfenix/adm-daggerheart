@@ -700,6 +700,12 @@ function _normalizeStatusMod(m) {
   const mm = m ?? {};
   let type = String(mm.type ?? "attribute").trim() || "attribute";
   if (type === "attr") type = "attribute";
+
+  const handler = getModifier(type);
+  if (handler?.normalize) {
+    try { return handler.normalize(mm); } catch (_e) { /* fallback */ }
+  }
+
   const path = String(mm.path ?? mm.attrPath ?? "").trim();
   const value = mm.value != null ? String(mm.value).trim() : "0";
   return { type, path, value };
