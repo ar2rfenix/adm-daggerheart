@@ -21,7 +21,7 @@
 
   {{!-- Кнопка брони --}}
   <div class="adm-defense-armor-row">
-    <button type="button" class="adm-defense-armor-btn {{#if armorActive}}is-active{{/if}}" data-adm-defense-armor {{#unless canUseArmor}}disabled{{/unless}}>
+    <button type="button" class="adm-defense-armor-btn {{#if armorActive}}is-active{{/if}}" data-adm-defense-armor {{#if isDirect}}disabled{{else}}{{#unless canUseArmor}}disabled{{/unless}}{{/if}}>
       <i class="fa-solid fa-shield-halved"></i>
       <span data-adm-defense-armor-text>{{armorValue}}/{{armorMax}}</span>
     </button>
@@ -30,7 +30,7 @@
   {{!-- Опции (кнопки, могут нажиматься многократно) --}}
   <div class="adm-defense-options">
     <button type="button" class="adm-defense-opt-btn" data-adm-defense-cancel-wound>Отменить 1 рану</button>
-    <button type="button" class="adm-defense-opt-btn" data-adm-defense-extra-armor>Позволить трату доп. брони</button>
+    <button type="button" class="adm-defense-opt-btn" data-adm-defense-extra-armor {{#if isDirect}}disabled{{/if}}>Позволить трату доп. брони</button>
   </div>
 
   {{!-- Статусы (заглушка) --}}

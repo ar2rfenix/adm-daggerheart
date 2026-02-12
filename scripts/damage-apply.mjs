@@ -158,8 +158,14 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
     return 1 + this._extraArmorCount;
   }
 
+  // --- Прямой урон: бронёй нельзя защититься ---
+  get _isDirect() {
+    return this._damageType === "direct";
+  }
+
   // --- Можно ли ещё нажать кнопку брони ---
   get _canUseArmor() {
+    if (this._isDirect) return false;
     const sys = this.actor?.system;
     const cur = Number(sys?.resources?.armor?.value ?? 0);
     const max = Number(sys?.resources?.armor?.max ?? 0);
@@ -223,6 +229,7 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
       armorMax,
       armorActive: this._armorUsed > 0 && this._armorUsed >= this._maxArmorClicks,
       canUseArmor: this._canUseArmor,
+      isDirect: this._isDirect,
     };
   }
 
@@ -320,13 +327,22 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
     // Armor button: active only when ALL allowed clicks are used up
     const armorBtn = root.querySelector("[data-adm-defense-armor]");
     if (armorBtn) {
-      const fullyUsed = this._armorUsed > 0 && this._armorUsed >= this._maxArmorClicks;
-      armorBtn.classList.toggle("is-active", fullyUsed);
-      armorBtn.disabled = !ctx.canUseArmor && this._armorUsed === 0;
-      if (this._armorUsed > 0) armorBtn.disabled = false;
+      if (this._isDirect) {
+        armorBtn.disabled = true;
+        armorBtn.classList.remove("is-active");
+      } else {
+        const fullyUsed = this._armorUsed > 0 && this._armorUsed >= this._maxArmorClicks;
+        armorBtn.classList.toggle("is-active", fullyUsed);
+        armorBtn.disabled = !ctx.canUseArmor && this._armorUsed === 0;
+        if (this._armorUsed > 0) armorBtn.disabled = false;
+      }
     }
     const armorText = root.querySelector("[data-adm-defense-armor-text]");
     if (armorText) armorText.textContent = `${ctx.armorValue}/${ctx.armorMax}`;
+
+    // Extra armor button: disabled for direct damage
+    const extraBtn = root.querySelector("[data-adm-defense-extra-armor]");
+    if (extraBtn) extraBtn.disabled = this._isDirect;
 
     // Submit button
     const submitBtn = root.querySelector("[data-adm-defense-submit]");
