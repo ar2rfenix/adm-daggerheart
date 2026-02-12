@@ -75,7 +75,9 @@ export const advantageModifier = {
     catch (_e) { parsed = {}; }
 
     const nm = this.normalize(parsed);
-    const edgeLabel = nm.value === "disadvantage" ? "Помеха" : "Преимущество";
+    const edgeWord = nm.value === "disadvantage" ? "Помеха" : "Преимущество";
+    const edgeColor = nm.value === "disadvantage" ? "#b33" : "#28673b";
+    const edgeLabel = `<span style="color:${edgeColor}">${edgeWord}</span>`;
     const traitLabel = TRAIT_LABEL_RU[nm.trait] || "";
     const ctxLabel = nm.context === "reaction" ? "Реакция"
                    : nm.context === "attack" ? "Атака" : "";
@@ -83,11 +85,9 @@ export const advantageModifier = {
     const isNpc = actor?.type === "npc";
 
     if (isNpc) {
-      // NPC: "Помеха (Атака)" or "Преимущество"
       return ctxLabel ? `${edgeLabel} (${ctxLabel})` : edgeLabel;
     }
 
-    // PC: "Помеха: Сила (Реакция)" or "Преимущество: Все"
     let text = edgeLabel;
     if (traitLabel) text += `: ${traitLabel}`;
     if (ctxLabel) text += ` (${ctxLabel})`;
@@ -120,12 +120,14 @@ export const advantageModifier = {
 
   <div class="adm-status-mod-col">
     <div class="adm-status-mod-title">&nbsp;</div>
-    <label style="white-space:nowrap;cursor:pointer;">
-      <input type="checkbox" name="modCtxReaction" ${isReaction ? "checked" : ""} /> Реакция
-    </label>
-    <label style="white-space:nowrap;cursor:pointer;">
-      <input type="checkbox" name="modCtxAttack" ${isAttack ? "checked" : ""} /> Атака
-    </label>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <label style="white-space:nowrap;cursor:pointer;">
+        <input type="checkbox" name="modCtxReaction" ${isReaction ? "checked" : ""} /> Реакция
+      </label>
+      <label style="white-space:nowrap;cursor:pointer;">
+        <input type="checkbox" name="modCtxAttack" ${isAttack ? "checked" : ""} /> Атака
+      </label>
+    </div>
   </div>
 
   <button type="button" class="adm-status-mod-del" data-action="adm-status-mod-del" title="Удалить">×</button>
@@ -245,7 +247,9 @@ export function computeEdgeForRoll(actor, traitKey, isReaction, isAttack) {
     }
 
     // Build label for roll dialog status section
-    const edgeLabel = m.edge === "disadvantage" ? "Помеха" : "Преимущество";
+    const edgeWord = m.edge === "disadvantage" ? "Помеха" : "Преимущество";
+    const edgeColor = m.edge === "disadvantage" ? "#b33" : "#28673b";
+    const edgeLabel = `<span style="color:${edgeColor}">${edgeWord}</span>`;
     const traitLabel = TRAIT_LABEL_RU[m.trait] || "";
     const ctxLabel = m.context === "reaction" ? "(Реакция)"
                    : m.context === "attack" ? "(Атака)" : "";
