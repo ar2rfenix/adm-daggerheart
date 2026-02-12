@@ -720,6 +720,126 @@ display: inline-flex;
 }
 
 /* =========================
+   Marks (Отметки) widgets
+   ========================= */
+
+.adm-marks-widgets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* --- DOTS --- */
+.adm-marks-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.adm-marks-dot {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(200, 195, 220, 0.6);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.adm-marks-dot:hover {
+  border-color: rgba(243, 194, 103, 0.8);
+}
+
+.adm-marks-dot.is-filled {
+  background: #f3c267;
+  border-color: #f3c267;
+}
+
+/* --- COUNTER --- */
+.adm-marks-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+  padding: 2px 8px;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+  background: rgb(62 59 93);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.adm-marks-counter:hover {
+  background: rgb(80 75 115);
+}
+
+.adm-marks-counter-val {
+  color: #f3c267;
+  letter-spacing: 0.5px;
+}
+
+/* --- PLAYER LIST --- */
+.adm-marks-playerlist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.adm-marks-player {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid rgba(200, 195, 220, 0.3);
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  background: rgb(62 59 93);
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.adm-marks-player:hover {
+  border-color: rgba(243, 194, 103, 0.6);
+}
+
+.adm-marks-player.is-selected {
+  background: rgba(51, 166, 85, 0.35);
+  border-color: #33a655;
+  color: #fff;
+}
+
+.adm-marks-player.is-offline {
+  opacity: 0.5;
+}
+
+.adm-marks-player.is-offline.is-selected {
+  opacity: 0.75;
+}
+
+/* --- TEXT --- */
+.adm-marks-text {
+  display: flex;
+}
+
+.adm-marks-text-input {
+  flex: 1;
+  background: rgb(42 40 65);
+  border: 1px solid rgba(200, 195, 220, 0.3);
+  border-radius: 4px;
+  padding: 3px 8px;
+  color: inherit;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.adm-marks-text-input:focus {
+  border-color: rgba(243, 194, 103, 0.6);
+  outline: none;
+}
+
+/* =========================
    Traits (Character) — v2
    ========================= */
 

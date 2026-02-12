@@ -113,6 +113,79 @@
                 </div>
               {{/if}}
 
+              <!-- MARKS WIDGETS -->
+              {{#if s.marksWidgets.length}}
+                <div class="adm-marks-widgets" style="margin-top:6px;">
+                  {{#each s.marksWidgets as |w|}}
+
+                    {{!-- DOTS --}}
+                    {{#if (eq w.variant "dots")}}
+                      <div class="adm-marks-dots"
+                           data-action="adm-marks-interact"
+                           data-marks-variant="dots"
+                           data-marks-source="{{w.sourceType}}"
+                           data-marks-actor-uuid="{{w.actorUuid}}"
+                           data-marks-status-id="{{w.statusId}}"
+                           data-marks-item-id="{{w.itemId}}"
+                           data-marks-mod-idx="{{w.modIdx}}"
+                           data-marks-max="{{w.max}}">
+                        {{#each w.dots as |filled|}}
+                          <span class="adm-marks-dot {{#if filled}}is-filled{{/if}}" data-dot-idx="{{@index}}"></span>
+                        {{/each}}
+                      </div>
+                    {{/if}}
+
+                    {{!-- COUNTER --}}
+                    {{#if (eq w.variant "counter")}}
+                      <div class="adm-marks-counter"
+                           data-action="adm-marks-interact"
+                           data-marks-variant="counter"
+                           data-marks-source="{{w.sourceType}}"
+                           data-marks-actor-uuid="{{w.actorUuid}}"
+                           data-marks-status-id="{{w.statusId}}"
+                           data-marks-item-id="{{w.itemId}}"
+                           data-marks-mod-idx="{{w.modIdx}}"
+                           data-marks-max="{{w.max}}"
+                           data-marks-current="{{w.current}}">
+                        <span class="adm-marks-counter-val">{{w.display}}</span>
+                      </div>
+                    {{/if}}
+
+                    {{!-- PLAYER LIST --}}
+                    {{#if (eq w.variant "playerList")}}
+                      <div class="adm-marks-playerlist"
+                           data-action="adm-marks-interact"
+                           data-marks-variant="playerList"
+                           data-marks-source="{{w.sourceType}}"
+                           data-marks-actor-uuid="{{w.actorUuid}}"
+                           data-marks-status-id="{{w.statusId}}"
+                           data-marks-item-id="{{w.itemId}}"
+                           data-marks-mod-idx="{{w.modIdx}}">
+                        {{#each w.players as |p|}}
+                          <span class="adm-marks-player {{#if p.selected}}is-selected{{/if}} {{#unless p.active}}is-offline{{/unless}}"
+                                data-user-id="{{p.userId}}">{{p.name}}</span>
+                        {{/each}}
+                      </div>
+                    {{/if}}
+
+                    {{!-- TEXT --}}
+                    {{#if (eq w.variant "text")}}
+                      <div class="adm-marks-text"
+                           data-action="adm-marks-interact"
+                           data-marks-variant="text"
+                           data-marks-source="{{w.sourceType}}"
+                           data-marks-actor-uuid="{{w.actorUuid}}"
+                           data-marks-status-id="{{w.statusId}}"
+                           data-marks-item-id="{{w.itemId}}"
+                           data-marks-mod-idx="{{w.modIdx}}">
+                        <input type="text" class="adm-marks-text-input" value="{{w.text}}" placeholder="..." />
+                      </div>
+                    {{/if}}
+
+                  {{/each}}
+                </div>
+              {{/if}}
+
             </div>
           </div>
 

@@ -383,6 +383,19 @@ class ADMStatusDialog extends Dialog {
       }
     });
 
+    // Marks modifier: toggle fields based on variant selection
+    modsWrap?.addEventListener("change", (ev) => {
+      const sel = ev.target;
+      if (!sel || !sel.matches?.('[data-adm-marks-variant]')) return;
+      const row = sel.closest?.('[data-mod-type="marks"]');
+      if (!row) return;
+      const v = sel.value;
+      const valCol = row.querySelector('.adm-marks-value-col');
+      const noCol  = row.querySelector('.adm-marks-noowner-col');
+      if (valCol) valCol.style.display = (v === "dots" || v === "counter") ? "" : "none";
+      if (noCol)  noCol.style.display  = (v === "playerList") ? "" : "none";
+    });
+
     addSelect?.addEventListener("change", (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
@@ -734,6 +747,8 @@ async function _openStatusDialog({ doc, app, mode, def, flagKey = FLAG_KEY_ITEM,
           const modDef = getModifier(m?.type);
           // базовый фильтр: не сохраняем полностью пустые строки
           if (!m) return false;
+          // marks всегда сохраняем (variant определяет поведение)
+          if (m.type === "marks") return true;
           if ((m.value ?? "") === "" && (m.path ?? "") === "") return false;
           // сохранение по умолчанию как раньше: для атрибутов нужен path
           const kind = String(modDef?.kind ?? "persistent");

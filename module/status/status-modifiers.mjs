@@ -10,6 +10,7 @@ import "./modifiers/attribute_change.mjs";
 import "./modifiers/instant_attribute.mjs";
 import "./modifiers/resilience.mjs";
 import "./modifiers/advantage.mjs";
+import "./modifiers/marks.mjs";
 
 const FLAG_SCOPE = "adm-daggerheart";
 

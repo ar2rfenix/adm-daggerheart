@@ -1246,6 +1246,72 @@ context.backpackDefaultTab =
   // -------------------------
   // Active statuses (items / actor / applied)
   // -------------------------
+
+  // Helper: build marks widget data for a status definition
+  const _buildMarksWidgets = (def, actor, sourceInfo) => {
+    const widgets = [];
+    const mods = Array.isArray(def.mods) ? def.mods : [];
+    const marksState = def._marks ?? {};
+
+    for (let mi = 0; mi < mods.length; mi++) {
+      const m = mods[mi];
+      if (String(m.type ?? "").trim() !== "marks") continue;
+
+      const variant = String(m.variant ?? "dots").trim();
+      const state = marksState[String(mi)] ?? {};
+
+      const widget = {
+        variant,
+        modIdx: mi,
+        ...sourceInfo,
+      };
+
+      if (variant === "dots") {
+        const max = Math.max(0, Math.min(admEvalStatusValue(actor, m.value) || 0, 50));
+        const filled = Math.max(0, Math.min(Number(state.filled ?? 0) || 0, max));
+        widget.max = max;
+        widget.filled = filled;
+        widget.dots = [];
+        for (let i = 0; i < max; i++) widget.dots.push(i < filled);
+      } else if (variant === "counter") {
+        const max = Math.max(0, Math.min(admEvalStatusValue(actor, m.value) || 0, 9999));
+        const current = Math.max(0, Math.min(Number(state.current ?? 0) || 0, max));
+        widget.max = max;
+        widget.current = current;
+        widget.display = `${current}/${max}`;
+      } else if (variant === "playerList") {
+        const noOwner = !!m.noOwner;
+        const ownerUuid = sourceInfo.ownerActorUuid ?? "";
+        const selected = Array.isArray(state.selected) ? state.selected : [];
+
+        // All players (non-GM), optionally excluding owner
+        const players = [];
+        for (const u of (game.users ?? [])) {
+          if (u.isGM) continue;
+          // Exclude owner character if noOwner is set
+          if (noOwner && ownerUuid) {
+            const charUuid = u.character?.uuid ?? "";
+            if (charUuid && charUuid === ownerUuid) continue;
+          }
+          players.push({
+            userId: u.id,
+            name: u.character?.name ?? u.name ?? "?",
+            active: !!u.active,
+            selected: selected.includes(u.id),
+          });
+        }
+        widget.noOwner = noOwner;
+        widget.players = players;
+      } else if (variant === "text") {
+        widget.text = String(state.text ?? "");
+      }
+
+      widgets.push(widget);
+    }
+
+    return widgets;
+  };
+
   const activeStatuses = [];
 
   for (const it of this.actor.items) {
@@ -1298,6 +1364,15 @@ if (formatted) otherMods.push({ label: formatted, value: "" });
       const statusImg = String(def?.img ?? it?.img ?? "icons/svg/aura.svg");
 
       const isStatusItem = it.type === "status";
+
+      const marksWidgets = _buildMarksWidgets(def, this.actor, {
+        sourceType: "item",
+        actorUuid: this.actor.uuid,
+        statusId: String(def.id ?? ""),
+        itemId: it.id,
+        ownerActorUuid: this.actor.uuid,
+      });
+
       activeStatuses.push({
         img: statusImg,
         name: String(def.name ?? "Статус"),
@@ -1305,6 +1380,7 @@ if (formatted) otherMods.push({ label: formatted, value: "" });
         sourceName: it.name,
         textHTML,
         traitMods,
+        marksWidgets,
         isStatusItem,
         statusItemId: isStatusItem ? it.id : null,
         statusItemActorId: isStatusItem ? this.actor.id : null,
@@ -1361,6 +1437,14 @@ if (formatted) otherMods.push({ label: formatted, value: "" });
 
       const statusImg = String(def?.img ?? "icons/svg/aura.svg");
 
+      const marksWidgets = _buildMarksWidgets(def, this.actor, {
+        sourceType: "actorStatus",
+        actorUuid: this.actor.uuid,
+        statusId: id,
+        itemId: "",
+        ownerActorUuid: this.actor.uuid,
+      });
+
       activeStatuses.push({
         img: statusImg,
         id,
@@ -1370,6 +1454,7 @@ if (formatted) otherMods.push({ label: formatted, value: "" });
         sourceName: "",
         textHTML,
         traitMods,
+        marksWidgets,
       });
     }
   } catch (e) {}
@@ -1418,6 +1503,16 @@ if (formatted) otherMods.push({ label: formatted, value: "" });
 
     const statusImg = String(def?.img ?? "icons/svg/aura.svg");
 
+    // For marks owner detection: use the actor who owns the item that generated the status
+    const marksOwnerUuid = String(def?.source?.casterUuid ?? this.actor.uuid ?? "");
+    const marksWidgets = _buildMarksWidgets(def, this.actor, {
+      sourceType: "applied",
+      actorUuid: this.actor.uuid,
+      statusId: String(def.id ?? ""),
+      itemId: "",
+      ownerActorUuid: marksOwnerUuid,
+    });
+
     activeStatuses.push({
       img: statusImg,
       name: String(def.name ?? "Статус"),
@@ -1425,6 +1520,7 @@ if (formatted) otherMods.push({ label: formatted, value: "" });
       sourceName: casterName ? `${srcName} — ${casterName}` : srcName,
       textHTML,
       traitMods,
+      marksWidgets,
       isApplied: true,
       appliedStatusId: String(def.id ?? ""),
       actorUuid: String(this.actor.uuid ?? ""),

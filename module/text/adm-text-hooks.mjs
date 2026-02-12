@@ -26,6 +26,7 @@ export function admTextHooksInit() {
   _initSockets();
   _installGlobalClickHandler();
   _installResButtonStyles();
+  _installMarksHandlers();
 }
 
 /**
@@ -1201,6 +1202,7 @@ __socket.register("gmTransferItem", _gmTransferItem);
 	  __socket.register("flashTokenOnce", _flashTokenOnceLocal);
 
 __socket.register("gmApplyActorResourceDelta", _gmApplyActorResourceDelta);
+      __socket.register("gmUpdateMarksState", _gmUpdateMarksState);
       // удобно для проверки из консоли
       globalThis.__admTextSocket = __socket;
 
@@ -1494,5 +1496,169 @@ async function _gmTransferItem({ fromActorUuid, toActorUuid, itemId } = {}) {
   } catch (e) {
     console.error(e);
     return { ok: false, reason: "Ошибка на стороне ГМа (см. консоль)." };
+  }
+}
+
+/* -------------------------------------------- */
+/* Marks (Отметки) — interactive widgets        */
+/* -------------------------------------------- */
+
+function _installMarksHandlers() {
+  if (globalThis.__admMarksHandlersInstalled) return;
+  globalThis.__admMarksHandlersInstalled = true;
+
+  // LMB: dots fill, counter +1, player toggle
+  document.addEventListener("click", (ev) => {
+    // Dots: click on a dot
+    const dot = ev.target?.closest?.(".adm-marks-dot");
+    if (dot) {
+      const wrap = dot.closest("[data-marks-variant='dots']");
+      if (!wrap) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      const idx = Number(dot.dataset.dotIdx ?? -1);
+      const max = Number(wrap.dataset.marksMax ?? 0);
+      const currentFilled = wrap.querySelectorAll(".adm-marks-dot.is-filled").length;
+      // LMB: fill up to clicked dot (idx+1), or if already filled exactly to this dot -> clear it
+      const newFilled = (currentFilled === idx + 1) ? idx : idx + 1;
+      _sendMarksUpdate(wrap, { filled: Math.max(0, Math.min(newFilled, max)) });
+      return;
+    }
+
+    // Counter: LMB = +1
+    const counter = ev.target?.closest?.("[data-marks-variant='counter']");
+    if (counter) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const cur = Number(counter.dataset.marksCurrent ?? 0);
+      const max = Number(counter.dataset.marksMax ?? 0);
+      _sendMarksUpdate(counter, { current: Math.min(cur + 1, max) });
+      return;
+    }
+
+    // Player list: toggle selection
+    const playerEl = ev.target?.closest?.(".adm-marks-player");
+    if (playerEl) {
+      const wrap = playerEl.closest("[data-marks-variant='playerList']");
+      if (!wrap) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      const userId = playerEl.dataset.userId;
+      if (!userId) return;
+      // Read current selection from DOM
+      const selected = [];
+      for (const el of wrap.querySelectorAll(".adm-marks-player.is-selected")) {
+        selected.push(el.dataset.userId);
+      }
+      // Toggle
+      const idx = selected.indexOf(userId);
+      if (idx >= 0) selected.splice(idx, 1);
+      else selected.push(userId);
+      _sendMarksUpdate(wrap, { selected });
+      return;
+    }
+  }, true);
+
+  // RMB: dots clear, counter -1
+  document.addEventListener("contextmenu", (ev) => {
+    const dot = ev.target?.closest?.(".adm-marks-dot");
+    if (dot) {
+      const wrap = dot.closest("[data-marks-variant='dots']");
+      if (!wrap) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      const idx = Number(dot.dataset.dotIdx ?? 0);
+      // RMB: clear from this dot onwards
+      _sendMarksUpdate(wrap, { filled: Math.max(0, idx) });
+      return;
+    }
+
+    const counter = ev.target?.closest?.("[data-marks-variant='counter']");
+    if (counter) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const cur = Number(counter.dataset.marksCurrent ?? 0);
+      _sendMarksUpdate(counter, { current: Math.max(cur - 1, 0) });
+      return;
+    }
+  }, true);
+
+  // Text: on blur or Enter
+  document.addEventListener("change", (ev) => {
+    const input = ev.target?.closest?.(".adm-marks-text-input");
+    if (!input) return;
+    const wrap = input.closest("[data-marks-variant='text']");
+    if (!wrap) return;
+    _sendMarksUpdate(wrap, { text: String(input.value ?? "") });
+  }, true);
+}
+
+async function _sendMarksUpdate(el, newState) {
+  const d = el.dataset;
+  const payload = {
+    sourceType: d.marksSource,
+    actorUuid: d.marksActorUuid,
+    statusId: d.marksStatusId,
+    itemId: d.marksItemId || "",
+    modIdx: d.marksModIdx,
+    state: newState,
+  };
+
+  const isGM = !!game.user?.isGM;
+
+  if (isGM) {
+    await _gmUpdateMarksState(payload);
+    return;
+  }
+
+  if (__socket?.executeAsGM) {
+    await __socket.executeAsGM("gmUpdateMarksState", payload);
+    return;
+  }
+
+  ui?.notifications?.error?.("SocketLib не готов. Нужен GM для обновления отметок.");
+}
+
+async function _gmUpdateMarksState(payload) {
+  if (!game.user?.isGM) return;
+
+  const { sourceType, actorUuid, statusId, itemId, modIdx, state } = payload ?? {};
+  if (!actorUuid || !statusId) return;
+
+  const actor = await fromUuid(actorUuid).catch(() => null);
+  if (!actor || !(actor instanceof Actor)) return;
+
+  const mi = String(modIdx ?? "0");
+
+  if (sourceType === "item") {
+    // Update _marks on item's statusDefs
+    if (!itemId) return;
+    const item = actor.items?.get(itemId);
+    if (!item) return;
+    const raw = item.getFlag(SCOPE, FLAG_ITEM_DEFS);
+    const arr = Array.isArray(raw) ? foundry.utils.deepClone(raw) : [];
+    const def = arr.find(d => String(d?.id ?? "") === statusId);
+    if (!def) return;
+    if (!def._marks) def._marks = {};
+    def._marks[mi] = state;
+    await item.setFlag(SCOPE, FLAG_ITEM_DEFS, arr);
+  } else if (sourceType === "actorStatus") {
+    // Update _marks on actorStatusDefs
+    const raw = actor.getFlag(SCOPE, "actorStatusDefs");
+    const arr = Array.isArray(raw) ? foundry.utils.deepClone(raw) : [];
+    const def = arr.find(d => String(d?.id ?? "") === statusId);
+    if (!def) return;
+    if (!def._marks) def._marks = {};
+    def._marks[mi] = state;
+    await actor.setFlag(SCOPE, "actorStatusDefs", arr);
+  } else if (sourceType === "applied") {
+    // Update _marks on appliedStatusDefs
+    const raw = actor.getFlag(SCOPE, FLAG_APPLIED);
+    const arr = Array.isArray(raw) ? foundry.utils.deepClone(raw) : [];
+    const def = arr.find(d => String(d?.id ?? "") === statusId);
+    if (!def) return;
+    if (!def._marks) def._marks = {};
+    def._marks[mi] = state;
+    await actor.setFlag(SCOPE, FLAG_APPLIED, arr);
   }
 }
