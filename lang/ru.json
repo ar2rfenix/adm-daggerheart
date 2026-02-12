@@ -2,7 +2,7 @@
   "TYPES": {
     "Actor": {
       "character": "Персонаж",
-      "npc": "НПС"
+      "npc": "Противник"
     },
     "Item": {
       "weapon": "Оружие",

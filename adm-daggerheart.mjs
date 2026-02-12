@@ -32,6 +32,7 @@ function clampNonNegativeNumber(n, fallback = 0) {
 }
 
 Hooks.once("init", async () => {
+  CONFIG.Actor.defaultType = "npc";
   CONFIG.Combat.documentClass = ADMCombat;
 
 	admInitDistance();
