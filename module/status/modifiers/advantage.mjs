@@ -226,11 +226,12 @@ export function computeEdgeForRoll(actor, traitKey, isReaction, isAttack) {
   let disDelta = 0;
   const labels = [];
 
+  const isNpc = actor?.type === "npc";
   const tk = String(traitKey || "").trim().toLowerCase();
 
   for (const m of mods) {
-    // Check trait match
-    if (m.trait !== "all" && m.trait !== tk) continue;
+    // NPC has no traits — skip trait filtering entirely
+    if (!isNpc && m.trait !== "all" && m.trait !== tk) continue;
 
     // Check context match
     if (m.context === "reaction" && !isReaction) continue;
@@ -244,7 +245,6 @@ export function computeEdgeForRoll(actor, traitKey, isReaction, isAttack) {
     }
 
     // Build label for roll dialog status section
-    const isNpc = actor?.type === "npc";
     const edgeLabel = m.edge === "disadvantage" ? "Помеха" : "Преимущество";
     const traitLabel = TRAIT_LABEL_RU[m.trait] || "";
     const ctxLabel = m.context === "reaction" ? "(Реакция)"

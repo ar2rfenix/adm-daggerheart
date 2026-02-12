@@ -714,13 +714,23 @@ this._admState = {
 
   _recomputeStatusEdge() {
     const isAttack = !!(this._admState.weaponDamageFormula || this._admState.weaponName);
-    // NPC: no trait filtering, pass "all"
     this._admStatusEdge = computeEdgeForRoll(
       this.actor,
       "all",
       this._admState.isReaction,
       isAttack,
     );
+  }
+
+  _updateStatusEdgeUI() {
+    const root = this.element;
+    if (!root) return;
+    const wrap = root.querySelector("[data-adm-status-edge-list]");
+    if (!wrap) return;
+    const labels = this._admStatusEdge.labels;
+    wrap.innerHTML = labels.length
+      ? labels.map(l => `<div>${l}</div>`).join("")
+      : `<div style="opacity:.75;">—</div>`;
   }
 
   async _prepareContext() {
@@ -808,6 +818,8 @@ this._admState = {
         "change",
         () => {
           this._admState.isReaction = !!reactEl.checked;
+          this._recomputeStatusEdge();
+          this._updateStatusEdgeUI();
         },
         { passive: true }
       );
