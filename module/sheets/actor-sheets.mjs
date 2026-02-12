@@ -3170,11 +3170,35 @@ queueSave(p, v);
     });
   });
 
-  // Armor icon → open defense dialog
-  html.querySelector("[data-adm-open-defense]")?.addEventListener("click", (ev) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-    admOpenDefenseDialog(this.actor, { dmg: 0, damageType: "physical", stress: 0 });
+  // Armor elements → open defense dialog with last damage message data
+  html.querySelectorAll("[data-adm-open-defense]").forEach((el) => {
+    el.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      let dmg = 0, damageType = "physical", stress = 0;
+      try {
+        const msgId = globalThis.__admLastDmgMsgIdV1;
+        if (msgId) {
+          const msg = game.messages?.get(msgId);
+          const st = msg?.flags?.["adm-daggerheart"]?.state;
+          if (st) {
+            damageType = st.damageType || "physical";
+            // Ищем таргет этого актёра, иначе берём общий урон
+            const allT = [...(st.hitTargets ?? []), ...(st.missTargets ?? [])];
+            const mine = allT.find(t => {
+              const scene = t.sceneId ? game.scenes?.get(t.sceneId) : canvas?.scene;
+              const td = scene?.tokens?.get(t.tokenId);
+              return td?.actor?.id === this.actor.id;
+            });
+            dmg = mine ? (mine.dmg ?? 0) : 0;
+            stress = mine ? (mine.stress ?? 0) : 0;
+          }
+        }
+      } catch (_e) {}
+
+      admOpenDefenseDialog(this.actor, { dmg, damageType, stress });
+    });
   });
 
   // Add experience

@@ -152,13 +152,14 @@
               class="adm-inv-icon"
               src="{{equippedArmor.img}}"
               data-item-id="{{equippedArmor.id}}"
+              data-adm-open-defense
               title="{{equippedArmor.name}}"
             />
           </div>
 
           <div class="adm-inv-col-main">
             <div class="adm-inv-topline">
-              <div class="adm-inv-name">
+              <div class="adm-inv-name" data-adm-open-defense>
                 {{#if equippedArmor.tier}}[{{equippedArmor.tier}}] {{/if}}
                 {{equippedArmor.name}}
               </div>
@@ -426,13 +427,14 @@
                     class="adm-inv-icon"
                     src="{{it.img}}"
                     data-item-id="{{it.id}}"
+                    data-adm-open-defense
                     title="{{it.name}}"
                   />
                 </div>
 
                 <div class="adm-inv-col-main">
                   <div class="adm-inv-topline">
-                    <div class="adm-inv-name">
+                    <div class="adm-inv-name" data-adm-open-defense>
                       {{#if it.tier}}[{{it.tier}}] {{/if}}
                       {{it.name}}
                     </div>
