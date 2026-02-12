@@ -9,7 +9,7 @@
 
   {{!-- Оценка --}}
   <div class="adm-defense-assess" data-adm-defense-assess>
-    <span class="adm-defense-severity" data-adm-defense-severity>{{severityLabel}}, вы получите {{woundsLabel}}.</span>
+    <span class="adm-defense-severity" data-adm-defense-severity>{{#if noWounds}}{{severityLabel}}.{{else}}{{severityLabel}}, вы получите {{woundsLabel}}.{{/if}}</span>
   </div>
 
   {{!-- Стресс --}}

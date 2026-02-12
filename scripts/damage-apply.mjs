@@ -198,15 +198,18 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
     const armorMax = Number(sys?.resources?.armor?.max ?? 0);
     const displayArmor = armorVal + this._armorUsed;
 
+    const noWounds = wounds <= 0;
+
     return {
       dmg: this._dmg,
       damageTypeLabel: _dmgTypeShort(this._damageType),
-      severityLabel: severityRu(severity),
-      woundsLabel: woundsRu(wounds),
+      severityLabel: noWounds ? "Вы не получите ран" : severityRu(severity),
+      woundsLabel: noWounds ? "" : woundsRu(wounds),
+      noWounds,
       stress: this._stress,
       armorValue: Math.min(displayArmor, armorMax),
       armorMax,
-      armorActive: this._armorUsed > 0,
+      armorActive: this._armorUsed > 0 && this._armorUsed >= this._maxArmorClicks,
       canUseArmor: this._canUseArmor,
     };
   }
@@ -294,12 +297,19 @@ class ADMDefenseDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Bas
 
     // Severity text
     const sevEl = root.querySelector("[data-adm-defense-severity]");
-    if (sevEl) sevEl.textContent = `${ctx.severityLabel}, вы получите ${ctx.woundsLabel}.`;
+    if (sevEl) {
+      if (this._currentWounds <= 0) {
+        sevEl.textContent = "Вы не получите ран.";
+      } else {
+        sevEl.textContent = `${ctx.severityLabel}, вы получите ${ctx.woundsLabel}.`;
+      }
+    }
 
-    // Armor button
+    // Armor button: active only when ALL allowed clicks are used up
     const armorBtn = root.querySelector("[data-adm-defense-armor]");
     if (armorBtn) {
-      armorBtn.classList.toggle("is-active", ctx.armorActive);
+      const fullyUsed = this._armorUsed > 0 && this._armorUsed >= this._maxArmorClicks;
+      armorBtn.classList.toggle("is-active", fullyUsed);
       armorBtn.disabled = !ctx.canUseArmor && this._armorUsed === 0;
       if (this._armorUsed > 0) armorBtn.disabled = false;
     }
