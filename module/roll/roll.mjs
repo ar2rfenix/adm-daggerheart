@@ -225,8 +225,8 @@ class ADMRollPCDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Base
     out.fearDie = this._admState.fearDie;
     out.mod = this._admState.mod;
 
-    out.adv = this._admState.adv;
-    out.dis = this._admState.dis;
+    out.adv = (this._admState.adv || 0) + (this._admStatusEdge.advDelta || 0);
+    out.dis = (this._admState.dis || 0) + (this._admStatusEdge.disDelta || 0);
 
     out.hopeDieSrc = _dieSvgSrcDefault(out.hopeDie);
     out.fearDieSrc = _dieSvgSrcDefault(out.fearDie);
@@ -250,8 +250,8 @@ class ADMRollPCDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Base
     out.fearDie = this._admState.fearDie;
     out.mod = this._admState.mod;
 
-    out.adv = this._admState.adv;
-    out.dis = this._admState.dis;
+    out.adv = (this._admState.adv || 0) + (this._admStatusEdge.advDelta || 0);
+    out.dis = (this._admState.dis || 0) + (this._admStatusEdge.disDelta || 0);
 
     out.hopeDieSrc = _dieSvgSrcDefault(out.hopeDie);
     out.fearDieSrc = _dieSvgSrcDefault(out.fearDie);
@@ -387,8 +387,12 @@ class ADMRollPCDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Base
       const key = which === "adv" ? "adv" : "dis";
       const n = Math.max(0, _asInt(v, 0));
       this._admState[key] = n;
+      // Display combined: manual + status edge
+      const statusDelta = key === "adv"
+        ? (this._admStatusEdge.advDelta || 0)
+        : (this._admStatusEdge.disDelta || 0);
       const el = root.querySelector(`[data-adm-die-icon="${CSS.escape(key)}"]`);
-      if (el) el.textContent = String(n);
+      if (el) el.textContent = String(n + statusDelta);
     };
 
     const bumpCounter = (which, delta) => {
@@ -590,11 +594,17 @@ class ADMRollPCDialog extends (HandlebarsMixin ? HandlebarsMixin(BaseApp) : Base
     const root = this.element;
     if (!root) return;
     const wrap = root.querySelector("[data-adm-status-edge-list]");
-    if (!wrap) return;
-    const labels = this._admStatusEdge.labels;
-    wrap.innerHTML = labels.length
-      ? labels.map(l => `<div>${l}</div>`).join("")
-      : `<div style="opacity:.75;">—</div>`;
+    if (wrap) {
+      const labels = this._admStatusEdge.labels;
+      wrap.innerHTML = labels.length
+        ? labels.map(l => `<div>${l}</div>`).join("")
+        : `<div style="opacity:.75;">—</div>`;
+    }
+    // Update adv/dis dice counters (manual + status edge)
+    const advEl = root.querySelector('[data-adm-die-icon="adv"]');
+    const disEl = root.querySelector('[data-adm-die-icon="dis"]');
+    if (advEl) advEl.textContent = String((this._admState.adv || 0) + (this._admStatusEdge.advDelta || 0));
+    if (disEl) disEl.textContent = String((this._admState.dis || 0) + (this._admStatusEdge.disDelta || 0));
   }
 
   async _onAction(ev) {
@@ -725,8 +735,6 @@ this._admState = {
     out.totalMod = (Number(this._admState.attackMod) || 0) + out.expMod;
 
     out.statusEdgeLabels = this._admStatusEdge.labels;
-    // Net edge for NPC: determines default mode
-    out.npcNetEdge = (this._admStatusEdge.advDelta || 0) - (this._admStatusEdge.disDelta || 0);
 
     return out;
   }
@@ -743,7 +751,6 @@ this._admState = {
     out.totalMod = (Number(this._admState.attackMod) || 0) + out.expMod;
 
     out.statusEdgeLabels = this._admStatusEdge.labels;
-    out.npcNetEdge = (this._admStatusEdge.advDelta || 0) - (this._admStatusEdge.disDelta || 0);
 
     return out;
   }
@@ -877,13 +884,6 @@ root.querySelectorAll('[data-adm-action="roll"]').forEach((btn) => {
 let mode = String(btn.dataset.admRollMode || "normal").toLowerCase();
 if (mode === "adv") mode = "advantage";
 if (mode === "dis") mode = "disadvantage";
-
-// Apply status edge to NPC roll mode
-const netEdge = (this._admStatusEdge.advDelta || 0) - (this._admStatusEdge.disDelta || 0);
-if (netEdge > 0 && mode === "normal") mode = "advantage";
-else if (netEdge > 0 && mode === "disadvantage") mode = "normal";
-else if (netEdge < 0 && mode === "normal") mode = "disadvantage";
-else if (netEdge < 0 && mode === "advantage") mode = "normal";
 
 await admNpcRollToChat(this.actor, this._admState, mode);
 

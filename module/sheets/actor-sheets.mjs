@@ -1395,7 +1395,7 @@ if (formatted) otherMods.push({ label: formatted, value: "" });
         if (!modDef) continue;
         const rawValue = String(m.value ?? "").trim();
 const formatted = typeof modDef.formatValue === "function"
-  ? String(modDef.formatValue(rawValue))
+  ? String(modDef.formatValue(m, { actor: this.actor }))
   : rawValue;
 if (formatted) otherMods.push({ label: formatted, value: "" });
       }

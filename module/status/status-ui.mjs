@@ -80,7 +80,7 @@ mods: mods
 
     const rawValue = String(m.value ?? "").trim();
     const value = (modDef?.formatValue)
-      ? String(modDef.formatValue(rawValue))
+      ? String(modDef.formatValue(m))
       : rawValue;
 
     return {
